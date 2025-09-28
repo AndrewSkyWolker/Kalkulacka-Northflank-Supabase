@@ -44,10 +44,13 @@
             debugLog("Aplikace se spouští...");
         </script>
 
-        <!-- Dočasné tlačítko pro debug - přidejte do sticky-header-wrapper -->
-        <button onclick="window.showProfileModal()" style="position: fixed; top: 10px; left: 200px; z-index: 1000;">
-            🐛 Zobrazit Profil Modal
-        </button>
+                <!-- Dočasná debug tlačítka -->
+        <div
+            style="position: fixed; bottom: 30px; left: 150px; z-index: 1000; background: white; padding: 10px; border: 1px solid #ccc;">
+            <button onclick="window.showProfileModal()">🐛 Zobrazit Profily</button>
+            <button onclick="window.forceReloadProfiles()">🔄 Reload z DB</button>
+            <button onclick="localStorage.clear(); console.log('🧹 localStorage vyčištěn')">🧹 Clear Cache</button>
+        </div>
 
         <!-- Indikátor načítání -->
         <div id="globalLoading"
@@ -379,6 +382,20 @@
 
         // Hlavní inicializační funkce
         async function initializeApplication() {
+
+            console.log("🌍 Environment:", {
+                hostname: window.location.hostname,
+                href: window.location.href,
+                isLocalhost: window.location.hostname === 'localhost' || window.location.hostname === '192.168.100.156:5000',
+                isNorthflank: window.location.hostname.includes('northflank')
+            });
+
+            // Speciální nastavení pro Northflank
+            if (window.location.hostname.includes('northflank')) {
+                console.log("🚀 Northflank environment detected");
+                // Možná budete potřebovat jiné URL pro Supabase
+            }
+
             console.log("🎯 initializeApplication volána");
 
             try {
@@ -744,9 +761,11 @@
             }
         });
 
+        // Vylepšená loadUserProfiles pro produkci
         window.loadUserProfiles = async function () {
-            console.log("🎯 loadUserProfiles volána");
-            console.log("👤 CurrentUser:", window.currentUser);
+            console.log("🔍 localStorage keys:", Object.keys(localStorage));
+            console.log("🔍 Current user ID:", window.currentUser?.id);
+            console.log("🎯 loadUserProfiles volána - PRODUKCE");
 
             if (window.isLoadingProfiles) {
                 console.log("⚠️ Načítání již probíhá - přeskočeno");
@@ -756,46 +775,54 @@
             window.isLoadingProfiles = true;
 
             try {
-                // Kontrola currentUser
                 if (!window.currentUser) {
                     console.error("❌ loadUserProfiles: currentUser je undefined");
                     window.userProfiles = [];
                     return;
                 }
 
-                console.log("🔍 Načítám profily pro user:", window.currentUser.id);
+                console.log("👤 CurrentUser:", window.currentUser.id);
 
-                // 1. Pokus o načtení z Supabase
-                if (window.supabaseClient && window.currentUser.id && !window.currentUser.id.startsWith('local-user-')) {
+                // 1. POKUS O NAČTENÍ Z SUPABASE (VŽDY V PRODUKCI)
+                if (window.supabaseClient) {
                     try {
-                        console.log("🔍 Zkouším načíst z Supabase...");
+                        console.log("🔍 Načítám čerstvá data z Supabase...");
                         const { data, error } = await window.supabaseClient
                             .from('profiles')
                             .select('*')
-                            .eq('user_id', window.currentUser.id);
+                            .eq('user_id', window.currentUser.id)
+                            .order('created_at', { ascending: true });
 
                         if (error) {
                             console.error("❌ Chyba Supabase:", error);
-                        } else if (data && data.length > 0) {
+                        } else if (data) {
+                            console.log("✅ Data z Supabase:", data);
                             window.userProfiles = data;
-                            console.log("✅ Načteno profilů z Supabase:", data.length);
+
+                            // SYNCHRONIZACE: Uložit do localStorage jako cache
+                            try {
+                                localStorage.setItem(`userProfiles_${window.currentUser.id}`, JSON.stringify(data));
+                                console.log("💾 Data uložena do localStorage jako cache");
+                            } catch (storageError) {
+                                console.error("❌ Chyba localStorage:", storageError);
+                            }
+
+                            window.isLoadingProfiles = false;
                             return;
-                        } else {
-                            console.log("ℹ️ Supabase: Žádné profily");
                         }
                     } catch (dbError) {
                         console.error("❌ Chyba při načítání z Supabase:", dbError);
                     }
                 }
 
-                // 2. Načtení z localStorage
-                console.log("🔍 Zkouším načíst z localStorage...");
+                // 2. FALLBACK: Načtení z localStorage (pouze pokud DB selže)
+                console.log("🔍 Fallback: Načítám z localStorage...");
                 const localData = localStorage.getItem(`userProfiles_${window.currentUser.id}`);
 
                 if (localData) {
                     try {
                         window.userProfiles = JSON.parse(localData);
-                        console.log("✅ Načteno profilů z localStorage:", window.userProfiles.length);
+                        console.log("✅ Načteno z localStorage:", window.userProfiles.length);
                     } catch (error) {
                         console.error("❌ Chyba parsování localStorage:", error);
                         window.userProfiles = [];
@@ -806,12 +833,12 @@
                 }
 
             } catch (error) {
-                console.error("❌ Neočekávaná chyba v loadUserProfiles:", error);
+                console.error("❌ Neočekávaná chyba:", error);
                 window.userProfiles = [];
             } finally {
                 window.isLoadingProfiles = false;
                 console.log("🎯 loadUserProfiles dokončena");
-                console.log("📊 Celkem profilů:", window.userProfiles ? window.userProfiles.length : 0);
+                console.log("📊 Celkem profilů:", window.userProfiles.length);
             }
         };
 
