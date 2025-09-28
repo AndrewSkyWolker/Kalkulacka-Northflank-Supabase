@@ -1,0 +1,8 @@
+Flask
+beautifulsoup4
+gunicorn
+requests
+urljoin
+gunicorn
+python-dotenv
+supabase
