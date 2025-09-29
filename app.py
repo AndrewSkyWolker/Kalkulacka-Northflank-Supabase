@@ -237,14 +237,6 @@ def health_check():
             "app_id": app_id
         }), 503
 
-if __name__ == '__main__':
-    print(f"🚀 Spouštím Kalorickou kalkulačku...")
-    print(f"📊 App ID: {app_id}")
-    print(f"🔗 Supabase URL: {supabase_url}")
-    print(f"🔑 Supabase inicializována: {supabase is not None}")
-    app.run(debug=True, host='0.0.0.0', port=5000)
-
-
 @app.route('/get_details', methods=['POST'])
 def get_details():
     """
@@ -597,4 +589,10 @@ if __name__ == '__main__':
     print(f"📊 App ID: {app_id}")
     print(f"🔗 Supabase URL: {supabase_url}")
     print(f"🔑 Supabase inicializována: {supabase is not None}")
+
+    # Debug: vypiš všechny registrované routes
+    print("🌐 Registered routes:")
+    for rule in app.url_map.iter_rules():
+        print(f"  {rule}")
+
     app.run(debug=True, host='0.0.0.0', port=5000)
