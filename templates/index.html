@@ -349,10 +349,6 @@
 
     <script type="module">
 
-        // =============================================
-        // SUPABASE INICIALIZACE - NOVÝ KÓD
-        // =============================================
-
         // Globální proměnné
         let supabaseClient;
         let currentUser = null;
@@ -368,7 +364,8 @@
         window.isLoadingProfiles = false;
         window.isProfileModalShowing = false;
         window.isAppInitialized = false;
-        window.appInitialized = false; // Přidejte tuto proměnnou
+        window.appInitialized = false;
+        window.isCreatingProfile = false;
 
         function debugLog(message) {
             console.log(message);
@@ -648,6 +645,14 @@
         }
 
         async function createNewProfile(profileName) {
+            // Zabránit současnému spuštění více instancí
+            if (window.isCreatingProfile) {
+                console.log("⚠️ Vytváření profilu již probíhá - přeskočeno");
+                return null;
+            }
+
+            window.isCreatingProfile = true;
+
             console.log("🎯 ===== CREATE NEW PROFILE START =====");
             console.log("📝 Jméno profilu:", profileName);
             console.log("👤 CurrentUser:", window.currentUser);
@@ -656,6 +661,7 @@
             if (!profileName || profileName.trim() === '') {
                 console.error("❌ Název profilu je prázdný");
                 window.showCustomNotification("Prosím, zadejte název profilu.", 'error');
+                window.isCreatingProfile = false;
                 return null;
             }
 
@@ -732,6 +738,8 @@
                 console.error("❌ Chyba při vytváření profilu:", error);
                 window.showCustomNotification("Chyba při vytváření profilu: " + error.message, 'error');
                 return null;
+            } finally {
+                window.isCreatingProfile = false;
             }
         }
 
@@ -774,9 +782,26 @@
             const confirmCreateProfileBtn = document.getElementById('confirmCreateProfile');
             if (confirmCreateProfileBtn) {
                 console.log("✅ Nalezeno tlačítko confirmCreateProfile");
-                confirmCreateProfileBtn.addEventListener('click', async function () {
-                    event.stopImmediatePropagation(); // Zabraní vícenásobnému volání
-                    console.log("🎯 Kliknuto na vytvoření profilu");
+
+                // Odstranění všech existujících listenerů
+                confirmCreateProfileBtn.replaceWith(confirmCreateProfileBtn.cloneNode(true));
+
+                // Znovu najít tlačítko po clone
+                const newConfirmCreateProfileBtn = document.getElementById('confirmCreateProfile');
+
+                newConfirmCreateProfileBtn.addEventListener('click', async function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+
+                    console.log("🎯 Kliknuto na vytvoření profilu - ZABRÁNĚNO DUPLICITĚ");
+
+                    // Zabránit vícenásobnému kliknutí
+                    if (this.disabled) {
+                        console.log("⚠️ Tlačítko již je disabled - přeskočeno");
+                        return;
+                    }
+
                     const profileNameInput = document.getElementById('newProfileName');
                     if (profileNameInput) {
                         const profileName = profileNameInput.value.trim();
@@ -797,7 +822,7 @@
                             console.log("🆔 Nové ID profilu:", newProfileId);
 
                             if (newProfileId) {
-                                await selectProfile(newProfileId);
+                                await window.selectProfile(newProfileId);
                                 const createProfileModal = document.getElementById('createProfileModal');
                                 if (createProfileModal) {
                                     createProfileModal.style.display = 'none';
@@ -806,9 +831,11 @@
                         } catch (error) {
                             console.error("❌ Chyba při vytváření profilu:", error);
                         } finally {
-                            // Re-enable tlačítka
-                            this.disabled = false;
-                            this.textContent = originalText;
+                            // Re-enable tlačítka pouze pokud stále existuje
+                            if (this && this.parentNode) {
+                                this.disabled = false;
+                                this.textContent = originalText;
+                            }
                         }
                     }
                 });
@@ -1133,6 +1160,17 @@
 
             const createProfileModal = document.getElementById('createProfileModal');
             const newProfileNameInput = document.getElementById('newProfileName');
+
+            if (newProfileNameInput) {
+                newProfileNameInput.addEventListener('keypress', function (event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        console.log("🎯 Enter stisknut v inputu - spouštím vytváření");
+                        document.getElementById('confirmCreateProfile').click();
+                    }
+                });
+            }
 
             if (!createProfileModal) {
                 console.error("❌ createProfileModal element not found!");
