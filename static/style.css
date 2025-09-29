@@ -1136,8 +1136,39 @@ button:hover {
     /* align-self: flex-start; -- Odstraněno, protože je řízeno justify-content v parentu */
 }
 
+/* Styly pro user info v modalu profilů */
+.user-info-header {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    text-align: center;
+    border-left: 4px solid #007bff;
+}
+
+.user-email {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.profile-count {
+    font-size: 0.9em;
+    color: #666;
+}
+
 /* Media queries for responsiveness */
 @media (max-width: 480px) {
+    .profile-display-clickable {
+        max-width: 160px;
+        min-width: 120px;
+        padding: 6px 10px;
+    }
+    
+    .profile-email {
+        font-size: 0.7em;
+    }
+
     #currentProfileDisplay {
         left: 10px;
         padding: 5px 8px;
@@ -1146,12 +1177,12 @@ button:hover {
 
     #currentProfileName {
         max-width: 120px;
-        font-size: 0.8em;
+        font-size: 0.85em;
     }
 
     .profile-icon {
-        width: 20px;
-        height: 20px;
+        width: 16px;
+        height: 16px;
     }
 
     .main-controls button {
@@ -1730,28 +1761,55 @@ button:hover {
 }
 
 .profile-icon {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
 }
 
 #currentProfileName {
-    font-weight: 500;
+    font-weight: 600;
     color: #333;
-    font-size: 1.1em;
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Styly pro klikatelnou oblast profilu */
 .profile-display-clickable {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    flex-direction: column;
     cursor: pointer;
-    padding: 0;
+    padding: 8px 12px;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.2s ease;
+    max-width: 200px;
+    min-width: 150px;
 }
 
 .profile-display-clickable:hover {
-    transform: none;
-    background-color: transparent;
+    background-color: #f8f9fa;
+    border-color: #007bff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.profile-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-email {
+    font-size: 0.75em;
+    color: #666;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
 }
 
 .profile-display-clickable:active {
