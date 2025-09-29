@@ -37,9 +37,14 @@
         <div
             style="position: fixed; bottom: 30px; left: 100px; z-index: 1000; background: white; padding: 10px; border: 1px solid #ccc;">
             <button onclick="window.showProfileModal()">🐛 Zobrazit Profily</button>
-            <button onclick="window.initializeSupabase().then(() => console.log('✅ Supabase inicializována:', !!window.supabaseClient))">🔄 Init Supabase</button>
+            <!--button onclick="window.initializeSupabase().then(() => console.log('✅ Supabase inicializována:', !!window.supabaseClient))">🔄 Init Supabase</button>-->
             <!--<button onclick="window.testSupabaseConnection()">🧪 Test DB</button>-->
             <!--<button onclick="localStorage.clear(); console.log('🧹 localStorage vyčištěn')">🧹 Clear Cache</button>-->
+        </div>
+
+        <!-- Do záhlaví přidejte -->
+        <div id="userMenu" style="position: absolute; top: 10px; right: 60px; z-index: 11; display: none;">
+            <button id="logoutBtn" style="padding: 5px 10px; font-size: 12px;">Odhlásit se</button>
         </div>
 
         <!-- Indikátor načítání -->
@@ -58,8 +63,27 @@
 
         <!-- Nový wrapper pro statické záhlaví -->
         <div class="sticky-header-wrapper">
+            <div class="header-controls">
+                <div id="currentProfileDisplay" style="display: none;">
+                    <div class="profile-display-clickable">
+                        <img src="{{ url_for('static', filename='icon/profil.png') }}" alt="Profil"
+                            class="profile-icon">
+                        <span id="currentProfileName">Název profilu</span>
+                    </div>
+                </div>
+
+                <!-- Přidejte toto tlačítko -->
+                <button id="loginMenuBtn" style="margin-left: 10px; padding: 5px 10px; display: none;">
+                    Přihlásit se
+                </button>
+
+                <img id="settingsIcon" src="{{ url_for('static', filename='icon/nastaveni.png') }}" alt="Nastavení"
+                    class="settings-icon">
+            </div>
+
             <div id="userIdDisplay"></div> <!-- Přesunuto sem -->
             <h1>Kalorická kalkulačka</h1>
+
             <!-- V levém horním rohu -->
             <div id="currentProfileDisplay" style="display: none;">
                 <div class="profile-display-clickable">
@@ -67,6 +91,7 @@
                     <span id="currentProfileName">Název profilu</span>
                 </div>
             </div>
+
             <!-- Ikonka ozubeného kolečka pro nastavení (PNG obrázek) -->
             <img id="settingsIcon" src="{{ url_for('static', filename='icon/nastaveni.png') }}" alt="Nastavení"
                 class="settings-icon">
@@ -100,8 +125,9 @@
     <!-- Přihlašovací modální okno -->
     <div id="loginModal" class="modal-overlay">
         <div class="modal-content">
-            <h3>Přihlášení</h3>
+            <h3>Přihlášení / Registrace</h3>
             <div id="loginError" class="error" style="display: none;"></div>
+            <div id="loginSuccess" class="success" style="display: none; color: green;"></div>
 
             <input type="email" id="loginEmail" placeholder="E-mail" required>
             <input type="password" id="loginPassword" placeholder="Heslo" required>
@@ -109,6 +135,12 @@
             <div class="modal-action-buttons">
                 <button id="loginBtn">Přihlásit se</button>
                 <button id="registerBtn">Registrovat</button>
+                <button id="continueAnonymouslyBtn" style="background-color: #6c757d;">Pokračovat anonymně</button>
+            </div>
+
+            <!-- Přidejte informaci o emailové verifikaci -->
+            <div style="margin-top: 15px; font-size: 12px; color: #666; text-align: center;">
+                Po registraci je potřeba potvrdit email. Zkontrolujte si spam složku.
             </div>
         </div>
     </div>
@@ -219,6 +251,12 @@
 
     <!-- Nové modální okno pro nastavení -->
     <div id="settingsModal" class="modal-overlay">
+        <div class="setting-item">
+            <span class="setting-label">Přihlášení</span>
+            <button id="switchAccountBtn" style="padding: 5px 10px; font-size: 12px;">
+                Přepnout účet
+            </button>
+        </div>
         <div class="modal-content">
             <span class="close-button" id="closeSettingsModal">&times;</span>
             <h3>Nastavení</h3>
@@ -380,91 +418,339 @@
             console.error("❌ Chyba rychlé inicializace:", error);
         }
 
+        // Event listener pro přepnutí účtu
+        document.getElementById('switchAccountBtn').addEventListener('click', async function () {
+            await logoutUser();
+            showLoginModal();
+        });
+
+        // Funkce pro zobrazení přihlašovacího modalu
+        function showLoginModal() {
+            const loginModal = document.getElementById('loginModal');
+            if (loginModal) {
+                console.log("🔄 Zobrazuji přihlašovací modal");
+                loginModal.style.display = 'flex';
+
+                // Resetovat inputy
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('loginError').style.display = 'none';
+            } else {
+                console.error("❌ Přihlašovací modal nebyl nalezen!");
+            }
+        }
+
+        // Funkce pro skrytí přihlašovacího modalu
+        function hideLoginModal() {
+            const loginModal = document.getElementById('loginModal');
+            if (loginModal) {
+                loginModal.style.display = 'none';
+            }
+        }
+
+        // Funkce pro zobrazení success zprávy
+        function showLoginSuccess(message) {
+            const successDiv = document.getElementById('loginSuccess');
+            const errorDiv = document.getElementById('loginError');
+
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+        }
+
+        // Registrace uživatele
+        async function registerUser(email, password) {
+            try {
+                console.log("🔄 Registruji uživatele:", email);
+
+                const { data, error } = await window.supabaseClient.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        emailRedirectTo: window.location.origin
+                    }
+                });
+
+                if (error) {
+                    console.error("❌ Chyba registrace:", error);
+                    throw error;
+                }
+
+                if (data.user) {
+                    console.log("✅ Uživatel zaregistrován:", data.user.id);
+
+                    let message = "Registrace úspěšná! ";
+                    if (data.user.identities && data.user.identities.length === 0) {
+                        message += "Účet již existuje nebo čeká na potvrzení emailu.";
+                    } else if (!data.user.email_confirmed_at) {
+                        message += "Prosím zkontrolujte email a potvrďte registraci.";
+                    } else {
+                        message += "Nyní se můžete přihlásit.";
+                    }
+
+                    showLoginSuccess(message);
+                    return data.user;
+                }
+
+            } catch (error) {
+                console.error("❌ Chyba při registraci:", error);
+                throw error;
+            }
+        }
+
+        // Přihlášení uživatele
+        async function loginUser(email, password) {
+            try {
+                console.log("🔄 Přihlašuji uživatele:", email);
+
+                const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password,
+                });
+
+                if (error) {
+                    console.error("❌ Chyba přihlášení:", error);
+                    throw error;
+                }
+
+                if (data.user) {
+                    console.log("✅ Uživatel přihlášen:", data.user.id);
+                    window.currentUser = data.user;
+                    hideLoginModal();
+                    await continueWithUser(data.user);
+                    return data.user;
+                }
+
+            } catch (error) {
+                console.error("❌ Chyba při přihlášení:", error);
+                throw error;
+            }
+        }
+
+        // Event listenery pro přihlašovací modal
+        document.addEventListener('DOMContentLoaded', function () {
+            // Přihlášení
+            document.getElementById('loginBtn').addEventListener('click', async function () {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                const errorDiv = document.getElementById('loginError');
+
+                if (!email || !password) {
+                    errorDiv.textContent = "Vyplňte email a heslo";
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+
+                try {
+                    await loginUser(email, password);
+                } catch (error) {
+                    errorDiv.textContent = error.message;
+                    errorDiv.style.display = 'block';
+                }
+            });
+
+            // Registrace
+            document.getElementById('registerBtn').addEventListener('click', async function () {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                const errorDiv = document.getElementById('loginError');
+
+                if (!email || !password) {
+                    errorDiv.textContent = "Vyplňte email a heslo";
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+
+                if (password.length < 6) {
+                    errorDiv.textContent = "Heslo musí mít alespoň 6 znaků";
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+
+                try {
+                    await registerUser(email, password);
+                    errorDiv.style.display = 'none';
+                } catch (error) {
+                    errorDiv.textContent = error.message;
+                    errorDiv.style.display = 'block';
+                }
+            });
+
+            // Pokračovat anonymně
+            document.getElementById('continueAnonymouslyBtn').addEventListener('click', function () {
+                continueAnonymously();
+            });
+
+            // Enter v inputech
+            document.getElementById('loginEmail').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('loginPassword').focus();
+                }
+            });
+
+            document.getElementById('loginPassword').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('loginBtn').click();
+                }
+            });
+        });
+
+        // Pokračování anonymně
+        async function continueAnonymously() {
+            try {
+                console.log("🔄 Pokračuji anonymně...");
+                const { data, error } = await window.supabaseClient.auth.signInAnonymously();
+
+                if (error) {
+                    console.error("❌ Anonymní přihlášení selhalo:", error);
+                    window.currentUser = createLocalUser();
+                } else if (data.user) {
+                    console.log("✅ Anonymní uživatel přihlášen:", data.user.id);
+                    window.currentUser = data.user;
+                }
+
+                hideLoginModal();
+                await continueWithUser(window.currentUser);
+
+            } catch (error) {
+                console.error("❌ Chyba při anonymním přihlášení:", error);
+                window.currentUser = createLocalUser();
+                hideLoginModal();
+                await continueWithUser(window.currentUser);
+            }
+        }
+
+        // Odhlášení uživatele
+        async function logoutUser() {
+            try {
+                const { error } = await window.supabaseClient.auth.signOut();
+                if (error) {
+                    console.error("❌ Chyba při odhlašování:", error);
+                } else {
+                    console.log("✅ Uživatel odhlášen");
+                    // Resetovat aplikaci
+                    window.currentUser = null;
+                    window.userProfiles = [];
+                    window.currentProfileId = null;
+                    localStorage.clear();
+                    location.reload();
+                }
+            } catch (error) {
+                console.error("❌ Chyba při odhlašování:", error);
+            }
+        }
+
+        // Event listener pro odhlášení
+        document.getElementById('logoutBtn').addEventListener('click', logoutUser);
+
+        // Funkce pro zobrazení/skrytí user menu
+        function updateUserMenu() {
+            const userMenu = document.getElementById('userMenu');
+            if (window.currentUser && !window.currentUser.is_anonymous) {
+                userMenu.style.display = 'block';
+            } else {
+                userMenu.style.display = 'none';
+            }
+        }
 
         // Hlavní inicializační funkce
         async function initializeApplication() {
             console.log("🔍 Před inicializací - window.supabaseClient:", !!window.supabaseClient);
             console.log("🎯 initializeApplication volána");
-            console.log("🌍 Environment:", {
-                hostname: window.location.hostname,
-                href: window.location.href,
-                isLocalhost: window.location.hostname === 'localhost' || window.location.hostname === '192.168.100.156:5000',
-                isNorthflank: window.location.hostname.includes('northflank')
-            });
 
             try {
                 // 1. Inicializace Supabase
                 console.log("🔄 Krok 1: Inicializace Supabase...");
                 const supabaseInitialized = await window.initializeSupabase();
 
-                console.log("🔍 Po inicializaci - window.supabaseClient:", !!window.supabaseClient);
-                console.log("🔍 window.supabaseClient objekt:", window.supabaseClient);
+                console.log("🔍 Po inicializací - window.supabaseClient:", !!window.supabaseClient);
 
                 if (!supabaseInitialized) {
                     console.log("⚠️ Supabase inicializace selhala - pokračuji v lokálním režimu");
                 }
 
-                // 2. Kontrola autentizace
-                console.log("🔄 Krok 2: Autentizace...");
-                window.currentUser = await checkAuth();
+                // 2. Kontrola existující session
+                console.log("🔄 Krok 2: Kontrola session...");
+                const { data: { session }, error } = await window.supabaseClient.auth.getSession();
 
-                console.log("🔍 Po autentizaci - window.currentUser:", !!window.currentUser);
+                if (session && session.user) {
+                    console.log("✅ Session nalezena, user:", session.user.id, "email:", session.user.email);
 
-                if (!window.currentUser) {
-                    console.log("⚠️ Autentizace selhala - vytvářím lokálního uživatele");
-                    window.currentUser = createLocalUser();
-                }
-
-                // 3. Načtení profilů
-                console.log("🔄 Krok 3: Načítání profilů...");
-                await window.loadUserProfiles();
-
-                // 4. Pokud žádné profily, zobrazit modal
-                console.log("🔄 Krok 4: Kontrola profilů...");
-                if (!window.userProfiles || window.userProfiles.length === 0) {
-                    console.log("ℹ️ Žádné profily - zobrazuji modal za 1s");
-                    setTimeout(() => {
-                        console.log("🔄 Zobrazuji profil modal...");
-                        window.showProfileModal();
-                    }, 1000);
-                } else {
-                    console.log("✅ Profily nalezeny:", window.userProfiles.length);
-                    // Pokud máme profily, načtěte aktuální
-                    const lastProfileId = localStorage.getItem(`userProfile_${window.currentUser.id}`);
-                    if (lastProfileId) {
-                        window.currentProfileId = lastProfileId;
-                        await window.loadAndDisplayCurrentProfile();
+                    // ROZHODNUTÍ: Pokud uživatel má email, pokračujeme, jinak zobrazíme přihlášení
+                    if (session.user.email) {
+                        console.log("✅ Uživatel má email - pokračujeme");
+                        window.currentUser = session.user;
+                        await continueWithUser(session.user);
+                    } else {
+                        console.log("ℹ️ Uživatel je anonymní - zobrazuji přihlašovací modal");
+                        window.currentUser = session.user; // Uložíme anonymního uživatele prozatím
+                        showLoginModal();
                     }
-                }
-
-                // 5. Dokončení inicializace
-                window.isAppInitialized = true;
-                console.log("✅ Aplikace plně inicializována");
-
-                // 6. Povolit funkce aplikace
-                const recipesButton = document.getElementById('recipesButton');
-                if (recipesButton) {
-                    recipesButton.disabled = false;
-                    console.log("✅ Tlačítko Recepty povoleno");
+                } else {
+                    // 3. Pokud není session, zobraz přihlašovací modal
+                    console.log("ℹ️ Žádná session - zobrazuji přihlašovací modal");
+                    showLoginModal();
                 }
 
             } catch (error) {
                 console.error("❌ Chyba při inicializaci:", error);
+                showLoginModal();
+            }
+        }
 
-                // Fallback - vytvořit lokálního uživatele
-                if (!window.currentUser) {
-                    window.currentUser = createLocalUser();
-                }
+        // Event listener pro přihlašovací tlačítko v headeru
+        document.getElementById('loginMenuBtn').addEventListener('click', function () {
+            showLoginModal();
+        });
 
-                // Fallback - zobrazit modal
+        // Funkce pro aktualizaci zobrazení přihlašovacího tlačítka
+        function updateLoginButton() {
+            const loginBtn = document.getElementById('loginMenuBtn');
+            if (window.currentUser && window.currentUser.email) {
+                // Uživatel je přihlášen s emailem - skrýt tlačítko
+                loginBtn.style.display = 'none';
+                loginBtn.textContent = `Přihlášen: ${window.currentUser.email}`;
+            } else {
+                // Uživatel je anonymní nebo není přihlášen - zobrazit tlačítko
+                loginBtn.style.display = 'block';
+                loginBtn.textContent = 'Přihlásit se';
+            }
+        }
+
+        // Funkce pro pokračování s přihlášeným uživatelem
+        async function continueWithUser(user) {
+            window.currentUser = user;
+            console.log("👤 Pokračuji s uživatelem:", user.id, "email:", user.email);
+
+            // Aktualizovat přihlašovací tlačítko
+            updateLoginButton();
+
+            // Načtení profilů
+            await window.loadUserProfiles();
+
+            // Kontrola profilů
+            if (!window.userProfiles || window.userProfiles.length === 0) {
+                console.log("ℹ️ Žádné profily - zobrazuji modal za 1s");
                 setTimeout(() => {
                     window.showProfileModal();
-                }, 1500);
-
-                window.isAppInitialized = true;
+                }, 1000);
+            } else {
+                console.log("✅ Profily nalezeny:", window.userProfiles.length);
+                const lastProfileId = localStorage.getItem(`userProfile_${window.currentUser.id}`);
+                if (lastProfileId) {
+                    window.currentProfileId = lastProfileId;
+                    await window.loadAndDisplayCurrentProfile();
+                }
             }
 
-            console.log("🎯 initializeApplication dokončena");
+            window.isAppInitialized = true;
+
+            // Povolit funkce aplikace
+            const recipesButton = document.getElementById('recipesButton');
+            if (recipesButton) {
+                recipesButton.disabled = false;
+                console.log("✅ Tlačítko Recepty povoleno");
+            }
         }
 
         // Inicializace Supabase - zajistěte globální dostupnost
@@ -1092,41 +1378,6 @@
                 return JSON.parse(userData);
             }
             return null;
-        }
-
-        // Funkce pro registraci
-        async function registerUser(email, password) {
-            try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                console.log("Uživatel zaregistrován:", userCredential.user.uid);
-                return userCredential.user;
-            } catch (error) {
-                console.error("Chyba registrace:", error);
-                throw error;
-            }
-        }
-
-        // Funkce pro přihlášení
-        async function loginUser(email, password) {
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                console.log("Uživatel přihlášen:", userCredential.user.uid);
-                return userCredential.user;
-            } catch (error) {
-                console.error("Chyba přihlášení:", error);
-                throw error;
-            }
-        }
-
-        // Funkce pro odhlášení
-        async function logoutUser() {
-            try {
-                await signOut(auth);
-                console.log("Uživatel odhlášen");
-                hideCurrentProfileDisplay(); // Skrytí profilu při odhlášení
-            } catch (error) {
-                console.error("Chyba odhlášení:", error);
-            }
         }
 
         // Funkce pro zobrazení modálního okna pro vytvoření nového profilu
