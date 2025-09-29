@@ -44,13 +44,20 @@
             debugLog("Aplikace se spouští...");
         </script>
 
-                <!-- Dočasná debug tlačítka -->
+        <!-- Dočasná debug tlačítka -->
         <div
-            style="position: fixed; bottom: 30px; left: 150px; z-index: 1000; background: white; padding: 10px; border: 1px solid #ccc;">
+            style="position: fixed; bottom: 30px; left: 100px; z-index: 1000; background: white; padding: 10px; border: 1px solid #ccc;">
             <button onclick="window.showProfileModal()">🐛 Zobrazit Profily</button>
             <button onclick="window.forceReloadProfiles()">🔄 Reload z DB</button>
+            <button onclick="window.testSupabaseConnection()">🧪 Test DB</button>
             <button onclick="localStorage.clear(); console.log('🧹 localStorage vyčištěn')">🧹 Clear Cache</button>
         </div>
+
+        <button
+            onclick="window.initializeSupabase().then(() => console.log('✅ Supabase inicializována:', !!window.supabaseClient))"
+            style="position: fixed; top: 10px; left: 200px; z-index: 1000;">
+            🔄 Init Supabase
+        </button>
 
         <!-- Indikátor načítání -->
         <div id="globalLoading"
@@ -361,28 +368,51 @@
         window.isLoadingProfiles = false;
         window.isProfileModalShowing = false;
         window.isAppInitialized = false;
+        window.appInitialized = false; // Přidejte tuto proměnnou
 
         function debugLog(message) {
             console.log(message);
             debugLogs.push(message);
         }
 
-        // Hlavní inicializace
-        document.addEventListener('DOMContentLoaded', async function () {
-            debugLog("Aplikace se spouští...");
+        console.log("🔍 Kontrola globálních proměnných...");
+        console.log("🔍 window.supabaseClient:", typeof window.supabaseClient);
+        console.log("🔍 window.currentUser:", typeof window.currentUser);
+        console.log("🔍 window.userProfiles:", typeof window.userProfiles);
 
-            // Zabránit vícenásobnému volání
-            if (window.appInitialized) {
-                return;
+        // Vynulovat pokud existují problémy
+        window.supabaseClient = null;
+        window.currentUser = null;
+        window.userProfiles = [];
+        window.isLoadingProfiles = false;
+        window.isProfileModalShowing = false;
+        window.isAppInitialized = false;
+        window.appInitialized = false;
+
+        console.log("✅ Globální proměnné inicializovány");
+
+        // Přímá inicializace Supabase (přidejte na začátek)
+        console.log("🚀 RYCHLÁ INICIALIZACE SUPABASE");
+        try {
+            if (typeof supabase !== 'undefined') {
+                const { createClient } = supabase;
+                const supabaseUrl = 'https://temswelhomcndkifxbwl.supabase.co';
+                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlbXN3ZWxob21jbmRraWZ4YndsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3NDE3MzAsImV4cCI6MjA3NDMxNzczMH0.-f21p7Y9fOP5NGvk7f3z4ekckQDOGVNJfZ5Q9dHboyc';
+
+                window.supabaseClient = createClient(supabaseUrl, supabaseKey);
+                console.log("✅ Rychlá inicializace - window.supabaseClient:", !!window.supabaseClient);
+            } else {
+                console.error("❌ Supabase SDK není dostupné");
             }
-            window.appInitialized = true;
+        } catch (error) {
+            console.error("❌ Chyba rychlé inicializace:", error);
+        }
 
-            await initializeApplication();
-        });
 
         // Hlavní inicializační funkce
         async function initializeApplication() {
-
+            console.log("🔍 Před inicializací - window.supabaseClient:", !!window.supabaseClient);
+            console.log("🎯 initializeApplication volána");
             console.log("🌍 Environment:", {
                 hostname: window.location.hostname,
                 href: window.location.href,
@@ -390,49 +420,40 @@
                 isNorthflank: window.location.hostname.includes('northflank')
             });
 
-            // Speciální nastavení pro Northflank
-            if (window.location.hostname.includes('northflank')) {
-                console.log("🚀 Northflank environment detected");
-                // Možná budete potřebovat jiné URL pro Supabase
-            }
-
-            console.log("🎯 initializeApplication volána");
-
             try {
                 // 1. Inicializace Supabase
                 console.log("🔄 Krok 1: Inicializace Supabase...");
-                const supabaseInitialized = await initializeSupabase();
+                const supabaseInitialized = await window.initializeSupabase();
+
+                console.log("🔍 Po inicializaci - window.supabaseClient:", !!window.supabaseClient);
+                console.log("🔍 window.supabaseClient objekt:", window.supabaseClient);
 
                 if (!supabaseInitialized) {
-                    throw new Error("Supabase inicializace selhala");
+                    console.log("⚠️ Supabase inicializace selhala - pokračuji v lokálním režimu");
                 }
 
-                // 2. Kontrola autentizace a ČEKÁNÍ na currentUser
+                // 2. Kontrola autentizace
                 console.log("🔄 Krok 2: Autentizace...");
                 window.currentUser = await checkAuth();
 
+                console.log("🔍 Po autentizaci - window.currentUser:", !!window.currentUser);
+
                 if (!window.currentUser) {
-                    throw new Error("Autentizace selhala");
+                    console.log("⚠️ Autentizace selhala - vytvářím lokálního uživatele");
+                    window.currentUser = createLocalUser();
                 }
 
-                console.log("✅ CurrentUser nastaven:", window.currentUser.id);
-
-                // 3. Inicializace userProfiles
-                if (!window.userProfiles) {
-                    window.userProfiles = [];
-                }
-
-                // 4. Načtení profilů
+                // 3. Načtení profilů
                 console.log("🔄 Krok 3: Načítání profilů...");
-                await loadUserProfiles();
+                await window.loadUserProfiles();
 
-                // 5. Pokud žádné profily, zobrazit modal
+                // 4. Pokud žádné profily, zobrazit modal
                 console.log("🔄 Krok 4: Kontrola profilů...");
                 if (!window.userProfiles || window.userProfiles.length === 0) {
                     console.log("ℹ️ Žádné profily - zobrazuji modal za 1s");
                     setTimeout(() => {
                         console.log("🔄 Zobrazuji profil modal...");
-                        window.showProfileModal(); // Přidat window.
+                        window.showProfileModal();
                     }, 1000);
                 } else {
                     console.log("✅ Profily nalezeny:", window.userProfiles.length);
@@ -444,11 +465,11 @@
                     }
                 }
 
-                // 6. Dokončení inicializace
+                // 5. Dokončení inicializace
                 window.isAppInitialized = true;
                 console.log("✅ Aplikace plně inicializována");
 
-                // 7. Povolit funkce aplikace
+                // 6. Povolit funkce aplikace
                 const recipesButton = document.getElementById('recipesButton');
                 if (recipesButton) {
                     recipesButton.disabled = false;
@@ -465,7 +486,7 @@
 
                 // Fallback - zobrazit modal
                 setTimeout(() => {
-                    showProfileModal();
+                    window.showProfileModal();
                 }, 1500);
 
                 window.isAppInitialized = true;
@@ -474,67 +495,90 @@
             console.log("🎯 initializeApplication dokončena");
         }
 
-        // Inicializace Supabase
-        async function initializeSupabase() {
+        // Inicializace Supabase - zajistěte globální dostupnost
+        window.initializeSupabase = async function () {
             try {
                 const bodyElement = document.body;
                 const supabaseUrl = bodyElement.dataset.supabaseUrl;
                 const supabaseKey = bodyElement.dataset.supabaseKey;
 
-                debugLog("Supabase URL: " + supabaseUrl);
-                debugLog("Supabase Key: " + (supabaseKey ? "k dispozici" : "chybí"));
+                console.log("🔗 Inicializace Supabase...");
+                console.log("📡 URL:", supabaseUrl);
+                console.log("🔑 Key dostupná:", !!supabaseKey);
 
                 if (!supabaseUrl || !supabaseKey) {
-                    debugLog("❌ Chybí Supabase konfigurace");
+                    console.error("❌ Chybí Supabase konfigurace");
                     return false;
                 }
 
                 if (typeof supabase === 'undefined') {
-                    debugLog("❌ Supabase SDK není načteno");
+                    console.error("❌ Supabase SDK není načteno");
                     return false;
                 }
 
+                // VYTVOŘIT GLOBÁLNÍ SUPABASE CLIENT
                 const { createClient } = supabase;
-                supabaseClient = createClient(supabaseUrl, supabaseKey);
+                window.supabaseClient = createClient(supabaseUrl, supabaseKey, {
+                    auth: {
+                        persistSession: true,
+                        autoRefreshToken: true,
+                    }
+                });
 
-                // Test připojení
-                debugLog("🔄 Testuji připojení k Supabase...");
-                const { data, error } = await supabaseClient.from('profiles').select('count').limit(1);
+                console.log("✅ Supabase klient vytvořen:", !!window.supabaseClient);
+                console.log("🔍 Auth klient:", !!window.supabaseClient.auth);
+
+                // Test připojení - jednodušší test
+                console.log("🔄 Testuji připojení...");
+                const { data, error } = await window.supabaseClient
+                    .from('profiles')
+                    .select('count')
+                    .limit(1);
 
                 if (error) {
-                    debugLog("❌ Test připojení selhal: " + error.message);
-                    return false;
+                    console.error("❌ Test připojení selhal:", error);
+                    // Pokračujeme i při chybě - může to být kvůli RLS
+                    console.log("ℹ️ Pokračuji s lokálním režimem");
+                    return true;
                 }
 
-                debugLog("✅ Supabase klient inicializován a připojen");
-                debugLog("✅ Test připojení úspěšný");
+                console.log("✅ Supabase klient inicializován a připojen");
+                console.log("🔍 window.supabaseClient:", !!window.supabaseClient);
                 return true;
 
             } catch (error) {
-                debugLog("❌ Chyba při inicializaci Supabase: " + error.message);
-                return false;
+                console.error("❌ Chyba při inicializaci Supabase:", error);
+                console.log("ℹ️ Pokračuji s lokálním režimem");
+                return true; // Vracíme true, aby aplikace mohla pokračovat
             }
-        }
+        };
 
         // Kontrola autentizace
         async function checkAuth() {
             console.log("🎯 checkAuth volána");
 
-            if (!supabaseClient) {
+            if (!window.supabaseClient) {
                 console.error("❌ Supabase klient není inicializován");
-                return null;
+                return createLocalUser();
             }
 
             try {
                 console.log("🔍 Kontroluji session...");
-                const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+                // Kontrola, zda je auth dostupný
+                if (!window.supabaseClient.auth) {
+                    console.log("ℹ️ Auth není dostupné - používám lokálního uživatele");
+                    return createLocalUser();
+                }
+
+                const { data: { session }, error } = await window.supabaseClient.auth.getSession();
 
                 if (error) {
                     console.error("❌ Chyba při kontrole session:", error);
                     return await attemptAnonymousSignIn();
                 }
 
-                if (session) {
+                if (session && session.user) {
                     console.log("✅ Session nalezena, user:", session.user.id);
                     window.currentUser = session.user;
                     return session.user;
@@ -552,7 +596,14 @@
         async function attemptAnonymousSignIn() {
             try {
                 console.log("🔄 Pokus o anonymní přihlášení...");
-                const { data, error } = await supabaseClient.auth.signInAnonymously();
+
+                // Kontrola, zda je auth dostupný
+                if (!window.supabaseClient || !window.supabaseClient.auth) {
+                    console.log("ℹ️ Auth není dostupné - používám lokálního uživatele");
+                    return createLocalUser();
+                }
+
+                const { data, error } = await window.supabaseClient.auth.signInAnonymously();
 
                 if (error) {
                     console.error("❌ Anonymní přihlášení selhalo:", error);
@@ -576,8 +627,18 @@
         // Vytvoření lokálního uživatele
         function createLocalUser() {
             console.log("🔄 Vytvářím lokálního uživatele...");
+
+            // Generujeme UUID formát místo "local-user-"
+            const generateUUID = () => {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    const r = Math.random() * 16 | 0;
+                    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            };
+
             window.currentUser = {
-                id: 'local-user-' + Date.now(),
+                id: generateUUID(), // UUID formát
                 email: null,
                 is_anonymous: true,
                 is_local: true
@@ -591,7 +652,6 @@
             console.log("📝 Jméno profilu:", profileName);
             console.log("👤 CurrentUser:", window.currentUser);
             console.log("🔗 SupabaseClient:", !!window.supabaseClient);
-            console.log("🔄 createNewProfile volána s:", profileName);
 
             if (!profileName || profileName.trim() === '') {
                 console.error("❌ Název profilu je prázdný");
@@ -600,16 +660,16 @@
             }
 
             try {
-                //let newProfileId = null;
                 const trimmedName = profileName.trim();
+                let newProfileId = null;
 
-                // POKUS O ULOŽENÍ DO SUPABASE
-                if (window.supabaseClient && window.currentUser) {
+                // POKUS O ULOŽENÍ DO SUPABASE (pouze pokud uživatel není lokální)
+                if (window.supabaseClient && window.currentUser && !window.currentUser.is_local) {
                     console.log("🔄 Pokus o uložení do Supabase...");
 
                     const profileData = {
                         name: trimmedName,
-                        user_id: window.currentUser.id,  // DŮLEŽITÉ: musí odpovídat auth.users.id
+                        user_id: window.currentUser.id,
                         created_at: new Date().toISOString()
                     };
 
@@ -623,31 +683,27 @@
 
                     if (error) {
                         console.error("❌ Chyba při ukládání do Supabase:", error);
-                        console.log("💡 Detail chyby:", {
-                            message: error.message,
-                            details: error.details,
-                            hint: error.hint,
-                            code: error.code
-                        });
                     } else {
                         console.log("✅ ÚSPĚCH: Profil uložen do Supabase!");
                         console.log("📊 Vrácená data:", data);
-                        return data.id;
+                        newProfileId = data.id;
                     }
-
+                } else {
+                    console.log("ℹ️ Lokální uživatel - ukládám pouze lokálně");
                 }
 
                 // Fallback na lokální uložení
-                console.log("🔄 Ukládám lokálně...");
-                const localId = 'local-profile-' + Date.now();
-                return localId;
+                if (!newProfileId) {
+                    console.log("🔄 Ukládám lokálně...");
+                    newProfileId = 'local-profile-' + Date.now();
+                }
 
                 const newProfile = {
                     id: newProfileId,
                     name: trimmedName,
                     user_id: window.currentUser ? window.currentUser.id : 'local-user',
                     created_at: new Date().toISOString(),
-                    is_local: newProfileId.startsWith('local-') // Opravena logika
+                    is_local: newProfileId.startsWith('local-')
                 };
 
                 // Přidání do globálního seznamu
@@ -763,8 +819,6 @@
 
         // Vylepšená loadUserProfiles pro produkci
         window.loadUserProfiles = async function () {
-            console.log("🔍 localStorage keys:", Object.keys(localStorage));
-            console.log("🔍 Current user ID:", window.currentUser?.id);
             console.log("🎯 loadUserProfiles volána - PRODUKCE");
 
             if (window.isLoadingProfiles) {
@@ -781,17 +835,22 @@
                     return;
                 }
 
-                console.log("👤 CurrentUser:", window.currentUser.id);
+                console.log("👤 CurrentUser:", window.currentUser);
+                console.log("🔗 SupabaseClient:", !!window.supabaseClient);
 
-                // 1. POKUS O NAČTENÍ Z SUPABASE (VŽDY V PRODUKCI)
-                if (window.supabaseClient) {
+                // 1. POKUS O NAČTENÍ Z SUPABASE (pouze pokud uživatel není lokální)
+                if (window.supabaseClient && !window.currentUser.is_local) {
                     try {
                         console.log("🔍 Načítám čerstvá data z Supabase...");
+                        console.log("📊 User ID pro query:", window.currentUser.id);
+
                         const { data, error } = await window.supabaseClient
                             .from('profiles')
                             .select('*')
                             .eq('user_id', window.currentUser.id)
                             .order('created_at', { ascending: true });
+
+                        console.log("📦 Supabase odpověď:", { data, error });
 
                         if (error) {
                             console.error("❌ Chyba Supabase:", error);
@@ -813,11 +872,16 @@
                     } catch (dbError) {
                         console.error("❌ Chyba při načítání z Supabase:", dbError);
                     }
+                } else {
+                    console.log("ℹ️ Lokální uživatel - přeskočeno načítání z Supabase");
                 }
 
-                // 2. FALLBACK: Načtení z localStorage (pouze pokud DB selže)
-                console.log("🔍 Fallback: Načítám z localStorage...");
-                const localData = localStorage.getItem(`userProfiles_${window.currentUser.id}`);
+                // 2. FALLBACK: Načtení z localStorage
+                console.log("🔍 Načítám z localStorage...");
+                const storageKey = `userProfiles_${window.currentUser.id}`;
+                const localData = localStorage.getItem(storageKey);
+                console.log("🔑 Storage key:", storageKey);
+                console.log("📦 Local data:", localData);
 
                 if (localData) {
                     try {
@@ -839,6 +903,49 @@
                 window.isLoadingProfiles = false;
                 console.log("🎯 loadUserProfiles dokončena");
                 console.log("📊 Celkem profilů:", window.userProfiles.length);
+            }
+        };
+
+        // Testovací funkce pro přímé volání Supabase
+        window.testSupabaseConnection = async function () {
+            console.log("🧪 TEST: Supabase Connection");
+
+            if (!window.supabaseClient) {
+                console.error("❌ SupabaseClient není dostupný");
+                return;
+            }
+
+            try {
+                // Test 1: Načtení všech profilů (bez filtru)
+                console.log("🧪 TEST 1: Načítám všechny profily...");
+                const { data: allData, error: allError } = await window.supabaseClient
+                    .from('profiles')
+                    .select('*');
+
+                console.log("📦 Všechny profily:", allData);
+                console.log("❌ Chyba všech profilů:", allError);
+
+                // Test 2: Načtení profilů pro konkrétního uživatele
+                console.log("🧪 TEST 2: Načítám profily pro currentUser...");
+                const { data: userData, error: userError } = await window.supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('user_id', window.currentUser.id);
+
+                console.log("📦 User profily:", userData);
+                console.log("❌ Chyba user profilů:", userError);
+
+                // Test 3: Počet záznamů
+                console.log("🧪 TEST 3: Počet záznamů...");
+                const { count, error: countError } = await window.supabaseClient
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true });
+
+                console.log("📊 Celkový počet profilů:", count);
+                console.log("❌ Chyba count:", countError);
+
+            } catch (error) {
+                console.error("❌ Test selhal:", error);
             }
         };
 
@@ -3641,13 +3748,23 @@
             });
         }
 
-        // Přidejte debug logy do inicializace
-        debugLog("Aplikace se spouští...");
-        setTimeout(() => {
-            debugLog("Inicializace kontrola...");
-            debugLog("isAppInitialized: " + isAppInitialized);
-            debugLog("userId: " + userId);
-        }, 2000);
+        // Na konec souboru přidejte/upravte
+        console.log("✅ Script načten, čekám na DOM...");
+
+        // Jediná inicializace při načtení DOM
+        document.addEventListener('DOMContentLoaded', async function () {
+            console.log("✅ DOM načten, spouštím aplikaci...");
+
+            // Kontrola, zda již nebyla inicializována
+            if (window.appInitialized) {
+                console.log("⚠️ Aplikace již byla inicializována - přeskočeno");
+                return;
+            }
+
+            window.appInitialized = true;
+            await initializeApplication();
+        });
+
     </script>
 
     <!-- Load QuaggaJS for barcode scanning -->
