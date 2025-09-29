@@ -1,0 +1,1908 @@
+/* static/style.css */
+
+html,
+body {
+    height: 100%;
+    /* Zajišťuje, že html a body zabírají celou výšku viewportu */
+    margin: 0;
+    /* Odstraní výchozí marginy */
+    padding: 0;
+    /* Odstraní výchozí paddingy */
+}
+
+body {
+    font-family: 'Dutch801 Rm BT', serif;
+    /* Změna písma na Dutch801 Rm BT */
+    background-color: #f4f4f4;
+}
+
+.container {
+    max-width: 700px;
+    /* Změněno z 800px na 700px (2 * 350px modální okno) */
+    margin: 20px auto;
+    /* Vycentrování a 20px margin nahoře/dole */
+    background-color: #fff;
+    padding: 0;
+    /* Padding je nyní řízen uvnitř sticky-header-wrapper a výsledků */
+    border-radius: 12px;
+    /* Změněno na 12px */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    /* Pro absolutní pozicování ikonky nastavení a pro sticky positioning */
+
+    display: flex;
+    /* Použijeme flexbox pro vertikální uspořádání */
+    flex-direction: column;
+    /* Položky budou pod sebou */
+    height: calc(100vh - 40px);
+    /* Kontejner zabere celou výšku viewportu minus marginy body */
+    overflow-y: auto;
+    /* Umožňuje posouvání obsahu uvnitř kontejneru */
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+    margin-top: 40px;
+}
+
+/* Centered heading, increased margin-top for userIdDisplay */
+
+/* Nové styly pro ikonku nastavení */
+.settings-icon {
+    position: absolute;
+    top: 10px;
+    /* Upraveno pro zarovnání s userIdDisplay */
+    right: 20px;
+    width: 24px;
+    height: 24px;
+    /* Zajištění průhledného pozadí pro PNG obrázek */
+    background-color: transparent;
+    cursor: pointer;
+    transition: opacity 0.2s ease-in-out;
+    /* Změna z 'color' na 'opacity' pro obrázek */
+}
+
+.settings-icon:hover {
+    opacity: 0.7;
+    /* Ztmaví obrázek při najetí myší */
+}
+
+/* Nový kontejner pro zarovnání tlačítka "Recepty" a vyhledávání */
+.search-and-recipes-container {
+    display: flex;
+    align-items: center;
+    /* Vertikální zarovnání */
+    gap: 15px;
+    /* Mezera mezi tlačítkem a formulářem */
+    max-width: 700px;
+    /* Stejná šířka jako kontejner */
+    margin: 0 auto 20px auto;
+    /* Vycentrování a spodní mezera */
+    flex-wrap: wrap;
+    /* Umožní zalomení na menších obrazovkách */
+    justify-content: center;
+    /* Vycentrování obsahu */
+}
+
+/* Styly pro tlačítko Recepty a jeho možnosti */
+.main-controls {
+    display: flex;
+    /* Zajišťuje, že tlačítko je flex item */
+    flex-shrink: 0;
+    /* Zabrání zmenšování tlačítka */
+}
+
+.main-controls button {
+    width: 150px;
+    padding: 12px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 0;
+    /* Odstraní margin, aby se správně zarovnalo ve flexboxu */
+}
+
+.main-controls button:hover {
+    background-color: #218838;
+}
+
+/* Styly pro formulář */
+form {
+    display: flex;
+    flex-grow: 1;
+    /* Umožní formuláři zabrat dostupný prostor */
+    justify-content: flex-start;
+    /* Zarovná obsah formuláře (input a button) doleva */
+    gap: 10px;
+    /* Mezera mezi inputem a tlačítkem */
+    flex-wrap: wrap;
+    /* Umožní zalomení inputu a tlačítka na menších obrazovkách */
+}
+
+input[type="text"] {
+    padding: 10px;
+    flex-grow: 1;
+    /* Umožní inputu zabrat dostupný prostor */
+    width: auto;
+    /* Přepíše původní width: 60% */
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    /* Změněno na 12px */
+    font-size: 16px;
+    min-width: 150px;
+    /* Minimální šířka pro input */
+}
+
+button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 0;
+    /* Odstraní levý margin pro lepší zarovnání ve flexboxu */
+    flex-shrink: 0;
+    /* Zabrání zmenšování tlačítka */
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Nový styl pro wrapper statického záhlaví */
+.sticky-header-wrapper {
+    position: sticky;
+    /* Způsobí, že se element bude držet nahoře při posouvání */
+    top: 0;
+    /* Přilepí se k hornímu okraji rodičovského elementu (container) */
+    background-color: #fff;
+    /* Barva pozadí pro záhlaví */
+    z-index: 10;
+    /* Zajistí, že záhlaví bude nad posouvaným obsahem */
+    padding: 20px;
+    /* Vnitřní odsazení pro obsah záhlaví */
+    padding-bottom: 10px;
+    /* Menší odsazení dole */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Stín pro vizuální oddělení */
+    margin: 0;
+    /* Odstraní negativní marginy */
+    border-bottom: 1px solid #eee;
+    /* Jemná linka pod záhlavím */
+    flex-shrink: 0;
+    /* Zabrání zmenšování záhlaví ve flex kontejneru */
+}
+
+
+#results {
+    margin-top: 20px;
+    padding: 0 20px;
+    /* Přidán padding pro výsledky, aby odpovídal původnímu container paddingu */
+}
+
+.food-item {
+    background-color: #e9e9e9;
+    border: 1px solid #ddd;
+    padding: 8px 5px;
+    /* Zmenšeno vertikální odsazení pro menší výšku */
+    margin-bottom: 10px;
+    border-radius: 12px;
+    display: flex;
+    /* Použijeme flexbox pro hlavní rozložení */
+    align-items: flex-start;
+    /* Změněno na flex-start pro zarovnání celého řádku k horní hraně */
+    cursor: pointer;
+    position: relative;
+}
+
+.food-item:hover {
+    background-color: #e0e0e0;
+}
+
+/* Písmo pro název potraviny */
+.food-item h3 {
+    margin: 0;
+    color: #007bff;
+    /* Modrá barva pro název potraviny */
+    font-size: 1em;
+    /* Zmenšeno písmo pro název */
+    line-height: 1.2;
+    /* Upravena výška řádku pro lepší vzhled */
+}
+
+.food-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border-radius: 12px;
+    flex-shrink: 0;
+    margin-right: 10px;
+    /* Mezera mezi obrázkem a textem */
+}
+
+/* Kontejner pro obrázek */
+.image-wrapper {
+    flex-shrink: 0;
+    /* Zabrání zmenšování */
+    margin-top: -5px;
+    /* Posun obrázku kousek nahoru */
+}
+
+/* Písmo pro kalorie pod obrázkem */
+.calories-display {
+    margin: 0;
+    /* Odstraněn margin-top, bude řízen v calories-and-type-row */
+    font-size: 0.85em;
+    text-align: left;
+    color: black;
+    /* Změněno na černé písmo */
+    font-weight: bold;
+    white-space: nowrap;
+    /* Zabrání zalomení textu */
+}
+
+.food-details {
+    flex-grow: 1;
+    /* Povolí detailům zabrat dostupný prostor */
+    text-align: left;
+    display: flex;
+    /* Nastaví food-details jako flex kontejner */
+    flex-direction: column;
+    /* Uspořádá obsah ve sloupci (název a řádek kalorií/typu) */
+    justify-content: space-between;
+    /* Rozprostře obsah (h3 nahoře, zbytek dole) */
+    height: 100%;
+    /* Umožní zabrat celou dostupnou výšku */
+}
+
+/* Nový kontejner pro kalorie a typ potraviny - na stejném řádku */
+.calories-and-type-row {
+    display: flex;
+    flex-direction: column;
+    /* Změna z row na column */
+    gap: 2px;
+    /* Mezera mezi množstvím a kaloriemi */
+    margin-top: 5px;
+}
+
+#loading {
+    display: none;
+    text-align: center;
+    color: #888;
+}
+
+.error {
+    color: red;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.warning {
+    color: orange;
+    text-align: center;
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+/* Styly pro modální okno */
+.modal-overlay {
+    display: none;
+    /* Skryté ve výchozím stavu */
+    position: fixed;
+    z-index: 1000;
+    /* Higher z-index for modals */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    /* Ponecháno 20px pro vnitřní odsazení obsahu */
+    border: 1px solid #888;
+    width: 80%;
+    /* Původní šířka */
+    max-width: 500px;
+    /* Zvětšeno z 400px na 500px */
+    border-radius: 12px;
+    /* Změněno na 12px */
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    /* Nové styly pro flex kontejner a max-height */
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    /* Umožní modalu růst až do 90% výšky viewportu */
+    overflow-y: auto;
+    /* Změněno: Celý modal se bude rolovat, pokud přeteče */
+}
+
+.close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10;
+    /* Zajistí, že bude nad vším */
+    background-color: rgba(255, 255, 255, 0.8);
+    /* Poloprůhledné bílé pozadí */
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    /* Zajištění, že aktivní oblast odpovídá vizuálnímu křížku */
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-details {
+    font-size: 0.95em;
+    /* Nové styly pro flex kontejner */
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    /* Umožní zabrat dostupný prostor uvnitř .modal-content */
+    /* Odstraněno overflow-y: visible; */
+}
+
+.modal-details h3 {
+    margin-top: 15px;
+    margin-bottom: 5px;
+    color: #333;
+    font-size: 1.1em;
+}
+
+.modal-details p {
+    margin-bottom: 3px;
+}
+
+.modal-details strong {
+    color: #333;
+}
+
+.modal-details .loading-details,
+.modal-details .error-details {
+    text-align: center;
+    color: #888;
+    margin-top: 10px;
+}
+
+.modal-details .error-details {
+    color: red;
+}
+
+/* Styly pro zobrazení jako na obrázku */
+.nutrient-section {
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+}
+
+.nutrient-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2px;
+}
+
+.nutrient-label {
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+}
+
+.nutrient-label.main {
+    font-size: 1.2em;
+}
+
+.nutrient-value {
+    font-weight: bold;
+}
+
+.nutrient-value.main-value {
+    font-size: 1.2em;
+}
+
+.nutrient-sub-label {
+    margin-left: 20px;
+    /* Odsazení pro podkategorie */
+    font-size: 0.9em;
+    color: #555;
+}
+
+.nutrient-sub-value {
+    font-size: 0.9em;
+    color: #555;
+}
+
+/* New class for specific font size and weight */
+.nutrient-normal-font {
+    font-size: 1.05em;
+    /* Adjusted font size */
+    font-weight: normal;
+    /* Normal font weight */
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    display: inline-block;
+}
+
+.dot.red {
+    background-color: #f44336;
+}
+
+.dot.blue {
+    background-color: #2196f3;
+}
+
+.dot.orange {
+    background-color: #ff9800;
+}
+
+.dot.green {
+    background-color: #4caf50;
+}
+
+/* Pro Vlákninu */
+
+.energy-header {
+    text-align: right;
+    /* Zarovnání k pravému okraji */
+    font-size: 1.8em;
+    /* Zvětšená velikost písma o 3 body (z 1.8em na 2.1em) */
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+    line-height: 1;
+}
+
+.energy-sub-header {
+    text-align: right;
+    /* Zarovnání k pravému okraji */
+    font-size: 0.9em;
+    color: #777;
+    margin-bottom: 0;
+    /* Odstraněna spodní mezera pro přesnější zarovnání */
+    white-space: nowrap;
+    /* Zabrání rozdělení textu na více řádků */
+}
+
+/* Nové styly pro hlavičku detailu */
+.modal-header-content {
+    display: flex;
+    /* Použijeme flexbox */
+    align-items: center;
+    /* Vertikálně vycentrujeme položky */
+    margin-bottom: 20px;
+}
+
+.modal-header-image {
+    width: 80px;
+    /* Zvětšená velikost obrázku a čtvercový tvar */
+    height: 80px;
+    /* Zvětšená velikost obrázku a čtvercový tvar */
+    object-fit: cover;
+    /* Oříznutí namísto deformace */
+    margin-right: 15px;
+    border-radius: 8px;
+    /* Změněno na 12px */
+    flex-shrink: 0;
+    /* Zabrání zmenšování obrázku */
+}
+
+.modal-header-name {
+    flex-grow: 1;
+    /* Povolí názvu zabrat dostupný prostor */
+    flex-shrink: 1;
+    /* Povolí názvu se zmenšit, pokud je potřeba */
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
+    line-height: 1.2;
+    overflow: hidden;
+    /* Skryje přetečení textu */
+    display: flex;
+    /* Použijeme flexbox pro vertikální centrování textu uvnitř divu */
+    align-items: center;
+    /* Vertikálně vycentruje text */
+    justify-content: center;
+    /* Horizontálně vycentruje text */
+    height: 120px;
+    /* Omezí výšku na výšku obrázku */
+}
+
+/* Nový kontejner pro interaktivní sekci (množství/jednotka a kalorie/kJ) */
+.interactive-section {
+    display: flex;
+    justify-content: space-between;
+    /* Rozprostře položky na kraje */
+    align-items: flex-end;
+    /* Zarovná položky dole */
+    margin-bottom: 15px;
+    padding-left: 10px;
+    /* Odsazení 10px od levého okraje */
+    padding-right: 0;
+    /* Změněno na 0 odsazení od pravého okraje */
+}
+
+/* Styly pro pole množství a jednotek */
+.amount-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.amount-input,
+.unit-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-family: 'Dutch801 Rm BT', serif;
+    box-sizing: border-box;
+    /* Zajištění, že padding a border jsou zahrnuty do šířky */
+}
+
+.amount-input {
+    width: 100px;
+    font-size: 1.3em;
+    text-align: left;
+}
+
+.unit-select {
+    width: 60px;
+    font-size: 0.8em;
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="%23333" viewBox="0 0 10 10"><path d="M0 2.5 L5 7.5 L10 2.5 Z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 8px;
+    margin: 0;
+}
+
+/* Kontejner pro energetické hodnoty */
+.energy-display-group {
+    flex-grow: 1;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+/* New style for nutrient line separator */
+.nutrient-line-separator {
+    border-top: 1px solid #eee;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.food-type-label {
+    background-color: #6366f1;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    flex-shrink: 0;
+    /* Zabrání zmenšování labelu */
+}
+
+/* New styles for food item colors */
+.food-item.food-item-potravina {
+    background-color: #e0f2f7;
+    border-color: #a7d9ed;
+}
+
+.food-item.food-item-recept {
+    background-color: #e6ffe6;
+    border-color: #b3e6b3;
+}
+
+/* Specific colors for food type labels */
+.food-type-label.potravina-label {
+    background-color: #1a75ff;
+}
+
+.food-type-label.recept-label {
+    background-color: #0baf0b;
+}
+
+/* New styles for buttons within search results */
+/* These styles are now for buttons *inside* the modal */
+.modal-action-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.modal-action-buttons button {
+    padding: 8px 12px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: background-color 0.3s ease;
+    flex-grow: 1;
+    max-width: 150px;
+    margin-left: 0;
+}
+
+.modal-action-buttons button:hover {
+    background-color: #218838;
+}
+
+/* New modal for creating a recipe */
+#createRecipeModal .modal-content {
+    max-width: 350px;
+    text-align: center;
+}
+
+#createRecipeModal input[type="text"] {
+    width: calc(100% - 20px);
+    margin-bottom: 15px;
+}
+
+/* New styles for buttons in create recipe modal */
+.create-recipe-buttons {
+    display: flex;
+    justify-content: center;
+    /* Center the group of buttons */
+    gap: 10px;
+    /* Space between buttons */
+    width: 100%;
+    /* Ensure it spans the width */
+    margin-top: 15px;
+    /* Add some top top margin */
+}
+
+#createRecipeModal .create-recipe-buttons button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    flex-grow: 1;
+    /* Allow them to grow */
+    margin: 0;
+    /* Override previous margin */
+}
+/*Zelené tlačítko*/
+#confirmCreateRecipeButton {
+    background-color: #28a745;
+    color: white;
+}
+
+#confirmCreateRecipeButton:hover {
+    background-color: #218838;
+}
+
+#cancelCreateRecipeButton {
+    background-color: #f44336;
+    color: white;
+    flex-basis: 40%;
+    /* Approximately half the width, adjust as needed */
+    max-width: 100px;
+    /* Example max width to prevent it from getting too wide */
+    flex-grow: 0;
+    /* Prevent it from growing as much as the other button */
+}
+
+#cancelCreateRecipeButton:hover {
+    background-color: #d32f2f;
+}
+
+/* New modal for selecting a recipe */
+#selectRecipeModal .modal-content {
+    max-width: 350px;
+    text-align: center;
+    display: flex;
+    /* Use flexbox for vertical layout */
+    flex-direction: column;
+    align-items: center;
+    /* Center items horizontally */
+}
+
+#selectRecipeModal ul {
+    list-style: none;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    width: 100%;
+    /* Ensure list takes full width */
+}
+
+#selectRecipeModal li {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    /* Zpět na pointer pro klikatelnost */
+}
+
+#selectRecipeModal li:last-child {
+    border-bottom: none;
+}
+
+#selectRecipeModal li:hover {
+    background-color: #f0f0f0;
+}
+
+/* Style for the buttons at the bottom of selectRecipeModal */
+.recipe-list-actions {
+    display: flex;
+    justify-content: center;
+    /* Center the buttons */
+    gap: 10px;
+    /* Space between buttons */
+    width: 100%;
+    /* Ensure it spans the width */
+    margin-top: 15px;
+    /* Add some top margin */
+}
+
+#selectRecipeModal .recipe-list-actions button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    flex-grow: 1;
+    /* Allow them to grow */
+    margin: 0;
+    /* Override previous margin */
+}
+
+#addNewRecipeButton {
+    background-color: #007bff;
+    /* Blue */
+    color: white;
+}
+
+#addNewRecipeButton:hover {
+    background-color: #0056b3;
+    /* Darker blue */
+}
+
+#cancelSelectRecipeButton {
+    background-color: #f44336;
+    /* Red */
+    color: white;
+}
+
+#cancelSelectRecipeButton:hover {
+    background-color: #d32f2f;
+    /* Darker red */
+}
+
+
+#userIdDisplay {
+    position: absolute;
+    /* Absolutní pozicování uvnitř sticky-header-wrapper */
+    top: 10px;
+    /* 10px od horního okraje */
+    left: 20px;
+    /* 20px od levého okraje */
+    text-align: left;
+    /* Zarovnání textu doleva */
+    font-size: 0.8em;
+    color: #666;
+    word-break: break-all;
+    z-index: 11;
+    /* Zajistí, že bude nad ostatními prvky, pokud se překrývají */
+}
+
+/* Custom Notification Modal */
+#customNotificationModal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    top: 50%;
+    /* Center vertically */
+    left: 50%;
+    /* Center horizontally */
+    transform: translate(-50%, -50%);
+    /* Adjust for modal's own size */
+    z-index: 1001;
+    /* Higher than other modals */
+    background-color: rgba(255, 255, 255, 0);
+    /* Transparent background */
+    padding: 0;
+    /* No padding on the overlay itself */
+    border-radius: 0;
+    /* No border radius on the overlay itself */
+    box-shadow: none;
+    /* No shadow on the overlay itself */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#customNotificationModal .modal-content {
+    background-color: #fefefe;
+    /* White background for the content box */
+    padding: 20px;
+    /* Padding inside the content box */
+    border: 1px solid #888;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 350px;
+    width: 80%;
+    /* Ensure responsiveness */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+#customNotificationMessage {
+    margin-top: 0;
+    margin-bottom: 20px;
+    /* More space below message */
+    color: #333;
+    font-size: 1em;
+    /* Slightly larger font */
+    line-height: 1.5;
+}
+
+.notification-controls {
+    display: flex;
+    justify-content: space-between;
+    /* Push toggle left and buttons right */
+    align-items: flex-end;
+    /* Align to the bottom of the line */
+    width: 100%;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    flex-wrap: nowrap;
+    /* Ensure they stay on one line */
+    gap: 10px;
+    /* Space between toggle and buttons */
+}
+
+.notification-toggle-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    /* Align contents to the left */
+    gap: 5px;
+    /* Adjust gap between toggle and label if needed */
+    flex-shrink: 0;
+    /* Prevent shrinking */
+}
+
+.notification-button {
+    padding: 8px 15px;
+    /* Smaller button */
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85em;
+    /* Smaller font for button */
+    transition: background-color 0.3s ease;
+    flex-shrink: 0;
+    /* Prevent shrinking */
+    width: auto;
+    /* Allow button to size naturally */
+    min-width: 60px;
+    /* Minimum width for the button */
+}
+
+.notification-button:hover {
+    background-color: #45a049;
+    /* Darker green on hover */
+}
+
+/* Toggle Switch Styling - Base for settings toggles */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    /* Width for settings toggles */
+    height: 22px;
+    /* Height for settings toggles */
+    flex-shrink: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-switch .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 22px;
+    /* Rounded slider for settings toggles */
+}
+
+.toggle-switch .slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    /* Slider circle for settings toggles */
+    width: 18px;
+    /* Slider circle for settings toggles */
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+    /* Rounded handle */
+}
+
+.toggle-switch input:checked+.slider {
+    background-color: #2196F3;
+    /* Blue when checked */
+}
+
+.toggle-switch input:focus+.slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+.toggle-switch input:checked+.slider:before {
+    transform: translateX(18px);
+    /* Adjusted movement for settings toggle size */
+}
+
+.toggle-label {
+    font-size: 0.9em;
+    /* Font size for settings labels */
+    color: #555;
+    user-select: none;
+    /* Prevent text selection */
+    white-space: nowrap;
+    /* Ensure it stays on one line */
+}
+
+/* NEW: Styles for smaller notification toggles */
+.notification-toggle-switch {
+    width: 30px;
+    /* Even smaller width for notification toggles */
+    height: 16px;
+    /* Even smaller height for notification toggles */
+}
+
+.notification-toggle-switch .slider {
+    border-radius: 16px;
+    /* Adjusted border-radius for smaller size */
+}
+
+.notification-toggle-switch .slider:before {
+    height: 12px;
+    /* Even smaller slider circle */
+    width: 12px;
+    /* Even smaller slider circle */
+    left: 2px;
+    bottom: 2px;
+}
+
+.notification-toggle-switch input:checked+.slider:before {
+    transform: translateX(14px);
+    /* Adjusted movement for even smaller size */
+}
+
+.notification-toggle-label {
+    font-size: 0.7em;
+    /* Even smaller font size for notification labels */
+}
+
+
+/* Nové modální okno pro nastavení */
+#settingsModal .modal-content {
+    max-width: 350px;
+    text-align: left;
+    /* Zarovnání textu vlevo */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    /* Zarovnání obsahu vlevo */
+}
+
+#settingsModal h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    width: 100%;
+    /* Zajistí, že nadpis zabere celou šířku */
+    text-align: center;
+    /* Vycentrování nadpisu */
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+    /* Oddělovač pro položky nastavení */
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+    /* Poslední položka bez oddělovače */
+    margin-bottom: 0;
+}
+
+.setting-label {
+    font-size: 0.9em;
+    /* Increased font size for settings labels */
+    color: #333;
+    flex-grow: 1;
+    /* Povolí popisku zabrat dostupný prostor */
+    white-space: nowrap;
+    /* Ensure it stays on one line */
+}
+
+
+/* Style for recipe list items in selectRecipeModal */
+#selectRecipeModal li.recipe-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    /* Zpět na pointer pro klikatelnost */
+}
+
+#selectRecipeModal li.recipe-list-item:last-child {
+    border-bottom: none;
+}
+
+#selectRecipeModal li.recipe-list-item:hover {
+    background-color: #f0f0f0;
+}
+
+/* Obecná pravidla pro ikonky receptů */
+.recipe-icons {
+    display: flex;
+    gap: 5px;
+    /* Mezera mezi ikonami */
+    flex-shrink: 0;
+    /* Zabrání zmenšování ikonek */
+    align-self: flex-end;
+    /* Důležité: Zarovná ikonky na spodek food-item */
+}
+
+/* Cílení přímo na obrázky uvnitř .recipe-icons */
+.recipe-icons img {
+    width: 20px;
+    /* Nastavena velikost obrázků na 20x20px */
+    height: 20px;
+    /* Nastavena velikost obrázků na 20x20px */
+    cursor: pointer;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.recipe-icons img:hover {
+    opacity: 0.7;
+}
+
+/* Specifické úpravy pro potraviny v detailu receptu */
+.modal-details .food-item .food-details h3 {
+    color: #007bff;
+    /* Modrá barva pro název potraviny */
+    /* align-self: flex-start; -- Odstraněno, protože je řízeno justify-content v parentu */
+}
+
+/* Media queries for responsiveness */
+@media (max-width: 480px) {
+    #currentProfileDisplay {
+        left: 10px;
+        padding: 5px 8px;
+        max-width: 180px;
+    }
+
+    #currentProfileName {
+        max-width: 120px;
+        font-size: 0.8em;
+    }
+
+    .profile-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .main-controls button {
+        width: 48% !important;
+        max-width: 140px !important;
+        padding: 8px !important;
+        font-size: 13px !important;
+    }
+
+    #detailsModal.modal-recipe-open .modal-content {
+        width: 85vw !important;
+        max-width: 85vw !important;
+    }
+
+    /* Změny zde pro zachování horizontálního uspořádání */
+    .food-item {
+        flex-direction: row;
+        /* Zajišťuje, že zůstane v řadě */
+        align-items: flex-start;
+        /* Vertikální zarovnání k hornímu okraji */
+    }
+
+    .food-item img {
+        margin-bottom: 0;
+        /* Reset */
+        margin-right: 15px;
+        /* Zachování mezery */
+    }
+
+    .food-details {
+        width: auto;
+        /* Reset */
+        margin-right: 0;
+        margin-bottom: 0;
+    }
+
+    #customNotificationModal {
+        bottom: 10px;
+        right: 10px;
+        max-width: calc(100% - 20px);
+        /* Full width minus margin */
+    }
+
+    .search-and-recipes-container {
+        flex-direction: column;
+        /* Stack items vertically on small screens */
+        align-items: center;
+        /* Center items when stacked */
+        gap: 15px;
+        /* Space between stacked items */
+    }
+
+    .main-controls {
+        width: 100%;
+        /* Make button container full width */
+        justify-content: center;
+        /* Center the button */
+    }
+
+    .main-controls button {
+        width: 90%;
+        /* Make button take more width when stacked */
+        max-width: 250px;
+        /* Limit max width for button */
+    }
+
+    form {
+        flex-direction: column;
+        /* Stack input and button */
+        align-items: center;
+        /* Center them */
+        gap: 10px;
+        /* Space between them */
+        width: 100%;
+        /* Make form full width */
+    }
+
+    input[type="text"] {
+        width: 90%;
+        /* Make input take more width when stacked */
+    }
+
+    button[type="submit"] {
+        width: 90%;
+        /* Make button take more width when stacked */
+        max-width: 250px;
+        /* Limit max width for submit button */
+    }
+}
+
+
+@media (max-width: 375px) {
+    /* No additional changes needed here, as the 480px media query handles stacking */
+}
+
+/* New style for recipe count display */
+.recipe-count-display {
+    text-align: left;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #333;
+    width: 100%;
+    /* Ensure it takes full width to align left */
+    padding-left: 10px;
+    /* Adjust padding to align with list items */
+}
+
+/* MODÁLNÍ OKNO RECEPTU - OPRAVA POZICOVÁNÍ */
+.modal-recipe-content {
+    position: relative;
+    max-height: 90vh;
+    overflow: hidden; /* Skryjeme scroll na hlavním kontejneru */
+}
+
+.modal-recipe-scroll-container {
+    height: 100%;
+    overflow-y: auto;
+    background-color: #fefefe;
+}
+
+#detailsModal .modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 12px;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Původní odsazení nutričních hodnot */
+#detailsModal .nutrient-section {
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+}
+
+#detailsModal .nutrient-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2px;
+    padding: 0 10px; /* Odsazení od okrajů */
+}
+
+/* Původní vzhled pro detail potraviny */
+#detailsModal .modal-details {
+    font-size: 0.95em;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+/* Křížek - recept, editace položky receptu, detail potraviny */
+#detailsModal .close-button {
+    cursor: pointer;
+    line-height: 1;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 1001;
+    background-color: transparent !important; /* PRŮHLEDNÉ POZADÍ */
+    border: none !important; /* ŽÁDNÝ OKRAJ */
+    border-radius: 0 !important; /* ŽÁDNÉ ZAOBLENÍ */
+    width: auto !important;
+    height: auto !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none !important; /* ŽÁDNÝ STÍN */
+    font-size: 28px;
+    font-weight: bold;
+    color: #aaa;
+    transition: color 0.2s ease;
+}
+
+#detailsModal .close-button:hover {
+    background-color: transparent !important;
+    color: #000;
+    box-shadow: none !important;
+}
+
+/* Pouze pro recept - scroll container */
+#detailsModal.modal-recipe-open .modal-recipe-scroll-container {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: #fefefe;
+    width: 100%;
+}
+
+/* Pouze pro recept - obsah */
+#detailsModal.modal-recipe-open .modal-scrollable-container {
+    padding: 10px 15px 20px 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Pouze pro recept - hlavička */
+#detailsModal.modal-recipe-open .modal-recipe-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #fefefe !important;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    margin: 0;
+    border-radius: 12px 12px 0 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* SPECIFICKÉ STYLY POUZE PRO MODÁLNÍ OKNO RECEPTU */
+#detailsModal.modal-recipe-open .modal-content {
+    position: relative;
+    max-height: 90vh;
+    overflow: hidden;
+    background-color: #fefefe;
+    border-radius: 12px;
+    padding: 0 !important;
+    width: 95vw;
+    max-width: 500px;
+    margin: 20px auto;
+}
+
+/* RYCHLÁ OPRAVA PRO MOBIL */
+@media (max-width: 768px) {
+    .main-controls button {
+        width: 45% !important;
+        max-width: 160px !important;
+        padding: 10px !important;
+        font-size: 14px !important;
+    }
+
+    #detailsModal.modal-recipe-open .modal-content {
+        width: 90vw !important; /* Stejné jako ostatní okna */
+        max-width: 90vw !important;
+    }
+    
+    #detailsModal.modal-recipe-open .modal-recipe-header {
+        width: 55vw !important; 
+        max-width: 55vw !important;
+    }
+    
+    /* Ostatní modální okna zachovat původní vzhled */
+    #detailsModal .modal-content {
+        width: 90vw;
+        max-width: 90vw;
+        margin: 20px auto;
+        padding: 15px;
+    }
+
+    /* Okno pro výběr receptu */
+    #selectRecipeModal .modal-content {
+        width: 90vw !important;
+        max-width: 90vw !important;
+    }
+    
+    /* Okno pro vytvoření receptu/profilu */
+    #createRecipeModal .modal-content,
+    #createProfileModal .modal-content {
+        width: 90vw !important;
+        max-width: 90vw !important;
+        padding: 15px !important;
+    }
+
+    /* Okno s detailem potraviny */
+    #detailsModal .modal-content:not(.modal-recipe-open) {
+        width: 90vw !important;
+        max-width: 90vw !important;
+        padding: 15px !important;
+    }
+    
+    /* Okno s nastavením */
+    #settingsModal .modal-content {
+        width: 90vw !important;
+        max-width: 90vw !important;
+    }
+
+    #detailsModal .modal-content {
+        width: 90vw !important;
+        max-width: 90vw !important;
+        margin: 10px auto !important;
+    }
+    
+    .modal-scrollable-container {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+    
+    * {
+        max-width: 100%; /* Zajistí že nic nepřesahuje */
+        box-sizing: border-box;
+    }
+}
+
+/* Kontejner detailu receptu už je flex-column (.modal-details to zajišťuje),
+   jen zajistíme, že tělo pod hlavičkou tvoří JEDINÝ scrollovatelný obsah */
+.modal-scrollable-container {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 10px 20px 20px 20px;
+    background-color: #fefefe;
+}
+
+/* Seznam ingrediencí – zachován vzhled (rámeček/padding), ale BEZ vlastního scrollu */
+#recipeIngredientsList {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #fefefe;
+}
+
+#nutrientDetailsSection {
+    background-color: #fefefe;
+}
+
+.modal-header-text {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.modal-header-kcal {
+    font-size: 1em;
+    color: #666;
+}
+
+/* Kontejner pro detaily potraviny v receptu */
+.food-item .food-details {
+    flex-grow: 1;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Styl pro zobrazení množství */
+.amount-display {
+    margin: 0;
+    /* Odstraněn margin-top, bude řízen v calories-and-type-row */
+    font-size: 0.85em;
+    text-align: left;
+    color: black;
+    /* Změněno na černé písmo */
+    font-weight: bold;
+    white-space: nowrap;
+    /* Zabrání zalomení textu */
+}
+
+/* Styly pro tlačítko skeneru čárových kódů */
+#barcodeButton {
+    padding: 12px 15px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#barcodeButton:hover {
+    background-color: #6cb8f3;
+}
+
+/* Styly pro modální okno skeneru */
+#barcodeModal .modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Animace pro nalezení čárového kódu */
+@keyframes barcodeFound {
+    0% {
+        border-color: #4CAF50;
+    }
+
+    50% {
+        border-color: #ffeb3b;
+    }
+
+    100% {
+        border-color: #4CAF50;
+    }
+}
+
+.barcode-found {
+    animation: barcodeSuccess 1s ease-in-out;
+    border-color: #4CAF50 !important;
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+}
+
+@keyframes barcodeSuccess {
+    0% {
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 rgba(76, 175, 80, 0);
+    }
+
+    50% {
+        border-color: #4CAF50;
+        box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+    }
+
+    100% {
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+.scanning-status {
+    font-size: 14px;
+    color: #666;
+    margin-top: 5px;
+}
+
+#barcodeStatus {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* Indikátor načítání pro skener */
+.barcode-loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgb(255, 255, 255);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Přidejte do CSS lepší styly pro skener */
+#barcodeOverlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    height: 30%;
+    border: 2px solid #4CAF50;
+    border-radius: 8px;
+    pointer-events: none;
+    display: none;
+    /* SNÍŽENÝ KONTRAST - průhlednost */
+    opacity: 0.7;
+    /* JEMNĚJŠÍ STÍN */
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+}
+
+.barcode-scanning {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
+}
+
+#barcodeStatus.scanning {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+/* Styly pro tlačítko zastavení skenování */
+#stopScanButton {
+    margin: 10px auto;
+    display: block;
+    padding: 10px 20px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+#stopScanButton:hover {
+    background-color: #d32f2f;
+}
+
+#stopScanButton:active {
+    background-color: #b71c1c;
+}
+
+.scanning-tip {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+/* Styly pro správu profilů */
+#profileList {
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 15px 0;
+}
+
+.profile-name {
+    font-weight: bold;
+}
+
+/* Ikona koše */
+.profile-delete {
+    padding: 6px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.profile-delete:hover {
+    background-color: rgba(244, 67, 54, 0.1);
+}
+
+.loading-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Styly pro zobrazení aktuálního profilu */
+#currentProfileDisplay {
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    z-index: 11;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: transparent;
+    padding: 0;
+    border: none;
+}
+
+.profile-icon {
+    width: 22px;
+    height: 22px;
+}
+
+#currentProfileName {
+    font-weight: 500;
+    color: #333;
+    font-size: 1.1em;
+}
+
+/* Styly pro klikatelnou oblast profilu */
+.profile-display-clickable {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.profile-display-clickable:hover {
+    transform: none;
+    background-color: transparent;
+}
+
+.profile-display-clickable:active {
+    transform: scale(0.95);
+}
+
+/* Zvýraznění při najetí myší */
+#currentProfileDisplay:hover .profile-icon {
+    opacity: 0.8;
+}
+
+/* Zvýraznění aktivního profilu v seznamu */
+.profile-item.active {
+    background-color: #e0f2f7;
+    border-color: #a7d9ed;
+}
+
+/* ÚPLNĚ STEJNÝ STYL JAKO VÝSLEDKY VYHLEDÁVÁNÍ */
+.profile-item {
+    background-color: #e9e9e9;
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.profile-item:hover {
+    background-color: #e0e0e0;
+}
+
+.profile-item.active {
+    background-color: #e0f2f7;
+    border-color: #a7d9ed;
+}
+
+.profile-item.active .profile-name {
+    color: #007bff;
+    font-weight: bold;
+    margin-left: 8px;
+    /* Odsazení textu od levého okraje */
+}
+
+/* Kontejner pro název profilu s odsazením */
+.profile-name-container {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    padding-left: 8px;
+    /* Odsazení od levého okraje */
+}
+
+/* Styly pro modální okno vytvoření profilu */
+#createProfileModal .modal-content {
+    max-width: 350px;
+    text-align: center;
+    padding: 20px;
+}
+
+#createProfileModal h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+    font-size: 1.3em;
+}
+
+#newProfileName {
+    width: calc(100% - 20px);
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    font-family: 'Dutch801 Rm BT', serif;
+    text-align: center;
+}
+
+.create-profile-buttons {
+    display: flex;
+    justify-content: space-between; /* Tlačítka na opačných stranách */
+    gap: 10px;
+    width: 100%;
+    margin-top: 15px;
+}
+
+#newProfileName:focus {
+    outline: none;
+    border-color: #000000;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+/*#cancelCreateProfile, #confirmCreateProfile {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    flex-grow: 1;
+    max-width: 150px;
+    transition: background-color 0.3s ease;
+    margin: 0;
+}*/
+
+/* Červené tlačítko Zrušit */
+#cancelCreateProfile {
+    /* Zrušit - vpravo, standardní velikost */
+    order: 2; /* Druhé v pořadí (vpravo) */
+    flex: 1; /* Standardní velikost */
+    padding: 10px 15px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 0;
+}
+
+#cancelCreateProfile:hover {
+    background-color: #d32f2f;
+}
+
+#cancelCreateProfile:active {
+    transform: translateY(0);
+}
+
+/* Zelené tlačítko Vytvořit */
+#confirmCreateProfile {
+    /* Vytvořit - vlevo, 2x delší */
+    order: 1; /* První v pořadí (vlevo) */
+    flex: 2; /* 2x větší než Zrušit */
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 0;
+}
+
+#confirmCreateProfile:hover {
+    background-color: #218838;
+}
+
+#confirmCreateProfile:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}

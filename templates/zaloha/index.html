@@ -2333,19 +2333,6 @@
             }
         }
 
-        // Přidejte tuto funkci pro lepší error handling
-        function handleFetchError(error, context) {
-            console.error(`❌ Fetch error in ${context}:`, error);
-
-            if (error.name === 'TypeError') {
-                return 'Chyba připojení k serveru. Zkontrolujte síťové připojení.';
-            } else if (error.name === 'AbortError') {
-                return 'Požadavek byl přerušen.';
-            } else {
-                return `Neočekávaná chyba: ${error.message}`;
-            }
-        }
-
         // Inicializace skeneru čárových kódů
         function initBarcodeScanner() {
             barcodeModal = document.getElementById('barcodeModal');
@@ -3550,61 +3537,50 @@
 
         async function showDetailsModal(slug, name, imageUrl, initialCaloriesString, foodType, isEditingRecipeIngredient = false, initialAmount = 100, initialUnit = 'g', originalNutritionalDetails = null) {
             console.log("showDetailsModal called for slug:", slug, "name:", name, "foodType:", foodType, "isEditingRecipeIngredient:", isEditingRecipeIngredient);
-            modalDetailsContent.classList.remove('modal-recipe-container');
+            modalDetailsContent.classList.remove('modal-recipe-container'); // Odebere třídu pro potraviny
             document.getElementById('modalDetailsContent').classList.remove('modal-recipe-container');
             document.getElementById('detailsModal').classList.remove('modal-recipe-open');
-            detailsModal.style.display = 'flex';
+            detailsModal.style.display = 'flex'; // Ensure modal is visible
             modalDetailsContent.innerHTML = `<p class="loading-details">Načítám detaily pro ${name}...</p>`;
 
             try {
                 let details;
                 if (isEditingRecipeIngredient && originalNutritionalDetails) {
+                    // If editing an ingredient, use the provided nutritional details directly
                     details = originalNutritionalDetails;
                     console.log("Using provided nutritional details for editing:", details);
                 } else {
-                    console.log("🔍 Volám /get_details endpoint...");
+                    // Otherwise, fetch details from the server
                     const response = await fetch('/get_details', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({
-                            slug: slug,
-                            food_type: foodType
-                        })
+                        body: JSON.stringify({ slug: slug, food_type: foodType })
                     });
 
-                    console.log("📊 Response status:", response.status);
-                    console.log("📊 Response ok:", response.ok);
+                    console.log("Response status:", response.status);
 
                     if (!response.ok) {
                         let errorMessage = `Chyba při načítání detailů (Status: ${response.status}).`;
                         let rawResponseText = await response.text();
-                        console.error("❌ Raw server response (not OK):", rawResponseText);
-
-                        // Zkuste parsovat jako JSON, pokud to selže, použijte raw text
+                        console.error("Raw server response (not OK):", rawResponseText);
                         try {
                             const errorData = JSON.parse(rawResponseText);
                             if (errorData && errorData.error) {
                                 errorMessage = `Chyba ze serveru: ${errorData.error}`;
+                            } else {
+                                errorMessage = `Chyba ze serveru (neznámý formát odpovědi).`;
                             }
                         } catch (jsonParseError) {
-                            console.error("❌ Nepodařilo se parsovat odpověď serveru jako JSON:", jsonParseError);
-                            errorMessage = `Chyba při komunikaci se serverem: ${response.statusText || 'Neznámá chyba'}. Odpověď: ${rawResponseText.substring(0, 100)}...`;
+                            errorMessage = `Chyba při komunikaci se serverem: ${response.statusText || 'Neznámá chyba'}. Odpověď serveru nebyla platný JSON.`;
+                            console.error("Nepodařilo se parsovat odpověď serveru jako JSON:", jsonParseError);
                         }
                         modalDetailsContent.innerHTML = `<p class="error-details">${errorMessage}</p>`;
                         return;
                     }
-
-                    // Pokud response je OK, zkuste parsovat jako JSON
-                    try {
-                        details = await response.json();
-                        console.log("✅ Received details JSON:", details);
-                    } catch (jsonError) {
-                        console.error("❌ Error parsing JSON response:", jsonError);
-                        modalDetailsContent.innerHTML = `<p class="error-details">Chyba při zpracování odpovědi ze serveru.</p>`;
-                        return;
-                    }
+                    details = await response.json();
+                    console.log("Received details JSON:", details);
                 }
 
                 let originalDetailsData = details;

@@ -6,3 +6,4 @@ urljoin
 gunicorn
 python-dotenv
 supabase
+flask-cors
