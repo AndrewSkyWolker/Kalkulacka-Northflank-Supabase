@@ -1930,3 +1930,12 @@ button:hover {
 #loginMenuBtn:hover {
     background-color: #0056b3;
 }
+
+.sticky-header-wrapper h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+    margin-top: 40px;
+    /* Zajistí, že nebude překrývat levý a pravý panel */
+    padding: 0 100px;
+}
