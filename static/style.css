@@ -1773,14 +1773,20 @@ button:hover {
 }
 
 /* Ikona koše */
+/* Styly pro ikonku mazání profilu */
 .profile-delete {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
     padding: 6px;
     border-radius: 4px;
     transition: background-color 0.2s ease;
+    opacity: 0.7;
 }
 
 .profile-delete:hover {
     background-color: rgba(244, 67, 54, 0.1);
+    opacity: 1;
 }
 
 .loading-spinner {
@@ -1839,12 +1845,14 @@ button:hover {
     z-index: 1001 !important;
 }
 
-/* Styly pro klikatelnou oblast profilu */
+/* Zarovnání obsahu profilu na střed tlačítka */
 .profile-display-clickable {
     display: flex;
     flex-direction: column;
-    cursor: pointer !important;
-    pointer-events: all !important;
+    align-items: center !important; /* Zarovnání na střed */
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
     padding: 8px 12px;
     background-color: rgba(255, 255, 255, 0.95);
     border-radius: 12px;
@@ -1861,13 +1869,19 @@ button:hover {
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
+/* Zarovnání ikonky a názvu profilu na střed */
 .profile-info {
     display: flex;
     align-items: center;
+    justify-content: center !important; /* Zarovnání na střed */
     gap: 8px;
+    width: 100%;
 }
 
+/* Zarovnání emailu na střed */
 .profile-email {
+    text-align: center !important;
+    width: 100%;
     font-size: 0.75em;
     color: #666;
     margin-bottom: 4px;
@@ -1879,6 +1893,20 @@ button:hover {
 
 .profile-display-clickable:active {
     transform: scale(0.95);
+}
+
+/* Specificky pro profil v nastavení */
+#settingsProfileInfo .profile-display-clickable {
+    align-items: center !important;
+    justify-content: center;
+}
+
+#settingsProfileInfo .profile-info {
+    justify-content: center !important;
+}
+
+#settingsProfileInfo .profile-email {
+    text-align: center !important;
 }
 
 /* Zvýraznění při najetí myší */
@@ -1935,6 +1963,10 @@ button:hover {
     max-width: 350px;
     text-align: center;
     padding: 20px;
+    overflow: hidden !important;
+    max-height: none !important;
+    padding: 20px;
+    height: auto;
 }
 
 #createProfileModal h3 {
@@ -2176,4 +2208,22 @@ button:hover {
     font-weight: bold !important;
     color: #333;
     font-size: 1em; /* Zachováme původní velikost písma */
+}
+
+/* Styly pro informace o profilu v nastavení - ZACHOVÁNÍ PŮVODNÍHO DESIGNU */
+.settings-profile-info {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.settings-profile-info .profile-display-clickable {
+    margin: 0 auto;
+    cursor: pointer;
+}
+
+/* Aktivace zobrazení */
+#settingsProfileInfo[style*="display: none"] {
+    display: flex !important;
 }

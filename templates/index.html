@@ -239,6 +239,19 @@
     <div id="settingsModal" class="modal-overlay">
         <div class="modal-content">
             <span class="close-button" id="closeSettingsModal">&times;</span>
+            <!-- Přidáno: Informace o profilu a uživateli - STEJNÉ JAKO NA HLAVNÍ STRÁNCE -->
+            <div id="settingsProfileInfo" class="settings-profile-info"
+                style="display: none; justify-content: center; margin-bottom: 20px;">
+                <div class="profile-display-clickable" style="margin: 0 auto;">
+                    <div class="profile-email" id="settingsProfileEmail"></div>
+                    <div class="profile-info">
+                        <img src="{{ url_for('static', filename='icon/profil.png') }}" alt="Profil"
+                            class="profile-icon">
+                        <span id="settingsProfileName">Název profilu</span>
+                    </div>
+                </div>
+            </div>
+
             <h3>Nastavení</h3>
 
             <!-- Sekce přihlášení -->
@@ -504,6 +517,20 @@
             }
         });
 
+        // Inicializace při otevření modálního okna nastavení
+        document.getElementById('settingsIcon').addEventListener('click', function () {
+            console.log("🎯 Otevřeno nastavení - načítám aktuální nastavení");
+
+            // Načíst aktuální nastavení
+            loadUserSettings();
+
+            // Inicializovat rozbalovací sekce
+            setTimeout(initializeSettingsSections, 100);
+
+            // Aktualizovat informace o profilu
+            updateSettingsProfileInfo();
+        });
+
         // Funkce pro zobrazení přihlašovacího modalu
         function showLoginModal() {
             const loginModal = document.getElementById('loginModal');
@@ -624,25 +651,15 @@
         async function continueAnonymously() {
             try {
                 console.log("🔄 Pokračuji anonymně...");
-                const { data, error } = await window.supabaseClient.auth.signInAnonymously();
 
-                if (error) {
-                    console.error("❌ Anonymní přihlášení selhalo:", error);
-                    window.currentUser = createLocalUser();
-                } else if (data.user) {
-                    console.log("✅ Anonymní uživatel přihlášen:", data.user.id);
-                    window.currentUser = data.user;
-                }
-
-                hideLoginModal();
-                window.showCustomNotification("Pokračujete anonymně. Data budou uložena pouze v tomto prohlížeči.", 'info');
-                await continueWithUser(window.currentUser);
+                // ŽÁDNÉ lokální profily pro anonymní uživatele
+                window.showCustomNotification("Pro plné funkce aplikace se prosím přihlaste.", 'info');
+                showLoginModal(); // Nabídnout přihlášení
 
             } catch (error) {
                 console.error("❌ Chyba při anonymním přihlášení:", error);
-                window.currentUser = createLocalUser();
-                hideLoginModal();
-                await continueWithUser(window.currentUser);
+                window.showCustomNotification("Pro plné funkce aplikace se prosím přihlaste.", 'info');
+                showLoginModal();
             }
         }
 
@@ -678,6 +695,119 @@
                 userMenu.style.display = 'none';
             }
         }
+
+        // Funkce pro aktualizaci informací o profilu v nastavení
+        function updateSettingsProfileInfo() {
+            const profileInfo = document.getElementById('settingsProfileInfo');
+            const profileEmail = document.getElementById('settingsProfileEmail');
+            const profileName = document.getElementById('settingsProfileName');
+
+            if (window.currentUser && window.currentUser.email && window.currentProfileId) {
+                // Zobrazit sekci pouze pokud je uživatel přihlášen a má vybraný profil
+                profileInfo.style.display = 'flex';
+
+                profileEmail.textContent = window.currentUser.email;
+                profileEmail.style.display = 'block';
+
+                if (window.userProfiles) {
+                    const profile = window.userProfiles.find(p => p.id === window.currentProfileId);
+                    if (profile) {
+                        profileName.textContent = profile.name;
+                    } else {
+                        profileName.textContent = 'Nevybrán profil';
+                    }
+                }
+            } else {
+                // Skrýt sekci pokud není přihlášen
+                profileInfo.style.display = 'none';
+            }
+        }
+
+        // Přidání klikatelnosti - OPRAVENÁ VERZE
+        document.addEventListener('click', function (e) {
+            const profileElement = e.target.closest('#settingsProfileInfo .profile-display-clickable');
+            if (profileElement) {
+                console.log("🎯 Kliknuto na profil v nastavení");
+
+                // Nejdříve sbalit všechny sekce
+                collapseAllSettingsSections();
+
+                // Pak zavřít modální okno nastavení
+                setTimeout(() => {
+                    const settingsModal = document.getElementById('settingsModal');
+                    if (settingsModal) {
+                        settingsModal.style.display = 'none';
+                        console.log("✅ Modální okno nastavení zavřeno");
+                    }
+
+                    // Nakonec otevřít modální okno profilů
+                    window.showProfileModal();
+                }, 150); // Větší zpoždění pro plynulou animaci
+            }
+        });
+
+        // Volání funkce při otevření nastavení
+        document.getElementById('settingsIcon').addEventListener('click', function () {
+            setTimeout(updateSettingsProfileInfo, 100);
+        });
+
+        // Také aktualizujte při změně profilu
+        window.selectProfile = async function (profileId) {
+            try {
+                console.log("🎯 selectProfile volána:", profileId);
+                window.currentProfileId = profileId;
+
+                // Načtení a zobrazení názvu profilu
+                await window.loadAndDisplayCurrentProfile();
+
+                // NAČTENÍ NASTAVENÍ PRO VYBRANÝ PROFIL - PŘIDÁNO
+                console.log("🔍 Načítám nastavení pro vybraný profil...");
+                await loadUserSettings();
+
+                // Aktualizace nastavení
+                updateSettingsProfileInfo();
+
+                // Skrytí modálního okna
+                const profileModal = document.getElementById('profileModal');
+                if (profileModal) {
+                    profileModal.style.display = 'none';
+                    window.isProfileModalShowing = false;
+                }
+
+                console.log("✅ Profil vybrán:", profileId);
+
+            } catch (error) {
+                console.error("❌ Chyba při výběru profilu:", error);
+            }
+        };
+
+        // Event listenery pro přepínače - přidejte debugování
+        document.addEventListener('DOMContentLoaded', function () {
+            // Přidejte tyto console.log do každého event listeneru
+            const toggles = [
+                'confirmRecipeCreationToggle',
+                'confirmFoodAdditionToggle',
+                'confirmDeleteRecipeToggle',
+                'confirmDeleteRecipeItemToggle',
+                'confirmSaveChangesToggle',
+                'confirmRecipeSaveSuccessToggle',
+                'confirmRecipeDeletionSuccessToggle',
+                'confirmRecipeDeletionErrorToggle'
+            ];
+
+            toggles.forEach(toggleId => {
+                const toggle = document.getElementById(toggleId);
+                if (toggle) {
+                    toggle.addEventListener('change', function () {
+                        const settingKey = toggleId.replace('Toggle', '');
+                        userSettings[settingKey] = this.checked;
+                        console.log(`🎯 Přepínač ${toggleId} změněn na:`, this.checked);
+                        console.log(`💾 Ukládám ${settingKey}:`, this.checked);
+                        saveUserSettings();
+                    });
+                }
+            });
+        });
 
         // Hlavní inicializační funkce
         async function initializeApplication() {
@@ -726,6 +856,99 @@
 
         // Event listener pro přihlašovací tlačítko v headeru
         document.getElementById('loginMenuBtn').addEventListener('click', function () {
+            showLoginModal();
+        });
+
+        // Funkce pro sbalení všech rozbalených sekcí - VYLEPŠENÁ
+        function collapseAllSettingsSections() {
+            console.log("🔄 Sbalení všech rozbalených sekcí...");
+
+            const sectionHeaders = document.querySelectorAll('.setting-section-header');
+            let foundOpen = false;
+
+            sectionHeaders.forEach(header => {
+                const content = header.nextElementSibling;
+                const arrow = header.querySelector('.setting-section-arrow');
+
+                if (content && content.classList.contains('setting-section-content')) {
+                    // Sbalit pouze pokud je sekce otevřená
+                    const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
+                    if (isOpen) {
+                        content.style.maxHeight = "0";
+                        content.style.opacity = "0";
+                        if (arrow) arrow.style.transform = 'rotate(0deg)';
+                        header.classList.remove('active');
+                        foundOpen = true;
+                        console.log("✅ Sekce sbalena");
+                    }
+                }
+            });
+
+            // Pokud jsme něco sbalili, vrátit true
+            return foundOpen;
+        }
+
+        // Upravte všechny zavírací funkce pro modální okna
+        function setupModalCloseHandlers() {
+            console.log("🎯 Nastavování zavíracích handlerů...");
+
+            // Zavírání modálního okna nastavení křížkem
+            document.getElementById('closeSettingsModal').addEventListener('click', function () {
+                collapseAllSettingsSections();
+                setTimeout(() => {
+                    document.getElementById('settingsModal').style.display = 'none';
+                }, 100);
+            });
+
+            // Zavírání modálního okna nastavení kliknutím mimo - OPRAVENÉ
+            document.getElementById('settingsModal').addEventListener('click', function (event) {
+                if (event.target === this) {
+                    const hadOpenSections = collapseAllSettingsSections();
+
+                    // Pokud byly otevřené sekce, počkáme na animaci, jinak zavřeme hned
+                    const delay = hadOpenSections ? 150 : 0;
+
+                    setTimeout(() => {
+                        this.style.display = 'none';
+                    }, delay);
+                }
+            });
+
+            // Zavírání modálního okna profilů
+            document.getElementById('closeProfileModal').addEventListener('click', function () {
+                // Pro jistotu sbalit i zde (pokud by byly nějaké sekce)
+                collapseAllSettingsSections();
+                document.getElementById('profileModal').style.display = 'none';
+            });
+
+            // Zavírání modálního okna vytvoření profilu
+            document.getElementById('closeCreateProfileModal').addEventListener('click', function () {
+                collapseAllSettingsSections();
+                document.getElementById('createProfileModal').style.display = 'none';
+            });
+
+            // Zavírání modálního okna receptů
+            document.getElementById('closeSelectRecipeModal').addEventListener('click', function () {
+                collapseAllSettingsSections();
+                document.getElementById('selectRecipeModal').style.display = 'none';
+            });
+
+            // Zavírání modálního okna vytvoření receptu
+            document.getElementById('closeCreateRecipeModal').addEventListener('click', function () {
+                collapseAllSettingsSections();
+                document.getElementById('createRecipeModal').style.display = 'none';
+            });
+        }
+
+        // Inicializace při načtení DOM
+        document.addEventListener('DOMContentLoaded', function () {
+            setupModalCloseHandlers();
+        });
+
+        // Také přidejte sbalení při přepnutí účtu
+        document.getElementById('switchAccountBtn').addEventListener('click', async function () {
+            collapseAllSettingsSections();
+            await logoutUser();
             showLoginModal();
         });
 
@@ -925,7 +1148,6 @@
         }
 
         async function createNewProfile(profileName) {
-            // Zabránit současnému spuštění více instancí
             if (window.isCreatingProfile) {
                 console.log("⚠️ Vytváření profilu již probíhá - přeskočeno");
                 return null;
@@ -935,8 +1157,6 @@
 
             console.log("🎯 ===== CREATE NEW PROFILE START =====");
             console.log("📝 Jméno profilu:", profileName);
-            console.log("👤 CurrentUser:", window.currentUser);
-            console.log("🔗 SupabaseClient:", !!window.supabaseClient);
 
             if (!profileName || profileName.trim() === '') {
                 console.error("❌ Název profilu je prázdný");
@@ -949,9 +1169,9 @@
                 const trimmedName = profileName.trim();
                 let newProfileId = null;
 
-                // POKUS O ULOŽENÍ DO SUPABASE (pouze pokud uživatel není lokální)
+                // POUZE SUPABASE - žádné lokální fallbacky
                 if (window.supabaseClient && window.currentUser && !window.currentUser.is_local) {
-                    console.log("🔄 Pokus o uložení do Supabase...");
+                    console.log("🔄 Ukládám profil do Supabase...");
 
                     const profileData = {
                         name: trimmedName,
@@ -969,45 +1189,22 @@
 
                     if (error) {
                         console.error("❌ Chyba při ukládání do Supabase:", error);
+                        throw error;
                     } else {
                         console.log("✅ ÚSPĚCH: Profil uložen do Supabase!");
-                        console.log("📊 Vrácená data:", data);
                         newProfileId = data.id;
+
+                        // Inicializace nastavení pro nový profil - NEBLOKUJE vytvoření profilu
+                        try {
+                            await initializeSettingsForNewProfile(newProfileId);
+                        } catch (settingsError) {
+                            console.log("⚠️ Nastavení se nepodařilo inicializovat, ale profil byl vytvořen");
+                            // Pokračujeme - profil byl úspěšně vytvořen
+                        }
                     }
                 } else {
-                    console.log("ℹ️ Lokální uživatel - ukládám pouze lokálně");
-                }
-
-                // Fallback na lokální uložení
-                if (!newProfileId) {
-                    console.log("🔄 Ukládám lokálně...");
-                    newProfileId = 'local-profile-' + Date.now();
-                }
-
-                const newProfile = {
-                    id: newProfileId,
-                    name: trimmedName,
-                    user_id: window.currentUser ? window.currentUser.id : 'local-user',
-                    created_at: new Date().toISOString(),
-                    is_local: newProfileId.startsWith('local-')
-                };
-
-                // Přidání do globálního seznamu
-                if (!window.userProfiles) window.userProfiles = [];
-                window.userProfiles.push(newProfile);
-
-                // UKLÁDÁNÍ DO LOCALSTORAGE
-                if (window.currentUser) {
-                    try {
-                        localStorage.setItem(`userProfiles_${window.currentUser.id}`, JSON.stringify(window.userProfiles));
-                        console.log("💾 Uloženo do localStorage pod klíčem:", `userProfiles_${window.currentUser.id}`);
-
-                        // Uložení aktuálního profilu
-                        localStorage.setItem(`userProfile_${window.currentUser.id}`, newProfileId);
-                        console.log("💾 Aktuální profil uložen:", newProfileId);
-                    } catch (storageError) {
-                        console.error("❌ Chyba localStorage:", storageError);
-                    }
+                    console.error("❌ Nelze vytvořit profil - není připojení nebo anonymní uživatel");
+                    throw new Error("Pro vytvoření profilu se musíte přihlásit a mít internetové připojení");
                 }
 
                 console.log("✅ Profil úspěšně vytvořen:", newProfileId);
@@ -1023,41 +1220,58 @@
             }
         }
 
-        // Funkce pro výběr profilu
-        window.selectProfile = async function (profileId) {
-            try {
-                console.log("🎯 selectProfile volána:", profileId);
-                window.currentProfileId = profileId;
+        // NOVÁ FUNKCE: Inicializace nastavení pro nový profil - VŠE TRUE
+        async function initializeSettingsForNewProfile(profileId) {
+            console.log("🎯 Inicializace nastavení pro nový profil:", profileId);
 
-                // Uložení výběru
-                if (window.currentUser) {
-                    localStorage.setItem(`userProfile_${window.currentUser.id}`, profileId);
+            // Výchozí nastavení - VŠECHNA DIALOGOVÁ OKNA ZAPNUTÁ
+            const defaultSettings = {
+                confirmRecipeCreation: true,
+                confirmFoodAddition: true,
+                confirmDeleteRecipe: true,
+                confirmDeleteRecipeItem: true,
+                confirmSaveChanges: true,
+                confirmRecipeSaveSuccess: true,
+                confirmRecipeDeletionSuccess: true,
+                confirmRecipeDeletionError: true
+            };
+
+            // POUZE SUPABASE
+            if (window.supabaseClient && window.currentUser && !window.currentUser.is_local) {
+                try {
+                    console.log("💾 Ukládám výchozí nastavení do sloupce profiles...");
+
+                    // UKLÁDÁME NASTAVENÍ PŘÍMO DO TABULKY PROFILES
+                    const { error } = await window.supabaseClient
+                        .from('profiles')
+                        .update({
+                            settings: defaultSettings,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', profileId);
+
+                    if (error) {
+                        console.error("❌ Chyba při ukládání nastavení:", error);
+                        console.log("⚠️ Nastavení se nepodařilo uložit, ale profil byl vytvořen");
+                    } else {
+                        console.log("✅ Výchozí nastavení uloženo do profiles");
+                    }
+                } catch (error) {
+                    console.error("❌ Chyba při inicializaci nastavení:", error);
+                    console.log("⚠️ Chyba inicializace nastavení, ale profil byl vytvořen");
                 }
-
-                // Načtení a zobrazení názvu profilu
-                await window.loadAndDisplayCurrentProfile();
-
-                // Skrytí modálního okna
-                const profileModal = document.getElementById('profileModal');
-                if (profileModal) {
-                    profileModal.style.display = 'none';
-                    window.isProfileModalShowing = false;
-                }
-
-                console.log("✅ Profil vybrán:", profileId);
-
-            } catch (error) {
-                console.error("❌ Chyba při výběru profilu:", error);
             }
-        };
 
+            // Aktualizace globální proměnné
+            userSettings = defaultSettings;
+            console.log("✅ Globální userSettings aktualizováno na:", userSettings);
 
-
-
+            return true;
+        }
 
         // Vylepšená loadUserProfiles pro produkci
         window.loadUserProfiles = async function () {
-            console.log("🎯 loadUserProfiles volána - PRODUKCE");
+            console.log("🎯 loadUserProfiles volána - POUZE ONLINE");
 
             if (window.isLoadingProfiles) {
                 console.log("⚠️ Načítání již probíhá - přeskočeno");
@@ -1076,10 +1290,10 @@
                 console.log("👤 CurrentUser:", window.currentUser);
                 console.log("🔗 SupabaseClient:", !!window.supabaseClient);
 
-                // 1. POKUS O NAČTENÍ Z SUPABASE (pouze pokud uživatel není lokální)
+                // POUZE SUPABASE - žádné localStorage fallbacky
                 if (window.supabaseClient && !window.currentUser.is_local) {
                     try {
-                        console.log("🔍 Načítám čerstvá data z Supabase...");
+                        console.log("🔍 Načítám data z Supabase...");
                         console.log("📊 User ID pro query:", window.currentUser.id);
 
                         const { data, error } = await window.supabaseClient
@@ -1092,51 +1306,24 @@
 
                         if (error) {
                             console.error("❌ Chyba Supabase:", error);
+                            throw error; // Žádný fallback
                         } else if (data) {
                             console.log("✅ Data z Supabase:", data);
                             window.userProfiles = data;
-
-                            // SYNCHRONIZACE: Uložit do localStorage jako cache
-                            try {
-                                localStorage.setItem(`userProfiles_${window.currentUser.id}`, JSON.stringify(data));
-                                console.log("💾 Data uložena do localStorage jako cache");
-                            } catch (storageError) {
-                                console.error("❌ Chyba localStorage:", storageError);
-                            }
-
-                            window.isLoadingProfiles = false;
-                            return;
                         }
                     } catch (dbError) {
                         console.error("❌ Chyba při načítání z Supabase:", dbError);
+                        throw dbError; // Propagovat chybu výše
                     }
                 } else {
-                    console.log("ℹ️ Lokální uživatel - přeskočeno načítání z Supabase");
-                }
-
-                // 2. FALLBACK: Načtení z localStorage
-                console.log("🔍 Načítám z localStorage...");
-                const storageKey = `userProfiles_${window.currentUser.id}`;
-                const localData = localStorage.getItem(storageKey);
-                console.log("🔑 Storage key:", storageKey);
-                console.log("📦 Local data:", localData);
-
-                if (localData) {
-                    try {
-                        window.userProfiles = JSON.parse(localData);
-                        console.log("✅ Načteno z localStorage:", window.userProfiles.length);
-                    } catch (error) {
-                        console.error("❌ Chyba parsování localStorage:", error);
-                        window.userProfiles = [];
-                    }
-                } else {
+                    console.error("❌ Nelze načíst profily - anonymní uživatel nebo chybí Supabase");
                     window.userProfiles = [];
-                    console.log("ℹ️ Žádná data v localStorage");
                 }
 
             } catch (error) {
                 console.error("❌ Neočekávaná chyba:", error);
                 window.userProfiles = [];
+                throw error;
             } finally {
                 window.isLoadingProfiles = false;
                 console.log("🎯 loadUserProfiles dokončena");
@@ -1232,6 +1419,10 @@
                 const profile = window.userProfiles.find(p => p.id === window.currentProfileId);
                 if (profile) {
                     window.updateCurrentProfileDisplay(profile.name);
+
+                    // NAČTENÍ NASTAVENÍ PŘI ZMĚNĚ PROFILU - PŘIDÁNO
+                    console.log("🔍 Načítám nastavení pro aktuální profil...");
+                    await loadUserSettings();
                 } else {
                     window.hideCurrentProfileDisplay();
                 }
@@ -1240,6 +1431,7 @@
                 window.hideCurrentProfileDisplay();
             }
         };
+
         function checkInitialization() {
             if (!isAppInitialized || !db || !userId || !currentProfileId) {
                 window.showCustomNotification("Prosím, počkejte, než se aplikace plně inicializuje.", 'info');
@@ -1447,12 +1639,12 @@
                             }
 
                             profileItem.innerHTML = `
-                        <div class="profile-name-container">
-                            <span class="profile-name">${profile.name}</span>
-                            ${profile.id === window.currentProfileId ? '<span class="current-profile-badge">Aktivní</span>' : ''}
-                        </div>
-                        <span class="profile-delete" data-profile-id="${profile.id}">🗑️</span>
-                    `;
+                                <div class="profile-name-container">
+                                    <span class="profile-name">${profile.name}</span>
+                                    ${profile.id === window.currentProfileId ? '<span class="current-profile-badge">Aktivní</span>' : ''}
+                                </div>
+                                <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat" class="profile-delete" data-profile-id="${profile.id}">
+                            `;
 
                             profileItem.addEventListener('click', (e) => {
                                 if (!e.target.classList.contains('profile-delete')) {
@@ -1465,11 +1657,14 @@
                             // Event listener pro smazání
                             const deleteBtn = profileItem.querySelector('.profile-delete');
                             if (deleteBtn) {
-                                deleteBtn.addEventListener('click', (e) => {
+                                deleteBtn.addEventListener('click', async (e) => {
                                     e.stopPropagation();
                                     const profileId = e.target.dataset.profileId;
-                                    if (profileId && confirm(`Opravdu chcete smazat profil "${window.userProfiles.find(p => p.id === profileId)?.name}"?`)) {
-                                        window.deleteProfile(profileId);
+                                    const profile = window.userProfiles.find(p => p.id === profileId);
+
+                                    if (profileId && confirm(`Opravdu chcete smazat profil "${profile?.name}"?`)) {
+                                        await window.deleteProfile(profileId);
+                                        // NENÍ POTŘEBA VOLAT showProfileModal() - už se volá v refreshProfileDisplay()
                                     }
                                 });
                             }
@@ -1501,7 +1696,7 @@
             }
         };
 
-        // Zobrazení aktuálního profilu s emailem
+        // Zobrazení aktuálního profilu s emailem - UPRAVENO
         window.updateCurrentProfileDisplay = function (profileName) {
             const profileDisplay = document.getElementById('currentProfileDisplay');
             const profileNameSpan = document.getElementById('currentProfileName');
@@ -1518,11 +1713,12 @@
                     profileEmailSpan.style.display = 'none';
                 }
 
-                profileDisplay.style.display = 'flex';
-                console.log("✅ Zobrazení profilu aktualizováno:", profileName);
+                // SKRYTÍ původního zobrazení - přidáno
+                profileDisplay.style.display = 'none';
+                console.log("✅ Původní zobrazení profilu skryto");
 
-                // PŘIDÁNO: Event listener přímo zde, když se profil zobrazí
-                attachProfileClickListener();
+                // Aktualizace nastavení - přidáno
+                updateSettingsProfileInfo();
             }
         };
 
@@ -1563,8 +1759,8 @@
             await loadUserRecipes();
         }
 
-        // Funkce pro smazání profilu
-        window.deleteProfile = async function (profileId) {  // Přidáno async
+        // Funkce pro smazání profilu - UPRAVENÁ
+        window.deleteProfile = async function (profileId) {
             if (!confirm("Opravdu chcete smazat tento profil? Všechna data budou nenávratně ztracena.")) {
                 return;
             }
@@ -1588,50 +1784,59 @@
                         console.log("✅ Profil smazán z Supabase");
                     } catch (dbError) {
                         console.error("❌ Selhalo mazání z Supabase:", dbError);
-                        // Pokračujeme v lokálním mazání
+                        throw dbError;
                     }
                 }
 
-                // MAZÁNÍ Z LOCALSTORAGE
-                console.log("🔄 Mažu z localStorage...");
-
-                // Odstranit z pole userProfiles
+                // ODEBRÁNÍ Z POLE userProfiles
+                const profileName = window.userProfiles.find(p => p.id === profileId)?.name;
                 window.userProfiles = window.userProfiles.filter(profile => profile.id !== profileId);
-
-                // Uložit aktualizované pole
-                if (window.currentUser) {
-                    localStorage.setItem(`userProfiles_${window.currentUser.id}`, JSON.stringify(window.userProfiles));
-                }
+                console.log("✅ Profil odebrán z userProfiles");
 
                 // Feedback pro uživatele
-                window.showCustomNotification("Profil byl úspěšně smazán", 'success');
+                window.showCustomNotification(`Profil "${profileName}" byl úspěšně smazán`, 'success');
 
-                // Načtení aktualizovaného seznamu profilů
-                await window.loadUserProfiles();
+                // OKAMŽITÉ OBNOVENÍ ZOBRAZENÍ PROFILŮ - PŘIDÁNO
+                await refreshProfileDisplay();
 
                 // Pokud byl smazán aktuální profil, vyberte jiný nebo vytvořte nový
                 if (window.currentProfileId === profileId) {
                     window.currentProfileId = null;
-
-                    if (window.currentUser) {
-                        localStorage.removeItem(`userProfile_${window.currentUser.id}`);
-                    }
+                    console.log("ℹ️ Aktuální profil byl smazán, hledám náhradní...");
 
                     if (window.userProfiles.length > 0) {
                         await window.selectProfile(window.userProfiles[0].id);
+                        window.showCustomNotification(`Aktivní profil změněn na "${window.userProfiles[0].name}"`, 'info');
                     } else {
+                        console.log("ℹ️ Žádné profily nezůstaly, zobrazuji vytvoření profilu");
                         window.showCreateProfileModal();
                     }
                 }
-
-                // Obnovení zobrazení profilů
-                await window.showProfileModal();
 
             } catch (error) {
                 console.error("Chyba při mazání profilu:", error);
                 window.showCustomNotification("Chyba při mazání profilu: " + error.message, 'error');
             }
+            
+            if (window.userProfiles.length === 0) {
+                console.log("ℹ️ Všechny profily byly smazány");
+                window.hideCurrentProfileDisplay();
+                window.showCustomNotification("Všechny profily byly smazány. Vytvořte si nový profil.", 'info');
+            }
         };
+
+        // NOVÁ FUNKCE: Obnovení zobrazení profilů
+        async function refreshProfileDisplay() {
+            console.log("🔄 Obnovuji zobrazení profilů...");
+
+            // Znovu načíst profily z databáze pro aktuálnost
+            await window.loadUserProfiles();
+
+            // Znovu zobrazit modální okno s aktuálním seznamem
+            await window.showProfileModal();
+
+            console.log("✅ Zobrazení profilů obnoveno");
+        }
 
         // Funkce pro aktualizaci UI podle nastavení
         function updateSettingsUI() {
@@ -1681,26 +1886,90 @@
 
 
         async function loadUserSettings() {
+            console.log("🔄 loadUserSettings START - currentProfileId:", window.currentProfileId);
 
-            if (!db || !userId || !currentProfileId) {
-                console.error("Firestore, User ID or Profile ID not initialized.");
+            if (!window.currentUser || !window.currentProfileId) {
+                console.error("User ID or Profile ID not initialized.");
                 return;
             }
 
             try {
-                const settingsDocRef = doc(db, `artifacts/${appId}/profiles/${currentProfileId}/settings/userSettings`);
-                const settingsSnap = await getDoc(settingsDocRef);
+                // POUZE SUPABASE
+                if (window.supabaseClient && !window.currentUser.is_local) {
+                    console.log("🔍 Načítám nastavení z profiles pro profileId:", window.currentProfileId);
 
-                if (settingsSnap.exists()) {
-                    userSettings = settingsSnap.data();
-                    updateSettingsUI();
+                    const { data, error } = await window.supabaseClient
+                        .from('profiles')
+                        .select('settings')
+                        .eq('id', window.currentProfileId)
+                        .single();
+
+                    console.log("📦 Odpověď z Supabase:", { data, error });
+
+                    if (error) {
+                        console.error("❌ Chyba při načítání nastavení:", error);
+                        // Pokud nastavení neexistuje, použijte výchozí hodnoty
+                        console.log("ℹ️ Používám výchozí nastavení (vše true)");
+                        userSettings = {
+                            confirmRecipeCreation: true,
+                            confirmFoodAddition: true,
+                            confirmDeleteRecipe: true,
+                            confirmDeleteRecipeItem: true,
+                            confirmSaveChanges: true,
+                            confirmRecipeSaveSuccess: true,
+                            confirmRecipeDeletionSuccess: true,
+                            confirmRecipeDeletionError: true
+                        };
+                    } else if (data && data.settings) {
+                        userSettings = data.settings;
+                        console.log("✅ Nastavení načteno z profiles:", userSettings);
+                    } else {
+                        // Pokud settings sloupec existuje, ale je null nebo prázdný
+                        console.log("ℹ️ Settings sloupec je prázdný, používám výchozí nastavení (vše true)");
+                        userSettings = {
+                            confirmRecipeCreation: true,
+                            confirmFoodAddition: true,
+                            confirmDeleteRecipe: true,
+                            confirmDeleteRecipeItem: true,
+                            confirmSaveChanges: true,
+                            confirmRecipeSaveSuccess: true,
+                            confirmRecipeDeletionSuccess: true,
+                            confirmRecipeDeletionError: true
+                        };
+                    }
                 } else {
-                    // Vytvořit výchozí nastavení, pokud neexistuje
-                    await setDoc(settingsDocRef, userSettings);
+                    console.log("ℹ️ Anonymní uživatel nebo chybí Supabase, používám výchozí nastavení (vše true)");
+                    userSettings = {
+                        confirmRecipeCreation: true,
+                        confirmFoodAddition: true,
+                        confirmDeleteRecipe: true,
+                        confirmDeleteRecipeItem: true,
+                        confirmSaveChanges: true,
+                        confirmRecipeSaveSuccess: true,
+                        confirmRecipeDeletionSuccess: true,
+                        confirmRecipeDeletionError: true
+                    };
                 }
+
+                console.log("🎯 FINÁLNÍ userSettings:", userSettings);
+                updateSettingsUI();
+
             } catch (error) {
                 console.error("Chyba při načítání nastavení:", error);
+                userSettings = {
+                    confirmRecipeCreation: true,
+                    confirmFoodAddition: true,
+                    confirmDeleteRecipe: true,
+                    confirmDeleteRecipeItem: true,
+                    confirmSaveChanges: true,
+                    confirmRecipeSaveSuccess: true,
+                    confirmRecipeDeletionSuccess: true,
+                    confirmRecipeDeletionError: true
+                };
+                updateSettingsUI();
             }
+
+            console.log("✅ loadUserSettings COMPLETE");
         }
 
         // Debounce funkce pro omezení četnosti volání
@@ -1995,15 +2264,39 @@
 
         // Funkce pro uložení nastavení uživatele
         async function saveUserSettings() {
-
-            if (!db || !userId || !currentProfileId) {
-                console.warn("Firestore, User ID or Profile ID not available to save settings.");
+            if (!window.supabaseClient || !window.currentUser || !window.currentProfileId || window.currentUser.is_local) {
+                console.warn("Nelze uložit nastavení - není připojení nebo anonymní uživatel");
                 return;
             }
+
             try {
-                const settingsDocRef = doc(db, `artifacts/${appId}/profiles/${currentProfileId}/settings/userSettings`);
-                await setDoc(settingsDocRef, userSettings, { merge: true });
-                console.log("User settings saved:", userSettings);
+                console.log("💾 Ukládám nastavení do profiles pro profileId:", window.currentProfileId);
+                console.log("📦 Data k uložení:", userSettings);
+
+                const { error } = await window.supabaseClient
+                    .from('profiles')
+                    .update({
+                        settings: userSettings,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', window.currentProfileId);
+
+                if (error) {
+                    console.error("❌ Chyba při ukládání nastavení:", error);
+                } else {
+                    console.log("✅ Nastavení úspěšně uloženo do profiles");
+
+                    // OVĚŘENÍ - načtěte znovu nastavení pro kontrolu
+                    setTimeout(async () => {
+                        console.log("🔍 Ověřuji uložení - načítám nastavení znovu...");
+                        const { data: verifyData } = await window.supabaseClient
+                            .from('profiles')
+                            .select('settings')
+                            .eq('id', window.currentProfileId)
+                            .single();
+                        console.log("✅ Ověřovací data:", verifyData);
+                    }, 1000);
+                }
             } catch (error) {
                 console.error("Error saving user settings:", error);
             }
@@ -3299,7 +3592,29 @@
 
             console.log('Skener úspěšně uzavřen');
         }
+        // Najděte existující zavírací kód pro detailsModal a upravte ho
         const detailsModal = document.getElementById('detailsModal');
+        if (detailsModal) {
+            const closeButton = detailsModal.querySelector('.close-button');
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    collapseAllSettingsSections();
+                    detailsModal.style.display = 'none';
+                    currentEditingRecipeId = null;
+                    currentEditingIngredientIndex = null;
+                });
+            }
+
+            // Upravte také kliknutí mimo modal
+            detailsModal.addEventListener('click', (event) => {
+                if (event.target === detailsModal) {
+                    collapseAllSettingsSections();
+                    detailsModal.style.display = 'none';
+                    currentEditingRecipeId = null;
+                    currentEditingIngredientIndex = null;
+                }
+            });
+        }
         const closeButton = detailsModal.querySelector('.close-button');
 
         // --- Logika vyhledávání potravin ---
