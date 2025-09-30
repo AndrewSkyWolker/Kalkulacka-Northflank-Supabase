@@ -2062,3 +2062,118 @@ button:hover {
     /* Zajistí, že nebude překrývat levý a pravý panel */
     padding: 0 100px;
 }
+/* Styly pro rozbalovací sekce v nastavení */
+.setting-section {
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.setting-section:last-child {
+    border-bottom: none;
+}
+
+.setting-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+    border-radius: 6px;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.setting-section-header:hover {
+    background-color: #f5f5f5;
+}
+
+.setting-section-arrow {
+    font-size: 12px;
+    color: #666;
+    transition: transform 0.3s ease;
+    margin-left: 10px;
+}
+
+.setting-section-header.active .setting-section-arrow {
+    transform: rotate(180deg);
+}
+
+.setting-section-content {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    padding-left: 0;
+    width: 100%;
+}
+
+.setting-section-header.active + .setting-section-content {
+    max-height: 1000px; /* Dostatečně vysoká hodnota pro pohodlné zobrazení všech položek */
+}
+
+/* SPRÁVNÉ ŘEŠENÍ */
+.setting-section-content .setting-item {
+    border-bottom: none !important;
+    margin-bottom: 8px; /* Zachováme jen mezeru mezi položkami */
+    padding-bottom: 0;
+}
+
+/* Zmenšení přepínačů BEZ posunu */
+#settingsModal .toggle-switch {
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0; /* Zabrání zmenšování */
+    margin-right: 10px; /* Místo margin-left */
+}
+
+#settingsModal .toggle-switch .slider {
+    border-radius: 20px;
+}
+
+#settingsModal .toggle-switch .slider:before {
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+}
+
+#settingsModal .toggle-switch input:checked + .slider:before {
+    transform: translateX(16px);
+}
+
+/* Upravte šířku labelu aby byl přepínač správně zarovnán */
+.setting-section-content .setting-label {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+/* SPECIFIČTĚJŠÍ - posun pouze popisků */
+#settingsModal .setting-section-content .setting-item .setting-label {
+    margin-left: 15px;
+    flex-grow: 1; /* Zajistí že label zabere dostatek místa */
+}
+
+#settingsModal .setting-section-content .setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: none !important;
+    margin-bottom: 8px;
+    padding-bottom: 0;
+}
+
+#settingsModal .setting-section-content .setting-item:last-child {
+    border-bottom: none !important;
+    margin-bottom: 0;
+}
+
+/* SPECIFIČTĚJŠÍ - tučné písmo pro název sekce */
+#settingsModal .setting-section-header .setting-label {
+    font-weight: bold !important;
+    color: #333;
+    font-size: 1em; /* Zachováme původní velikost písma */
+}

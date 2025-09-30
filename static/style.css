@@ -2117,12 +2117,9 @@ button:hover {
 
 /* SPRÁVNÉ ŘEŠENÍ */
 .setting-section-content .setting-item {
-    margin-left: 15px;
-    padding-left: 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: calc(100% - 15px); /* Kompenzace za odsazení */
+    border-bottom: none !important;
+    margin-bottom: 8px; /* Zachováme jen mezeru mezi položkami */
+    padding-bottom: 0;
 }
 
 /* Zmenšení přepínačů BEZ posunu */
@@ -2152,4 +2149,31 @@ button:hover {
 .setting-section-content .setting-label {
     flex-grow: 1;
     margin-right: 10px;
+}
+
+/* SPECIFIČTĚJŠÍ - posun pouze popisků */
+#settingsModal .setting-section-content .setting-item .setting-label {
+    margin-left: 15px;
+    flex-grow: 1; /* Zajistí že label zabere dostatek místa */
+}
+
+#settingsModal .setting-section-content .setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: none !important;
+    margin-bottom: 8px;
+    padding-bottom: 0;
+}
+
+#settingsModal .setting-section-content .setting-item:last-child {
+    border-bottom: none !important;
+    margin-bottom: 0;
+}
+
+/* SPECIFIČTĚJŠÍ - tučné písmo pro název sekce */
+#settingsModal .setting-section-header .setting-label {
+    font-weight: bold !important;
+    color: #333;
+    font-size: 1em; /* Zachováme původní velikost písma */
 }
