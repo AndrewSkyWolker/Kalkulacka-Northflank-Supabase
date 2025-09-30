@@ -33,16 +33,6 @@
             debugLog("Aplikace se spouští...");
         </script>
 
-        <!-- Dočasná debug tlačítka -->
-        <!--<div
-            style="position: fixed; bottom: 30px; left: 100px; z-index: 1000; background: white; padding: 10px; border: 1px solid #ccc;">
-           --> <!--<button onclick="window.showProfileModal()">🐛 Zobrazit Profily</button>-->
-            <!--<button onclick="window.forceShowProfileModal()">🔄 Force Open Profile Modal</button>-->
-            <!--button onclick="window.initializeSupabase().then(() => console.log('✅ Supabase inicializována:', !!window.supabaseClient))">🔄 Init Supabase</button>-->
-            <!--<button onclick="window.testSupabaseConnection()">🧪 Test DB</button>-->
-            <!--<button onclick="localStorage.clear(); console.log('🧹 localStorage vyčištěn')">🧹 Clear Cache</button>-->
-        <!--</div>-->
-
         <!-- Do záhlaví přidejte -->
         <div id="userMenu" style="position: absolute; top: 10px; right: 60px; z-index: 11; display: none;">
             <button id="logoutBtn" style="padding: 5px 10px; font-size: 12px;">Odhlásit se</button>
@@ -70,9 +60,6 @@
                 <button id="loginMenuBtn" style="margin-left: 10px; padding: 5px 10px; display: none;">
                     Přihlásit se
                 </button>
-
-                <img id="settingsIcon" src="{{ url_for('static', filename='icon/nastaveni.png') }}" alt="Nastavení"
-                    class="settings-icon">
             </div>
 
             <div id="userIdDisplay"></div> <!-- Přesunuto sem -->
@@ -250,70 +237,82 @@
 
     <!-- Nové modální okno pro nastavení -->
     <div id="settingsModal" class="modal-overlay">
-        <div class="setting-item">
-            <span class="setting-label">Přihlášení</span>
-            <button id="switchAccountBtn" style="padding: 5px 10px; font-size: 12px;">
-                Přepnout účet
-            </button>
-        </div>
         <div class="modal-content">
             <span class="close-button" id="closeSettingsModal">&times;</span>
             <h3>Nastavení</h3>
+
+            <!-- Sekce přihlášení -->
             <div class="setting-item">
-                <span class="setting-label">Potvrzení smazání receptu</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="confirmDeleteRecipeToggle">
-                    <span class="slider"></span>
-                </label>
+                <span class="setting-label">Přihlášení</span>
+                <button id="switchAccountBtn" style="padding: 5px 10px; font-size: 12px;">
+                    Přepnout účet
+                </button>
             </div>
-            <div class="setting-item">
-                <span class="setting-label">Potvrzení smazání položky</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="confirmDeleteRecipeItemToggle">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div class="setting-item">
-                <span class="setting-label">Potvrzení uložení změn</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="confirmSaveChangesToggle">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div class="setting-item">
-                <span class="setting-label">Oznámení vytvoření receptu</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="confirmRecipeCreationToggle">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div class="setting-item">
-                <span class="setting-label">Oznámení přidání potraviny</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="confirmFoodAdditionToggle">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div class="setting-item">
-                <span class="setting-label">Oznámení úspěšného smazání</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="confirmRecipeDeletionSuccessToggle">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div class="setting-item">
-                <span class="setting-label">Oznámení chyby smazání</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="confirmRecipeDeletionErrorToggle">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div class="setting-item">
-                <span class="setting-label">Oznámení úspěšného uložení změn</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="confirmRecipeSaveSuccessToggle">
-                    <span class="slider"></span>
-                </label>
+
+            <!-- Sekce dialogová okna - rozbalovací -->
+            <div class="setting-section">
+                <div class="setting-section-header">
+                    <span class="setting-label">Dialogová okna</span>
+                    <span class="setting-section-arrow">▼</span>
+                </div>
+                <div class="setting-section-content">
+                    <div class="setting-item">
+                        <span class="setting-label">Potvrzení smazání receptu</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="confirmDeleteRecipeToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Potvrzení smazání položky</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="confirmDeleteRecipeItemToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Potvrzení uložení změn</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="confirmSaveChangesToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Oznámení vytvoření receptu</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="confirmRecipeCreationToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Oznámení přidání potraviny</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="confirmFoodAdditionToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Oznámení úspěšného smazání</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="confirmRecipeDeletionSuccessToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Oznámení chyby smazání</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="confirmRecipeDeletionErrorToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Oznámení úspěšného uložení změn</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="confirmRecipeSaveSuccessToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -432,6 +431,77 @@
         document.getElementById('switchAccountBtn').addEventListener('click', async function () {
             await logoutUser();
             showLoginModal();
+        });
+
+        // Funkce pro rozbalování sekcí v nastavení - SIMPLIFIED
+        function initializeSettingsSections() {
+            console.log("🔄 Inicializuji rozbalovací sekce nastavení...");
+
+            const sectionHeaders = document.querySelectorAll('.setting-section-header');
+            console.log("🔍 Nalezeno sekcí:", sectionHeaders.length);
+
+            sectionHeaders.forEach((header, index) => {
+                console.log(`🎯 Sekce ${index + 1}:`, header);
+
+                // Odstranit existující event listenery
+                header.replaceWith(header.cloneNode(true));
+                const newHeader = document.querySelectorAll('.setting-section-header')[index];
+
+                newHeader.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    console.log("🎯 Kliknuto na sekci nastavení");
+
+                    const content = this.nextElementSibling;
+                    const arrow = this.querySelector('.setting-section-arrow');
+
+                    console.log("📦 Obsah sekce:", content);
+                    console.log("🎯 Šipka:", arrow);
+
+                    if (content && content.classList.contains('setting-section-content')) {
+                        // Přepnout stav
+                        const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
+
+                        if (isOpen) {
+                            // Zavřít
+                            content.style.maxHeight = "0";
+                            content.style.opacity = "0";
+                            if (arrow) arrow.style.transform = 'rotate(0deg)';
+                        } else {
+                            // Otevřít
+                            content.style.maxHeight = content.scrollHeight + "px";
+                            content.style.opacity = "1";
+                            if (arrow) arrow.style.transform = 'rotate(180deg)';
+                        }
+
+                        console.log("✅ Stav sekce změněn:", isOpen ? "zavřeno" : "otevřeno");
+                    }
+                });
+
+                // Inicializovat zavřený stav
+                const content = newHeader.nextElementSibling;
+                const arrow = newHeader.querySelector('.setting-section-arrow');
+
+                if (content && content.classList.contains('setting-section-content')) {
+                    content.style.maxHeight = "0";
+                    content.style.opacity = "0";
+                    content.style.transition = 'max-height 0.3s ease, opacity 0.3s ease';
+                    if (arrow) arrow.style.transform = 'rotate(0deg)';
+                }
+            });
+        }
+
+        // Inicializace při načtení DOM
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log("✅ DOM načten - inicializuji sekce nastavení");
+            setTimeout(initializeSettingsSections, 500);
+        });
+
+        // Inicializace při otevření modálního okna nastavení
+        document.addEventListener('click', function (e) {
+            if (e.target.id === 'settingsIcon' || e.target.closest('#settingsIcon')) {
+                console.log("🎯 Otevřeno nastavení - inicializuji sekce");
+                setTimeout(initializeSettingsSections, 300);
+            }
         });
 
         // Funkce pro zobrazení přihlašovacího modalu
@@ -1074,49 +1144,6 @@
             }
         };
 
-        // Testovací funkce pro přímé volání Supabase
-        window.testSupabaseConnection = async function () {
-            console.log("🧪 TEST: Supabase Connection");
-
-            if (!window.supabaseClient) {
-                console.error("❌ SupabaseClient není dostupný");
-                return;
-            }
-
-            try {
-                // Test 1: Načtení všech profilů (bez filtru)
-                console.log("🧪 TEST 1: Načítám všechny profily...");
-                const { data: allData, error: allError } = await window.supabaseClient
-                    .from('profiles')
-                    .select('*');
-
-                console.log("📦 Všechny profily:", allData);
-                console.log("❌ Chyba všech profilů:", allError);
-
-                // Test 2: Načtení profilů pro konkrétního uživatele
-                console.log("🧪 TEST 2: Načítám profily pro currentUser...");
-                const { data: userData, error: userError } = await window.supabaseClient
-                    .from('profiles')
-                    .select('*')
-                    .eq('user_id', window.currentUser.id);
-
-                console.log("📦 User profily:", userData);
-                console.log("❌ Chyba user profilů:", userError);
-
-                // Test 3: Počet záznamů
-                console.log("🧪 TEST 3: Počet záznamů...");
-                const { count, error: countError } = await window.supabaseClient
-                    .from('profiles')
-                    .select('*', { count: 'exact', head: true });
-
-                console.log("📊 Celkový počet profilů:", count);
-                console.log("❌ Chyba count:", countError);
-
-            } catch (error) {
-                console.error("❌ Test selhal:", error);
-            }
-        };
-
         // Synchronizace lokálních dat s Supabase (volitelné)
         async function syncLocalDataWithSupabase() {
             if (!supabaseClient || currentUser.is_anonymous) {
@@ -1497,12 +1524,6 @@
                 // PŘIDÁNO: Event listener přímo zde, když se profil zobrazí
                 attachProfileClickListener();
             }
-        };
-
-        window.forceShowProfileModal = async function () {
-            console.log("🎯 FORCE: Vynucené otevření profile modalu");
-            window.isProfileModalShowing = false; // Resetovat stav
-            await window.showProfileModal();
         };
 
         function attachProfileClickListener() {

@@ -2062,3 +2062,55 @@ button:hover {
     /* Zajistí, že nebude překrývat levý a pravý panel */
     padding: 0 100px;
 }
+/* Styly pro rozbalovací sekce v nastavení */
+.setting-section {
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.setting-section:last-child {
+    border-bottom: none;
+}
+
+.setting-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+    border-radius: 6px;
+    margin: 0 -5px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.setting-section-header:hover {
+    background-color: #f5f5f5;
+}
+
+.setting-section-arrow {
+    font-size: 12px;
+    color: #666;
+    transition: transform 0.3s ease;
+    margin-left: 10px;
+}
+
+.setting-section-header.active .setting-section-arrow {
+    transform: rotate(180deg);
+}
+
+.setting-section-content {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    padding-left: 0;
+    width: 100%;
+}
+
+.setting-section-header.active + .setting-section-content {
+    max-height: 1000px; /* Dostatečně vysoká hodnota pro pohodlné zobrazení všech položek */
+}

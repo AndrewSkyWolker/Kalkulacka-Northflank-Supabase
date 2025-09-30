@@ -1136,8 +1136,96 @@ button:hover {
     /* align-self: flex-start; -- Odstraněno, protože je řízeno justify-content v parentu */
 }
 
+/* Styly pro user info v modalu profilů */
+.user-info-header {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    text-align: center;
+    border-left: 4px solid #007bff;
+}
+
+/* Styly pro žádné profily */
+.no-profiles {
+    text-align: center;
+    padding: 30px 20px;
+    color: #666;
+}
+
+.no-profiles-icon {
+    font-size: 3em;
+    margin-bottom: 15px;
+}
+
+.no-profiles-title {
+    font-size: 1.2em;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.no-profiles-text {
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.create-first-profile-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s;
+}
+
+.create-first-profile-btn:hover {
+    background-color: #218838;
+}
+
+/* Badge pro aktuální profil */
+.current-profile-badge {
+    background-color: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7em;
+    margin-left: 8px;
+}
+
+/* Instrukce v modalu */
+.profile-instruction {
+    font-size: 0.8em;
+    color: #888;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+.user-email {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.profile-count {
+    font-size: 0.9em;
+    color: #666;
+}
+
 /* Media queries for responsiveness */
 @media (max-width: 480px) {
+    .profile-display-clickable {
+        max-width: 160px;
+        min-width: 120px;
+        padding: 6px 10px;
+    }
+    
+    .profile-email {
+        font-size: 0.7em;
+    }
+
     #currentProfileDisplay {
         left: 10px;
         padding: 5px 8px;
@@ -1146,12 +1234,12 @@ button:hover {
 
     #currentProfileName {
         max-width: 120px;
-        font-size: 0.8em;
+        font-size: 0.85em;
     }
 
     .profile-icon {
-        width: 20px;
-        height: 20px;
+        width: 16px;
+        height: 16px;
     }
 
     .main-controls button {
@@ -1730,28 +1818,63 @@ button:hover {
 }
 
 .profile-icon {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
 }
 
 #currentProfileName {
-    font-weight: 500;
+    font-weight: 600;
     color: #333;
-    font-size: 1.1em;
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Ujistěte se, že křížek je vždy klikatelný */
+#closeProfileModal {
+    cursor: pointer !important;
+    pointer-events: all !important;
+    z-index: 1001 !important;
 }
 
 /* Styly pro klikatelnou oblast profilu */
 .profile-display-clickable {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    padding: 0;
+    flex-direction: column;
+    cursor: pointer !important;
+    pointer-events: all !important;
+    padding: 8px 12px;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.2s ease;
+    max-width: 200px;
+    min-width: 150px;
 }
 
 .profile-display-clickable:hover {
-    transform: none;
-    background-color: transparent;
+    background-color: #f8f9fa;
+    border-color: #007bff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.profile-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-email {
+    font-size: 0.75em;
+    color: #666;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
 }
 
 .profile-display-clickable:active {
@@ -1905,4 +2028,37 @@ button:hover {
 #confirmCreateProfile:disabled {
     background-color: #6c757d;
     cursor: not-allowed;
+}
+
+.header-controls {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 11;
+}
+
+#loginMenuBtn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 6px 12px;
+}
+
+#loginMenuBtn:hover {
+    background-color: #0056b3;
+}
+
+.sticky-header-wrapper h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+    margin-top: 40px;
+    /* Zajistí, že nebude překrývat levý a pravý panel */
+    padding: 0 100px;
 }
