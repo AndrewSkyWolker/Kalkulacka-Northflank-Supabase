@@ -1146,6 +1146,63 @@ button:hover {
     border-left: 4px solid #007bff;
 }
 
+/* Styly pro žádné profily */
+.no-profiles {
+    text-align: center;
+    padding: 30px 20px;
+    color: #666;
+}
+
+.no-profiles-icon {
+    font-size: 3em;
+    margin-bottom: 15px;
+}
+
+.no-profiles-title {
+    font-size: 1.2em;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.no-profiles-text {
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.create-first-profile-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s;
+}
+
+.create-first-profile-btn:hover {
+    background-color: #218838;
+}
+
+/* Badge pro aktuální profil */
+.current-profile-badge {
+    background-color: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7em;
+    margin-left: 8px;
+}
+
+/* Instrukce v modalu */
+.profile-instruction {
+    font-size: 0.8em;
+    color: #888;
+    margin-top: 5px;
+    font-style: italic;
+}
+
 .user-email {
     font-weight: 600;
     color: #333;
@@ -1775,11 +1832,19 @@ button:hover {
     text-overflow: ellipsis;
 }
 
+/* Ujistěte se, že křížek je vždy klikatelný */
+#closeProfileModal {
+    cursor: pointer !important;
+    pointer-events: all !important;
+    z-index: 1001 !important;
+}
+
 /* Styly pro klikatelnou oblast profilu */
 .profile-display-clickable {
     display: flex;
     flex-direction: column;
-    cursor: pointer;
+    cursor: pointer !important;
+    pointer-events: all !important;
     padding: 8px 12px;
     background-color: rgba(255, 255, 255, 0.95);
     border-radius: 12px;
