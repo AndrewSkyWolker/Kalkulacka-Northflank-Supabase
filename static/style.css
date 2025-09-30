@@ -2082,9 +2082,9 @@ button:hover {
     user-select: none;
     transition: background-color 0.2s ease;
     border-radius: 6px;
-    margin: 0 -5px;
-    padding-left: 5px;
-    padding-right: 5px;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .setting-section-header:hover {
@@ -2113,4 +2113,43 @@ button:hover {
 
 .setting-section-header.active + .setting-section-content {
     max-height: 1000px; /* Dostatečně vysoká hodnota pro pohodlné zobrazení všech položek */
+}
+
+/* SPRÁVNÉ ŘEŠENÍ */
+.setting-section-content .setting-item {
+    margin-left: 15px;
+    padding-left: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: calc(100% - 15px); /* Kompenzace za odsazení */
+}
+
+/* Zmenšení přepínačů BEZ posunu */
+#settingsModal .toggle-switch {
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0; /* Zabrání zmenšování */
+    margin-right: 10px; /* Místo margin-left */
+}
+
+#settingsModal .toggle-switch .slider {
+    border-radius: 20px;
+}
+
+#settingsModal .toggle-switch .slider:before {
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+}
+
+#settingsModal .toggle-switch input:checked + .slider:before {
+    transform: translateX(16px);
+}
+
+/* Upravte šířku labelu aby byl přepínač správně zarovnán */
+.setting-section-content .setting-label {
+    flex-grow: 1;
+    margin-right: 10px;
 }
