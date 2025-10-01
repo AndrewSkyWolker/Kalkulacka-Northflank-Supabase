@@ -673,6 +673,10 @@ button:hover {
 #createRecipeModal .modal-content {
     max-width: 350px;
     text-align: center;
+    overflow: hidden !important;
+    max-height: none !important;
+    padding: 20px;
+    height: auto;
 }
 
 #createRecipeModal input[type="text"] {
@@ -730,27 +734,39 @@ button:hover {
     background-color: #d32f2f;
 }
 
+.recipes-list-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 /* New modal for selecting a recipe */
 #selectRecipeModal .modal-content {
-    max-width: 350px;
-    text-align: center;
-    display: flex;
-    /* Use flexbox for vertical layout */
-    flex-direction: column;
-    align-items: center;
-    /* Center items horizontally */
+    max-width: 500px;
+    width: 90vw;
+    overflow-x: hidden; /* Zabrání zobrazení vodorovného posuvníku na obsahu modalu */
+}
+
+#existingRecipesList {
+    overflow-x: hidden; /* Zajistí, že seznam receptů sám o sobě nezačne rolovat vodorovně */
+    padding-left: 0; /* Odstraní výchozí odsazení UL, které může způsobovat přesah */
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    list-style: none;
 }
 
 #selectRecipeModal ul {
     list-style: none;
     padding: 0;
-    max-height: 200px;
+    max-height: 400px;
     overflow-y: auto;
     border: 1px solid #eee;
     border-radius: 8px;
     margin-bottom: 15px;
     width: 100%;
-    /* Ensure list takes full width */
 }
 
 #selectRecipeModal li {
@@ -1085,24 +1101,70 @@ button:hover {
     /* Ensure it stays on one line */
 }
 
-
-/* Style for recipe list items in selectRecipeModal */
-#selectRecipeModal li.recipe-list-item {
+/* Styly pro položky receptů v seznamu */
+.recipe-list-item {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 10px;
+    padding: 12px 15px;
     border-bottom: 1px solid #eee;
     cursor: pointer;
-    /* Zpět na pointer pro klikatelnost */
+    transition: background-color 0.2s;
+    overflow: hidden;
+    justify-content: space-between;
+    gap: 15px;
 }
 
-#selectRecipeModal li.recipe-list-item:last-child {
-    border-bottom: none;
+.recipe-list-item:hover {
+    background-color: #f5f5f5;
 }
 
-#selectRecipeModal li.recipe-list-item:hover {
-    background-color: #f0f0f0;
+.recipe-number {
+    font-weight: bold;
+    color: #666;
+    min-width: 30px;
+    flex-shrink: 0;
+}
+
+.recipe-name {
+    flex: 1;
+    min-width: 0; /* Důležité pro zkracování textu */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 0 10px;
+}
+
+.recipe-calories {
+    min-width: 80px;
+    text-align: right;
+    color: #4CAF50;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.recipe-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 30px;
+    flex-shrink: 0;
+}
+
+.recipe-delete-icon {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 3px;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.recipe-delete-icon:hover {
+    opacity: 1;
 }
 
 /* Obecná pravidla pro ikonky receptů */

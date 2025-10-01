@@ -212,9 +212,12 @@
             <h3>Moje recepty</h3>
             <!-- Nový element pro zobrazení počtu receptů -->
             <div id="recipeCountDisplay" class="recipe-count-display"></div>
-            <ul id="existingRecipesList">
-                <!-- Recepty se načtou zde -->
-            </ul>
+            <!-- Přidejte wrapper pro seznam receptů s omezením šířky -->
+            <div class="recipes-list-container" style="max-width: 100%; overflow-x: hidden;">
+                <ul id="existingRecipesList" style="width: 100%; box-sizing: border-box;">
+                    <!-- Recepty se načtou zde -->
+                </ul>
+            </div>
             <div class="recipe-list-actions">
                 <!-- Tlačítko "Přidat nový recept" je nyní skryto nebo odstraněno -->
                 <!-- Tlačítko "Zavřít" je odstraněno -->
@@ -1010,6 +1013,7 @@
                 }, 500);
             }
 
+            console.log("✅ Aplikace plně inicializována");
             window.isAppInitialized = true;
 
             // Povolit funkce aplikace
@@ -1018,6 +1022,11 @@
                 recipesButton.disabled = false;
                 console.log("✅ Tlačítko Recepty povoleno");
             }
+
+            // Opravit recepty s null ingrediencemi
+            setTimeout(() => {
+                fixRecipesWithNullIngredients();
+            }, 2000);
         }
 
         // Inicializace Supabase - zajistěte globální dostupnost
@@ -1408,8 +1417,6 @@
         let currentSearchController = null;
         let currentReader = null;
         let isSearchInterrupted = false;
-        let app, db, auth, userId;
-        let isAuthReady = false;
         let userSettings = {
             confirmRecipeCreation: true, // Default value
             confirmFoodAddition: true, // Default value
@@ -1474,37 +1481,47 @@
         };
 
         function checkInitialization() {
-            if (!isAppInitialized || !db || !userId || !currentProfileId) {
+            console.log("🔍 Kontrola inicializace aplikace...");
+            console.log("📊 Stav:", {
+                isAppInitialized: window.isAppInitialized,
+                currentUser: !!window.currentUser,
+                currentProfileId: window.currentProfileId,
+                userProfiles: window.userProfiles ? window.userProfiles.length : 0,
+                supabaseClient: !!window.supabaseClient
+            });
+
+            if (!window.isAppInitialized) {
+                console.error("❌ Aplikace není inicializována");
                 window.showCustomNotification("Prosím, počkejte, než se aplikace plně inicializuje.", 'info');
                 return false;
             }
-            return true;
-        }
 
-        function showGlobalLoading() {
-            document.getElementById('globalLoading').style.display = 'block';
-        }
-
-        function hideGlobalLoading() {
-            document.getElementById('globalLoading').style.display = 'none';
-        }
-
-        // Uložení přihlašovacích údajů do localStorage
-        function saveLoginSession(user) {
-            localStorage.setItem('userData', JSON.stringify({
-                uid: user.uid,
-                email: user.email,
-                lastLogin: new Date().toISOString()
-            }));
-        }
-
-        // Kontrola existující relace
-        function checkExistingSession() {
-            const userData = localStorage.getItem('userData');
-            if (userData) {
-                return JSON.parse(userData);
+            if (!window.currentUser) {
+                console.error("❌ Uživatel není přihlášen");
+                window.showCustomNotification("Pro tuto akci se musíte přihlásit.", 'info');
+                return false;
             }
-            return null;
+
+            if (!window.currentProfileId) {
+                console.error("❌ Není vybrán profil");
+                window.showCustomNotification("Pro tuto akci si musíte vybrat profil.", 'info');
+                return false;
+            }
+
+            if (!window.userProfiles || window.userProfiles.length === 0) {
+                console.error("❌ Žádné profily");
+                window.showCustomNotification("Pro tuto akci potřebujete mít vytvořený profil.", 'info');
+                return false;
+            }
+
+            if (!window.supabaseClient) {
+                console.error("❌ Supabase není inicializován");
+                window.showCustomNotification("Chyba databáze. Zkuste obnovit stránku.", 'error');
+                return false;
+            }
+
+            console.log("✅ Aplikace je plně inicializována");
+            return true;
         }
 
         // Funkce pro zobrazení modálního okna pro vytvoření nového profilu
@@ -2154,9 +2171,15 @@
 
         // --- Helper functions (Moved to global scope) ---
         function parseValueAndUnit(valueString) {
+            // OCHRANA PROTI NULL/UNDEFINED
+            if (valueString === null || valueString === undefined) {
+                return { number: NaN, unit: '' };
+            }
+
             if (typeof valueString !== 'string' && typeof valueString !== 'number') {
                 return { number: NaN, unit: '' };
             }
+
             if (typeof valueString === 'number') {
                 return { number: valueString, unit: '' };
             }
@@ -2169,6 +2192,7 @@
                 const unit = match[2] || '';
                 return { number, unit };
             }
+
             return { number: NaN, unit: '' };
         }
 
@@ -2545,117 +2569,438 @@
             notificationControls.style.borderTop = '1px solid #eee'; // Corrected line
         };
 
-        // --- Firestore Functions (moved to global scope) ---
+        // Funkce pro vytvoření nového receptu - UPRAVENÁ PRO SUPABASE
         async function createNewRecipe(recipeName, foodItem) {
-            if (!db || !userId || !currentProfileId) {
-                console.error("Není inicializováno: db nebo currentProfileId");
-                return;
+            if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) {
+                console.error("❌ Není inicializováno: supabaseClient nebo currentProfileId");
+                window.showCustomNotification("Chyba: Aplikace není správně inicializována.", 'error');
+                return null;
             }
+
             try {
-                const recipesColRef = collection(db, `artifacts/${appId}/profiles/${currentProfileId}/recipes`);
-                const newRecipeDoc = await addDoc(recipesColRef, {
+                console.log("🍳 Vytvářím nový recept:", recipeName);
+
+                const recipeData = {
                     name: recipeName,
-                    createdBy: userId, // Uložíme ID uživatele, který recept vytvořil
-                    ingredients: foodItem ? [foodItem] : [], // Add the initial food item if provided
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp()
-                });
-                console.log("Nový recept vytvořen pod ID:", newRecipeDoc.id);
-                // Updated message with bold formatting
-                window.showCustomNotification(`Recept "<strong>${recipeName}</strong>" byl vytvořen a byla do něj vložena položka "<strong>${foodItem.foodName}</strong>"!`, 'recipeCreation');
-                return newRecipeDoc.id;
+                    user_id: window.currentUser.id,
+                    profile_id: window.currentProfileId,
+                    ingredients: foodItem ? [foodItem] : [],
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+
+                const { data, error } = await window.supabaseClient
+                    .from('recipes')
+                    .insert(recipeData)
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.error("❌ Chyba při vytváření receptu:", error);
+                    window.showCustomNotification("Chyba při vytváření receptu: " + error.message, 'error');
+                    return null;
+                }
+
+                console.log("✅ Nový recept vytvořen pod ID:", data.id);
+                window.showCustomNotification(`Recept "<strong>${recipeName}</strong>" byl vytvořen!`, 'recipeCreation');
+                return data.id;
+
             } catch (error) {
-                console.error("Error creating new recipe:", error);
-                window.showCustomNotification("Chyba při vytváření nového receptu: " + error.message, 'recipeCreation');
+                console.error("❌ Neočekávaná chyba při vytváření receptu:", error);
+                window.showCustomNotification("Chyba při vytváření receptu: " + error.message, 'error');
                 return null;
             }
         }
 
-        async function addFoodItemToExistingRecipe(recipeId, foodItem) {
-            console.log("addFoodItemToExistingRecipe called with:", {
-                recipeId,
-                userId,
-                currentProfileId,
-                appId
-            });
+        // Funkce pro načtení uživatelských receptů - UPRAVENÁ PRO SUPABASE
+        async function loadUserRecipes(showNotification = false) {
+            if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) {
+                console.error("❌ Nelze načíst recepty - chybí inicializace");
+                return;
+            }
 
-            if (!db || !userId || !currentProfileId || !appId) {
-                console.error("Není inicializováno: db, userId nebo currentProfileId");
-                return;
-            }
-            if (!recipeId) {
-                console.error("Recipe ID is missing");
-                window.showCustomNotification("Chyba: ID receptu chybí.", 'error');
-                return;
-            }
             try {
-                const recipeDocRef = doc(db, `artifacts/${appId}/profiles/${currentProfileId}/recipes`, recipeId);
-                const recipeSnap = await getDoc(recipeDocRef);
+                console.log("🔍 Načítám recepty pro profil:", window.currentProfileId);
 
-                if (recipeSnap.exists()) {
-                    const currentIngredients = recipeSnap.data().ingredients || [];
-                    const updatedIngredients = [...currentIngredients, foodItem];
-                    await updateDoc(recipeDocRef, {
-                        ingredients: updatedIngredients,
-                        updatedAt: serverTimestamp()
-                    });
-                    console.log(`Food item added to recipe ${recipeId}`);
-                    // Updated message with bold formatting
-                    window.showCustomNotification(`Položka "<strong>${foodItem.foodName}</strong>" byla přidána do receptu "<strong>${recipeSnap.data().name}</strong>"!`, 'foodAddition');
-                } else {
-                    console.error("Recipe not found:", recipeId);
-                    window.showCustomNotification("Vybraný recept nebyl nalezen.", 'foodAddition');
+                const { data, error } = await window.supabaseClient
+                    .from('recipes')
+                    .select('*')
+                    .eq('profile_id', window.currentProfileId)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error("❌ Chyba při načítání receptů:", error);
+                    return;
                 }
+
+                console.log("✅ Načteno receptů:", data ? data.length : 0);
+
+                // Zde pokračujte s zobrazením receptů v UI
+                displayRecipesInModal(data || []);
+
             } catch (error) {
-                console.error("Error adding food item to recipe:", error);
-                window.showCustomNotification("Chyba při přidávání položky do receptu: " + error.message, 'foodAddition');
+                console.error("❌ Neočekávaná chyba při načítání receptů:", error);
             }
         }
 
-        async function updateFoodItemInRecipe(recipeId, ingredientIndex, updatedFoodItem) {
-            if (!db || !userId || !currentProfileId) {
-                console.error("Firestore, User ID or Profile ID not initialized.");
+        // Funkce pro zobrazení receptů v modálním okně - UPRAVENÁ S NOVÝM ROZLOŽENÍM
+        function displayRecipesInModal(recipes, isAddToRecipeMode = false) {
+            const existingRecipesList = document.getElementById('existingRecipesList');
+            const recipeCountDisplay = document.getElementById('recipeCountDisplay');
+
+            if (!existingRecipesList) return;
+
+            existingRecipesList.innerHTML = '';
+
+            // SKRÝT NEBO ODSTRANIT ZOBRAZENÍ POČTU RECEPTŮ
+            if (recipeCountDisplay) {
+                recipeCountDisplay.style.display = 'none';
+            }
+
+            if (recipes.length === 0) {
+                existingRecipesList.innerHTML = '<li style="text-align: center; color: #888; padding: 20px;">Žádné recepty</li>';
                 return;
             }
 
-            // Declare recipeDocRef at the top of the function
-            const recipeDocRef = doc(db, `artifacts/${appId}/profiles/${currentProfileId}/recipes`, recipeId);
+            // Seřadit recepty podle data vytvoření (nejnovější nahoře)
+            const sortedRecipes = [...recipes].sort((a, b) => {
+                return new Date(b.created_at) - new Date(a.created_at);
+            });
 
-            const executeUpdate = async () => { // Wrap the core update logic in a function
-                try {
-                    const recipeSnap = await getDoc(recipeDocRef);
+            console.log("🔍 Zobrazuji recepty:", sortedRecipes.length);
+            sortedRecipes.forEach((recipe, index) => {
+                console.log(`📊 Recept ${index + 1}:`, recipe.name, "ingredience:", recipe.ingredients ? recipe.ingredients.length : 0);
 
-                    if (recipeSnap.exists()) {
-                        const currentIngredients = recipeSnap.data().ingredients || [];
-                        if (ingredientIndex >= 0 && ingredientIndex < currentIngredients.length) {
-                            currentIngredients[ingredientIndex] = updatedFoodItem;
-                            await updateDoc(recipeDocRef, {
-                                ingredients: currentIngredients,
-                                updatedAt: serverTimestamp()
-                            });
-                            console.log(`Food item at index ${ingredientIndex} updated in recipe ${recipeId}`);
-
-                            // Close the details modal (editing view)
-                            detailsModal.style.display = 'none';
-
-                            // Fetch the updated recipe name from the current snap or refetch if needed
-                            const updatedRecipeName = recipeSnap.data().name;
-                            await showRecipeDetailsModal(recipeId, updatedRecipeName); // Reload recipe details
-
-                            // Show success notification after successful update and reload
-                            window.showCustomNotification(`Položka "<strong>${updatedFoodItem.foodName}</strong>" v receptu byla úspěšně aktualizována.`, 'recipeSaveSuccess');
-
+                // Debug jednotlivých ingrediencí - S OCHRANOU PROTI NULL
+                if (recipe.ingredients) {
+                    recipe.ingredients.forEach((ing, i) => {
+                        if (ing && ing.foodName) {
+                            console.log(`  🥗 Ingredience ${i}:`, ing.foodName, "kcal:", ing.kcal);
                         } else {
-                            console.error("Ingredient index out of bounds:", ingredientIndex);
-                            window.showCustomNotification("Chyba: Index položky mimo rozsah.", 'recipeDeletionError'); // Reusing error type
+                            console.log(`  ⚠️ Ingredience ${i}: NULL nebo chybí foodName`, ing);
                         }
+                    });
+                }
+
+                const recipeItem = document.createElement('li');
+                recipeItem.className = 'recipe-list-item';
+
+                // Vypočítat celkové kalorie receptu
+                const totalCalories = calculateRecipeTotalCalories(recipe);
+                const formattedCalories = formatNumberForDisplay(totalCalories, 'kcal', true);
+
+                recipeItem.innerHTML = `
+            <div class="recipe-number">${index + 1}.</div>
+            <div class="recipe-name">${recipe.name}</div>
+            <div class="recipe-calories">${formattedCalories}</div>
+            <div class="recipe-actions">
+                <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat" class="recipe-delete-icon" data-recipe-id="${recipe.id}" data-recipe-name="${recipe.name}">
+            </div>
+        `;
+
+                // ROZDÍLNÉ CHOVÁNÍ PODLE MÓDU
+                if (isAddToRecipeMode) {
+                    // MÓD: PŘIDAT DO RECEPTU - přidá potravinu do receptu
+                    recipeItem.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('recipe-delete-icon') || e.target.closest('.recipe-actions')) {
+                            return;
+                        }
+                        console.log("➕ Přidávám potravinu do receptu:", recipe.name, recipe.id);
+                        addFoodItemToSelectedRecipe(recipe.id, recipe.name);
+                    });
+                } else {
+                    // MÓD: ZOBRAZIT DETAIL - otevře detail receptu
+                    recipeItem.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('recipe-delete-icon') || e.target.closest('.recipe-actions')) {
+                            return;
+                        }
+                        console.log("🎯 Otevírám detail receptu:", recipe.name, recipe.id);
+                        openRecipeDetail(recipe.id, recipe.name);
+                    });
+                }
+
+                // EVENT LISTENER PRO SMAZÁNÍ RECEPTU
+                const deleteIcon = recipeItem.querySelector('.recipe-delete-icon');
+                if (deleteIcon) {
+                    deleteIcon.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const recipeId = e.target.dataset.recipeId;
+                        const recipeName = e.target.dataset.recipeName;
+                        console.log("🗑️ Mazání receptu:", recipeName, recipeId);
+                        await deleteRecipe(recipeId, recipeName);
+                    });
+                }
+
+                existingRecipesList.appendChild(recipeItem);
+            });
+        }
+
+        // JEŠTĚ ROBUSTNĚJŠÍ FUNKCE: Vypočítá celkové kalorie receptu
+        // JEŠTĚ BEZPEČNĚJŠÍ FUNKCE: Vypočítá celkové kalorie receptu
+        function calculateRecipeTotalCalories(recipe) {
+            console.log("🔍 Vypočítávám kalorie pro recept:", recipe.name);
+
+            if (!recipe || !recipe.ingredients || !Array.isArray(recipe.ingredients)) {
+                console.log("ℹ️ Recept nemá ingredience nebo je prázdný");
+                return 0;
+            }
+
+            let totalCalories = 0;
+            let validIngredients = 0;
+            let nullIngredients = 0;
+
+            recipe.ingredients.forEach((ingredient, index) => {
+                try {
+                    // KONTROLA EXISTENCE INGREDIENCE
+                    if (!ingredient) {
+                        console.warn(`⚠️ Ingredience ${index} je NULL`);
+                        nullIngredients++;
+                        return;
+                    }
+
+                    // KONTROLA POVINNÝCH VLASTNOSTÍ
+                    if (!ingredient.foodName) {
+                        console.warn(`⚠️ Ingredience ${index} nemá foodName:`, ingredient);
+                        return;
+                    }
+
+                    if (!ingredient.kcal) {
+                        console.warn(`⚠️ Ingredience "${ingredient.foodName}" nemá kcal`);
+                        return;
+                    }
+
+                    const { number: kcalNum } = parseValueAndUnit(ingredient.kcal);
+
+                    if (isNaN(kcalNum)) {
+                        console.warn(`⚠️ Nelze parsovat kcal pro "${ingredient.foodName}":`, ingredient.kcal);
+                        return;
+                    }
+
+                    totalCalories += kcalNum;
+                    validIngredients++;
+
+                } catch (error) {
+                    console.error(`❌ Neočekávaná chyba u ingredience ${index}:`, ingredient, error);
+                }
+            });
+
+            console.log(`✅ Recept "${recipe.name}": ${validIngredients} platných, ${nullIngredients} null, celkem ${totalCalories} kcal`);
+
+            // Pokud jsou všechny ingredience null, zobrazit 0
+            if (validIngredients === 0 && nullIngredients > 0) {
+                console.warn(`🚨 Recept "${recipe.name}" má pouze null ingredience!`);
+                return 0;
+            }
+
+            return totalCalories;
+        }
+
+        // FUNKCE PRO OPRAVU RECEPTŮ S NULL INGREDIENCEMI
+        async function fixRecipesWithNullIngredients() {
+            if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) {
+                return;
+            }
+
+            try {
+                console.log("🔧 Kontroluji a opravuji recepty s null ingrediencemi...");
+
+                const { data: recipes, error } = await window.supabaseClient
+                    .from('recipes')
+                    .select('*')
+                    .eq('profile_id', window.currentProfileId);
+
+                if (error) {
+                    console.error("❌ Chyba při načítání receptů pro opravu:", error);
+                    return;
+                }
+
+                let fixedCount = 0;
+
+                for (const recipe of recipes) {
+                    if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
+                        // Odstranit null ingredience
+                        const originalLength = recipe.ingredients.length;
+                        const cleanedIngredients = recipe.ingredients.filter(ing => ing !== null);
+
+                        if (cleanedIngredients.length !== originalLength) {
+                            console.log(`🔧 Opravuji recept "${recipe.name}": odstraněno ${originalLength - cleanedIngredients.length} null ingrediencí`);
+
+                            // Aktualizovat recept v databázi
+                            const { error: updateError } = await window.supabaseClient
+                                .from('recipes')
+                                .update({
+                                    ingredients: cleanedIngredients,
+                                    updated_at: new Date().toISOString()
+                                })
+                                .eq('id', recipe.id);
+
+                            if (updateError) {
+                                console.error(`❌ Chyba při opravě receptu "${recipe.name}":`, updateError);
+                            } else {
+                                fixedCount++;
+                            }
+                        }
+                    }
+                }
+
+                if (fixedCount > 0) {
+                    console.log(`✅ Opraveno ${fixedCount} receptů s null ingrediencemi`);
+                    window.showCustomNotification(`Opraveno ${fixedCount} receptů s chybějícími ingrediencemi`, 'info');
+                }
+
+            } catch (error) {
+                console.error("❌ Neočekávaná chyba při opravě receptů:", error);
+            }
+        }
+
+        // NOVÁ FUNKCE: Přidá potravinu do vybraného receptu a zavře modální okno
+        async function addFoodItemToSelectedRecipe(recipeId, recipeName) {
+            console.log("🍽️ Přidávám potravinu do receptu:", recipeName, recipeId);
+
+            if (!window.currentFoodItemForRecipe) {
+                console.error("❌ Žádná potravina k přidání");
+                window.showCustomNotification("Chyba: Žádná potravina k přidání.", 'error');
+                return;
+            }
+
+            try {
+                // Přidat potravinu do receptu
+                await addFoodItemToExistingRecipe(recipeId, window.currentFoodItemForRecipe);
+
+                // Zavřít modální okno se seznamem receptů
+                document.getElementById('selectRecipeModal').style.display = 'none';
+
+                // Vyčistit uloženou potravinu
+                window.currentFoodItemForRecipe = null;
+
+            } catch (error) {
+                console.error("❌ Chyba při přidávání potraviny do receptu:", error);
+                window.showCustomNotification("Chyba při přidávání do receptu: " + error.message, 'error');
+            }
+        }
+
+        // NOVÁ FUNKCE: Otevření detailu receptu
+        async function openRecipeDetail(recipeId, recipeName) {
+            console.log("🔍 Otevírám detail receptu:", recipeId, recipeName);
+
+            // Zavřít modální okno se seznamem receptů
+            document.getElementById('selectRecipeModal').style.display = 'none';
+
+            // Otevřít detail receptu
+            await showRecipeDetailsModal(recipeId, recipeName);
+        }
+
+        // Funkce pro přidání potraviny do existujícího receptu - UPRAVENÁ PRO SUPABASE
+        async function addFoodItemToExistingRecipe(recipeId, foodItem) {
+            console.log("➕ Přidávám potravinu do receptu:", recipeId);
+
+            if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) {
+                console.error("❌ Není inicializováno: supabaseClient nebo currentProfileId");
+                return;
+            }
+
+            try {
+                // Nejprve načíst aktuální recept
+                const { data: recipeData, error: fetchError } = await window.supabaseClient
+                    .from('recipes')
+                    .select('*')
+                    .eq('id', recipeId)
+                    .single();
+
+                if (fetchError) {
+                    console.error("❌ Chyba při načítání receptu:", fetchError);
+                    window.showCustomNotification("Chyba: Recept nebyl nalezen.", 'error');
+                    return;
+                }
+
+                // Přidat potravinu do ingrediencí
+                const currentIngredients = recipeData.ingredients || [];
+                const updatedIngredients = [...currentIngredients, foodItem];
+
+                // Aktualizovat recept
+                const { error: updateError } = await window.supabaseClient
+                    .from('recipes')
+                    .update({
+                        ingredients: updatedIngredients,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', recipeId);
+
+                if (updateError) {
+                    console.error("❌ Chyba při přidávání potraviny:", updateError);
+                    window.showCustomNotification("Chyba při přidávání do receptu: " + updateError.message, 'error');
+                    return;
+                }
+
+                console.log("✅ Potravina přidána do receptu");
+                window.showCustomNotification(`Položka "<strong>${foodItem.foodName}</strong>" byla přidána do receptu "<strong>${recipeData.name}</strong>"!`, 'foodAddition');
+
+            } catch (error) {
+                console.error("❌ Neočekávaná chyba:", error);
+                window.showCustomNotification("Chyba při přidávání do receptu: " + error.message, 'error');
+            }
+        }
+
+        // Funkce updateFoodItemInRecipe - UPRAVTE PRO SUPABASE
+        async function updateFoodItemInRecipe(recipeId, ingredientIndex, updatedFoodItem) {
+            if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) {
+                console.error("❌ Supabase, User ID or Profile ID not initialized.");
+                return;
+            }
+
+            const executeUpdate = async () => {
+                try {
+                    // Nejprve načíst aktuální recept
+                    const { data: recipeData, error: fetchError } = await window.supabaseClient
+                        .from('recipes')
+                        .select('*')
+                        .eq('id', recipeId)
+                        .single();
+
+                    if (fetchError) {
+                        console.error("❌ Chyba při načítání receptu:", fetchError);
+                        window.showCustomNotification("Vybraný recept nebyl nalezen.", 'recipeDeletionError');
+                        return;
+                    }
+
+                    const currentIngredients = recipeData.ingredients || [];
+                    if (ingredientIndex >= 0 && ingredientIndex < currentIngredients.length) {
+                        currentIngredients[ingredientIndex] = updatedFoodItem;
+
+                        // Aktualizovat recept v Supabase
+                        const { error: updateError } = await window.supabaseClient
+                            .from('recipes')
+                            .update({
+                                ingredients: currentIngredients,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', recipeId);
+
+                        if (updateError) {
+                            console.error("❌ Chyba při aktualizaci receptu:", updateError);
+                            window.showCustomNotification("Chyba při aktualizaci položky v receptu: " + updateError.message, 'recipeDeletionError');
+                            return;
+                        }
+
+                        console.log(`✅ Food item at index ${ingredientIndex} updated in recipe ${recipeId}`);
+
+                        // Close the details modal (editing view)
+                        detailsModal.style.display = 'none';
+
+                        // Reload recipe details
+                        await showRecipeDetailsModal(recipeId, recipeData.name);
+
+                        // Show success notification
+                        window.showCustomNotification(`Položka "<strong>${updatedFoodItem.foodName}</strong>" v receptu byla úspěšně aktualizována.`, 'recipeSaveSuccess');
+
                     } else {
-                        console.error("Recipe not found:", recipeId);
-                        window.showCustomNotification("Vybraný recept nebyl nalezen.", 'recipeDeletionError'); // Reusing error type
+                        console.error("Ingredient index out of bounds:", ingredientIndex);
+                        window.showCustomNotification("Chyba: Index položky mimo rozsah.", 'recipeDeletionError');
                     }
                 } catch (error) {
                     console.error("Error updating food item in recipe:", error);
-                    window.showCustomNotification("Chyba při aktualizaci položky v receptu: " + error.message, 'recipeDeletionError'); // Reusing error type
+                    window.showCustomNotification("Chyba při aktualizaci položky v receptu: " + error.message, 'recipeDeletionError');
                 }
             };
 
@@ -2663,88 +3008,130 @@
             window.showCustomNotification(`Opravdu chcete uložit změny pro položku "<strong>${updatedFoodItem.foodName}</strong>"?`, 'confirmSaveChanges', executeUpdate, true);
         }
 
+        // Funkce deleteRecipe - UPRAVTE PRO SUPABASE
         async function deleteRecipe(recipeId, recipeName) {
-            if (!db || !userId || !currentProfileId) {
-                console.error("Firestore, User ID or Profile ID not initialized.");
+            if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) {
+                console.error("❌ Supabase, User ID or Profile ID not initialized.");
                 return;
             }
-            // Add a confirmation step before deleting
-            // The third argument is a callback for 'confirm' action, and the fourth indicates if it's a confirmation type
+
             window.showCustomNotification(`Opravdu chcete odstranit recept "<strong>${recipeName}</strong>"?`, 'confirmDeleteRecipe', async () => {
                 try {
-                    const recipeDocRef = doc(db, `artifacts/${appId}/profiles/${currentProfileId}/recipes`, recipeId);
-                    await deleteDoc(recipeDocRef);
-                    console.log(`Recipe ${recipeId} deleted.`);
+                    const { error } = await window.supabaseClient
+                        .from('recipes')
+                        .delete()
+                        .eq('id', recipeId)
+                        .eq('profile_id', window.currentProfileId);
+
+                    if (error) {
+                        console.error("❌ Chyba při mazání receptu:", error);
+                        window.showCustomNotification(`Chyba při odstraňování receptu "<strong>${recipeName}</strong>": ${error.message}`, 'recipeDeletionError');
+                        return;
+                    }
+
+                    console.log(`✅ Recipe ${recipeId} deleted.`);
                     window.showCustomNotification(`Recept "<strong>${recipeName}</strong>" byl úspěšně smazán.`, 'recipeDeletionSuccess');
                     loadUserRecipes(); // Reload the list after deletion
+
                 } catch (error) {
                     console.error("Error deleting recipe:", error);
                     window.showCustomNotification(`Chyba při odstraňování receptu "<strong>${recipeName}</strong>": ${error.message}`, 'recipeDeletionError');
                 }
-            }, true); // Pass true to indicate this notification needs a confirm button
+            }, true);
         }
 
-        // NEW: Function to delete a food item from a recipe
+        // Funkce deleteFoodItemFromRecipe - UPRAVTE PRO SUPABASE
         async function deleteFoodItemFromRecipe(recipeId, ingredientIndex, ingredientName, recipeName) {
-            if (!db || !userId || !currentProfileId) {
-                console.error("Firestore, User ID or Profile ID not initialized.");
+            if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) {
+                console.error("❌ Supabase, User ID or Profile ID not initialized.");
                 return;
             }
+
             window.showCustomNotification(`Opravdu chcete odstranit položku "<strong>${ingredientName}</strong>" z receptu "<strong>${recipeName}</strong>"?`, 'confirmDeleteRecipeItem', async () => {
                 try {
-                    const recipeDocRef = doc(db, `artifacts/${appId}/profiles/${currentProfileId}/recipes/${recipeId}`);
-                    const recipeSnap = await getDoc(recipeDocRef);
+                    // Nejprve načíst aktuální recept
+                    const { data: recipeData, error: fetchError } = await window.supabaseClient
+                        .from('recipes')
+                        .select('*')
+                        .eq('id', recipeId)
+                        .single();
 
-                    if (recipeSnap.exists()) {
-                        const currentIngredients = recipeSnap.data().ingredients || [];
-                        if (ingredientIndex >= 0 && ingredientIndex < currentIngredients.length) {
-                            currentIngredients.splice(ingredientIndex, 1); // Remove the ingredient
-                            await updateDoc(recipeDocRef, {
-                                ingredients: currentIngredients,
-                                updatedAt: serverTimestamp()
-                            });
-                            console.log(`Ingredient at index ${ingredientIndex} deleted from recipe ${recipeId}.`);
-                            window.showCustomNotification(`Položka "<strong>${ingredientName}</strong>" byla úspěšně smazána z receptu "<strong>${recipeName}</strong>".`, 'recipeDeletionSuccess');
-                            // Reload the recipe details modal to reflect the change
-                            await showRecipeDetailsModal(recipeId, recipeName);
-                        } else {
-                            console.error("Ingredient index out of bounds:", ingredientIndex);
-                            window.showCustomNotification("Chyba: Index položky mimo rozsah.", 'recipeDeletionError');
-                        }
-                    } else {
-                        console.error("Recipe not found:", recipeId);
+                    if (fetchError) {
+                        console.error("❌ Chyba při načítání receptu:", fetchError);
                         window.showCustomNotification("Vybraný recept nebyl nalezen.", 'recipeDeletionError');
+                        return;
+                    }
+
+                    const currentIngredients = recipeData.ingredients || [];
+                    if (ingredientIndex >= 0 && ingredientIndex < currentIngredients.length) {
+                        currentIngredients.splice(ingredientIndex, 1); // Remove the ingredient
+
+                        // Aktualizovat recept v Supabase
+                        const { error: updateError } = await window.supabaseClient
+                            .from('recipes')
+                            .update({
+                                ingredients: currentIngredients,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', recipeId);
+
+                        if (updateError) {
+                            console.error("❌ Chyba při mazání ingredience:", updateError);
+                            window.showCustomNotification(`Chyba při odstraňování položky "<strong>${ingredientName}</strong>": ${updateError.message}`, 'recipeDeletionError');
+                            return;
+                        }
+
+                        console.log(`✅ Ingredient at index ${ingredientIndex} deleted from recipe ${recipeId}.`);
+                        window.showCustomNotification(`Položka "<strong>${ingredientName}</strong>" byla úspěšně smazána z receptu "<strong>${recipeName}</strong>".`, 'recipeDeletionSuccess');
+
+                        // Reload the recipe details modal to reflect the change
+                        await showRecipeDetailsModal(recipeId, recipeName);
+                    } else {
+                        console.error("Ingredient index out of bounds:", ingredientIndex);
+                        window.showCustomNotification("Chyba: Index položky mimo rozsah.", 'recipeDeletionError');
                     }
                 } catch (error) {
                     console.error("Error deleting food item from recipe:", error);
                     window.showCustomNotification(`Chyba při odstraňování položky "<strong>${ingredientName}</strong>": ${error.message}`, 'recipeDeletionError');
                 }
-            }, true); // Pass true to indicate this notification needs a confirm button
+            }, true);
         }
 
-        // New function to show recipe details modal
+        // New function to show recipe details modal - UPRAVENÁ PRO SUPABASE
         async function showRecipeDetailsModal(recipeId, recipeName) {
             console.log("showRecipeDetailsModal called for recipe ID:", recipeId, "name:", recipeName);
+
             modalDetailsContent.classList.add('modal-recipe-container');
             document.getElementById('modalDetailsContent').classList.add('modal-recipe-container');
             document.getElementById('detailsModal').classList.add('modal-recipe-open');
             detailsModal.style.display = 'flex';
             modalDetailsContent.innerHTML = `<p class="loading-details">Načítám detaily receptu "${recipeName}"...</p>`;
-            if (!db || !userId || !currentProfileId) {
+
+            // OPRAVA: Použít window.supabaseClient místo db
+            if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) {
                 modalDetailsContent.innerHTML = `<p class="error-details">Chyba: Aplikace se nenačetla správně. Nelze načíst recept.</p>`;
                 return;
             }
 
             try {
-                const recipeDocRef = doc(db, `artifacts/${appId}/profiles/${currentProfileId}/recipes`, recipeId);
-                const recipeSnap = await getDoc(recipeDocRef);
+                // OPRAVA: Použít Supabase místo Firebase
+                const { data: recipeData, error } = await window.supabaseClient
+                    .from('recipes')
+                    .select('*')
+                    .eq('id', recipeId)
+                    .single();
 
-                if (!recipeSnap.exists()) {
+                if (error) {
+                    console.error("❌ Chyba při načítání receptu:", error);
                     modalDetailsContent.innerHTML = `<p class="error-details">Recept "${recipeName}" nebyl nalezen.</p>`;
                     return;
                 }
 
-                const recipeData = recipeSnap.data();
+                if (!recipeData) {
+                    modalDetailsContent.innerHTML = `<p class="error-details">Recept "${recipeName}" nebyl nalezen.</p>`;
+                    return;
+                }
+
                 const imageUrl = recipeData.imageUrl || "{{ url_for('static', filename='icon/recepty.png') }}";
                 const ingredients = recipeData.ingredients || [];
 
@@ -2811,7 +3198,6 @@
 
                 modalDetailsContent.innerHTML = recipeDetailsHtml;
 
-
                 // Render nutrientů
                 renderAllNutrientDetails(formattedAggregatedNutrients);
 
@@ -2829,23 +3215,23 @@
                         const formattedIngredientKcal = formatNumberForDisplay(kcalNum, kcalUnit, true);
 
                         ingredientItemDiv.innerHTML = `
-                            <div class="image-wrapper" style="display: flex; flex-direction: column; align-items: center;">
-                                <img src="${displayImageUrl}" alt="${ingredient.foodName}" onerror="this.onerror=null;this.src='${ingPlaceholderImage}'" />
-                                <div class="recipe-icons" style="margin-top: 5px;">
-                                    <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit" class="recipe-icon edit-icon" data-recipe-id="${recipeId}" data-ingredient-index="${index}" />
-                                    <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Odstranit" class="recipe-icon delete-icon" data-recipe-id="${recipeId}" data-ingredient-index="${index}" />
-                                </div>
+                    <div class="image-wrapper" style="display: flex; flex-direction: column; align-items: center;">
+                        <img src="${displayImageUrl}" alt="${ingredient.foodName}" onerror="this.onerror=null;this.src='${ingPlaceholderImage}'" />
+                        <div class="recipe-icons" style="margin-top: 5px;">
+                            <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit" class="recipe-icon edit-icon" data-recipe-id="${recipeId}" data-ingredient-index="${index}" />
+                            <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Odstranit" class="recipe-icon delete-icon" data-recipe-id="${recipeId}" data-ingredient-index="${index}" />
+                        </div>
+                    </div>
+                    <div class="food-details">
+                        <h3>${ingredient.foodName}</h3>
+                        <div class="calories-and-type-row">
+                            <div class="calories-and-type-row">
+                                <span class="amount-display">Množství:  ${ingredient.amount} ${ingredient.unit}</span>
+                                <span class="calories-display">Kalorie: ${formattedIngredientKcal}</span>
                             </div>
-                            <div class="food-details">
-                                <h3>${ingredient.foodName}</h3>
-                                <div class="calories-and-type-row">
-                                    <div class="calories-and-type-row">
-                                        <span class="amount-display">Množství:  ${ingredient.amount} ${ingredient.unit}</span>
-                                        <span class="calories-display">Kalorie: ${formattedIngredientKcal}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                        </div>
+                    </div>
+                `;
                         ingredientsListEl.appendChild(ingredientItemDiv);
 
                         // Edit ikonka
@@ -4133,8 +4519,8 @@
                     if (isEditingRecipeIngredient) {
                         actionButtonsHtml = `
                             <div class="modal-action-buttons">
+                                <button id="discardChangesButton" style="background-color: #dc3545; min-width: 120px;">Zahodit změny</button>
                                 <button id="saveChangesButton" style="background-color: #28a745;">Uložit změny</button>
-                                <button id="discardChangesButton" style="background-color: #dc3545;">Zahodit změny</button>
                             </div>
                         `;
                     } else {
@@ -4227,13 +4613,21 @@
                     if (addToRecipeButton) {
                         addToRecipeButton.addEventListener('click', async (e) => {
                             e.stopPropagation();
+                            console.log("🎯 Kliknuto na 'Přidat do receptu'");
 
                             if (!checkInitialization()) {
+                                console.log("❌ Nelze pokračovat - aplikace není inicializována");
                                 return;
                             }
 
                             console.log('Přidat do receptu clicked for:', name);
-                            await loadUserRecipes(true);
+
+                            // ULOŽIT AKTUÁLNÍ POTRAVINU PRO POZDĚJŠÍ PŘIDÁNÍ
+                            window.currentFoodItemForRecipe = currentFoodItemData;
+                            console.log("💾 Uložena potravina pro recept:", currentFoodItemData.foodName);
+
+                            // NAČÍST RECEPTY V MÓDU "PŘIDAT DO RECEPTU"
+                            await loadUserRecipesForAdding();
                             detailsModal.style.display = 'none';
                             selectRecipeModal.style.display = 'flex';
                         });
@@ -4242,8 +4636,10 @@
                     if (createAndAddRecipeButton) {
                         createAndAddRecipeButton.addEventListener('click', (e) => {
                             e.stopPropagation();
+                            console.log("🎯 Kliknuto na 'Vytvořit recept a přidat'");
 
                             if (!checkInitialization()) {
+                                console.log("❌ Nelze pokračovat - aplikace není inicializována");
                                 return;
                             }
 
@@ -4304,18 +4700,74 @@
             }
         }
 
+        // NOVÁ FUNKCE: Načte recepty speciálně pro mód přidání potraviny
+        async function loadUserRecipesForAdding() {
+            if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) {
+                console.error("❌ Nelze načíst recepty - chybí inicializace");
+                return;
+            }
+
+            try {
+                console.log("🔍 Načítám recepty pro přidání potraviny...");
+
+                const { data, error } = await window.supabaseClient
+                    .from('recipes')
+                    .select('*')
+                    .eq('profile_id', window.currentProfileId)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error("❌ Chyba při načítání receptů:", error);
+                    return;
+                }
+
+                console.log("✅ Načteno receptů pro přidání:", data ? data.length : 0);
+
+                // ZOBRAZIT RECEPTY V MÓDU PŘIDÁNÍ
+                displayRecipesInModal(data || [], true); // true = mód přidání
+
+            } catch (error) {
+                console.error("❌ Neočekávaná chyba při načítání receptů:", error);
+            }
+        }
+
+        // Funkce pro čekání na inicializaci aplikace
+        async function waitForInitialization(maxWaitTime = 10000) {
+            console.log("⏳ Čekám na inicializaci aplikace...");
+
+            const startTime = Date.now();
+
+            while (Date.now() - startTime < maxWaitTime) {
+                if (window.isAppInitialized && window.currentUser && window.currentProfileId) {
+                    console.log("✅ Aplikace inicializována po", Date.now() - startTime, "ms");
+                    return true;
+                }
+                // Čekat 100ms před další kontrolou
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            console.error("❌ Timeout čekání na inicializaci");
+            return false;
+        }
+
         // --- Logika pro tlačítko "Recepty" a modální okno s možnostmi receptů ---
         const recipesButton = document.getElementById('recipesButton');
 
-        // Modified recipesButton listener
+        // Modified recipesButton listener - pro zobrazení detailů
         if (recipesButton) {
             recipesButton.addEventListener('click', async () => {
+                console.log("🎯 Kliknuto na tlačítko Recepty");
+
+                if (!checkInitialization()) {
+                    console.log("❌ Nelze zobrazit recepty - aplikace není inicializována");
+                    return;
+                }
+
                 try {
-                    await waitForInitialization();
-                    await loadUserRecipes();
+                    await loadUserRecipes(); // normální mód - zobrazení detailů
                     selectRecipeModal.style.display = 'flex';
                 } catch (error) {
-                    window.showCustomNotification("Aplikace není připravena. Zkuste to prosím znovu.", 'error');
+                    window.showCustomNotification("Chyba při načítání receptů: " + error.message, 'error');
                 }
             });
         }
