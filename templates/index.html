@@ -635,9 +635,9 @@
                     hideLoginModal();
 
                     // Zobrazit custom notifikaci
-                    window.showCustomNotification(`Vítejte zpět, ${email}! Vyberte si profil.`, 'success');
+                    window.showCustomNotification(`Vítejte zpět, ${email}!`, 'success');
 
-                    await continueWithUser(data.user);
+                    await continueWithUser(data.user); // Použije novou logiku
                     return data.user;
                 }
 
@@ -755,26 +755,36 @@
         window.selectProfile = async function (profileId) {
             try {
                 console.log("🎯 selectProfile volána:", profileId);
+
+                // KONTROLA EXISTENCE PROFILU
+                const profileExists = window.userProfiles && window.userProfiles.some(p => p.id === profileId);
+                if (!profileExists) {
+                    console.warn("⚠️ Profil neexistuje v userProfiles, načítám profily znovu...");
+                    await window.loadUserProfiles();
+
+                    const profileExistsAfterReload = window.userProfiles && window.userProfiles.some(p => p.id === profileId);
+                    if (!profileExistsAfterReload) {
+                        console.error("❌ Profil stále neexistuje po načtení:", profileId);
+                        return;
+                    }
+                }
+
                 window.currentProfileId = profileId;
+                console.log("✅ Aktuální profil nastaven:", profileId);
 
                 // Načtení a zobrazení názvu profilu
+                console.log("🔄 Načítám a zobrazuji aktuální profil...");
                 await window.loadAndDisplayCurrentProfile();
 
-                // NAČTENÍ NASTAVENÍ PRO VYBRANÝ PROFIL - PŘIDÁNO
+                // Načtení nastavení pro vybraný profil
                 console.log("🔍 Načítám nastavení pro vybraný profil...");
                 await loadUserSettings();
 
                 // Aktualizace nastavení
+                console.log("🔄 Aktualizuji informace o profilu v nastavení...");
                 updateSettingsProfileInfo();
 
-                // Skrytí modálního okna
-                const profileModal = document.getElementById('profileModal');
-                if (profileModal) {
-                    profileModal.style.display = 'none';
-                    window.isProfileModalShowing = false;
-                }
-
-                console.log("✅ Profil vybrán:", profileId);
+                console.log("✅ Profil úspěšně vybrán a nastaven jako aktivní");
 
             } catch (error) {
                 console.error("❌ Chyba při výběru profilu:", error);
@@ -809,7 +819,7 @@
             });
         });
 
-        // Hlavní inicializační funkce
+        // Hlavní inicializační funkce - UPRAVENÁ
         async function initializeApplication() {
             console.log("🔍 Před inicializací - window.supabaseClient:", !!window.supabaseClient);
             console.log("🎯 initializeApplication volána");
@@ -966,7 +976,7 @@
             }
         }
 
-        // Funkce pro pokračování s přihlášeným uživatelem
+        // Funkce pro pokračování s přihlášeným uživatelem - OPRAVENÁ
         async function continueWithUser(user) {
             window.currentUser = user;
             console.log("👤 Pokračuji s uživatelem:", user.id, "email:", user.email);
@@ -977,13 +987,28 @@
             // Načtení profilů
             await window.loadUserProfiles();
 
-            // VŽDY zobrazit výběr profilů po přihlášení
-            console.log("🔄 Po přihlášení - zobrazuji výběr profilů");
+            console.log("📊 Počet profilů pro uživatele:", window.userProfiles.length);
 
-            // Krátké zpoždění pro lepší UX
-            setTimeout(() => {
-                window.showProfileModal();
-            }, 500);
+            // ROZHODNUTÍ O ZOBRAZENÍ PROFILŮ - OPRAVENÉ
+            if (window.userProfiles.length === 0) {
+                console.log("ℹ️ Žádné profily - zobrazuji vytvoření prvního profilu");
+                window.showCreateProfileModal();
+            } else if (window.userProfiles.length === 1) {
+                console.log("ℹ️ Pouze jeden profil - automaticky vybírám");
+                const singleProfile = window.userProfiles[0];
+                console.log("🎯 Automaticky vybírám profil:", singleProfile.id, singleProfile.name);
+
+                // VOLAT selectProfile PRO AKTIVACI PROFILU
+                await window.selectProfile(singleProfile.id);
+
+                window.showCustomNotification(`Profil "${singleProfile.name}" byl automaticky vybrán`, 'info');
+            } else {
+                console.log("ℹ️ Více profilů - zobrazuji výběr");
+                // Krátké zpoždění pro lepší UX
+                setTimeout(() => {
+                    window.showProfileModal();
+                }, 500);
+            }
 
             window.isAppInitialized = true;
 
@@ -1168,8 +1193,9 @@
             try {
                 const trimmedName = profileName.trim();
                 let newProfileId = null;
+                let newProfileData = null;
 
-                // POUZE SUPABASE - žádné lokální fallbacky
+                // POUZE SUPABASE
                 if (window.supabaseClient && window.currentUser && !window.currentUser.is_local) {
                     console.log("🔄 Ukládám profil do Supabase...");
 
@@ -1193,13 +1219,18 @@
                     } else {
                         console.log("✅ ÚSPĚCH: Profil uložen do Supabase!");
                         newProfileId = data.id;
+                        newProfileData = data; // Uložit celá data
 
-                        // Inicializace nastavení pro nový profil - NEBLOKUJE vytvoření profilu
+                        // PŘIDAT PROFIL DO LOKÁLNÍHO POLE - OPRAVA
+                        if (!window.userProfiles) window.userProfiles = [];
+                        window.userProfiles.push(data);
+                        console.log("✅ Profil přidán do userProfiles, nový počet:", window.userProfiles.length);
+
+                        // Inicializace nastavení pro nový profil
                         try {
                             await initializeSettingsForNewProfile(newProfileId);
                         } catch (settingsError) {
                             console.log("⚠️ Nastavení se nepodařilo inicializovat, ale profil byl vytvořen");
-                            // Pokračujeme - profil byl úspěšně vytvořen
                         }
                     }
                 } else {
@@ -1208,7 +1239,12 @@
                 }
 
                 console.log("✅ Profil úspěšně vytvořen:", newProfileId);
-                window.showCustomNotification(`Profil "${trimmedName}" byl úspěšně vytvořen!`, 'success');
+
+                // AUTOMATICKÉ NASTAVENÍ JAKO AKTIVNÍ PROFIL
+                console.log("🎯 Nastavuji nový profil jako aktivní:", newProfileId);
+                await window.selectProfile(newProfileId);
+
+                window.showCustomNotification(`Profil "${trimmedName}" byl úspěšně vytvořen a nastaven jako aktivní!`, 'success');
                 return newProfileId;
 
             } catch (error) {
@@ -1410,7 +1446,10 @@
 
         // Načtení a zobrazení aktuálního profilu
         window.loadAndDisplayCurrentProfile = async function () {
+            console.log("🔄 loadAndDisplayCurrentProfile volána, currentProfileId:", window.currentProfileId);
+
             if (!window.currentProfileId) {
+                console.log("ℹ️ Žádný aktuální profil - skrývám zobrazení");
                 window.hideCurrentProfileDisplay();
                 return;
             }
@@ -1418,12 +1457,14 @@
             try {
                 const profile = window.userProfiles.find(p => p.id === window.currentProfileId);
                 if (profile) {
+                    console.log("✅ Nalezen profil:", profile.name);
                     window.updateCurrentProfileDisplay(profile.name);
 
-                    // NAČTENÍ NASTAVENÍ PŘI ZMĚNĚ PROFILU - PŘIDÁNO
+                    // Načíst nastavení pro aktuální profil
                     console.log("🔍 Načítám nastavení pro aktuální profil...");
                     await loadUserSettings();
                 } else {
+                    console.error("❌ Profil nebyl nalezen v userProfiles:", window.currentProfileId);
                     window.hideCurrentProfileDisplay();
                 }
             } catch (error) {
@@ -1567,7 +1608,7 @@
 
         // Funkce pro zobrazení modálního okna s profily
         window.showProfileModal = async function () {
-            console.log("🎯 showProfileModal volána");
+            console.log("🎯 showProfileModal volána - aktuální počet profilů:", window.userProfiles ? window.userProfiles.length : 0);
 
             // Zabránit vícenásobnému zobrazení
             if (window.isProfileModalShowing) {
@@ -1590,7 +1631,7 @@
                 // ZOBRAZIT MODAL OKAMŽITĚ - před načtením dat
                 profileModal.style.display = 'flex';
 
-                // Načtení existujících profilů
+                // Načtení existujících profilů (pro jistotu)
                 await window.loadUserProfiles();
 
                 // Vytvoření seznamu profilů
@@ -1659,12 +1700,14 @@
                             if (deleteBtn) {
                                 deleteBtn.addEventListener('click', async (e) => {
                                     e.stopPropagation();
+                                    e.preventDefault();
+
                                     const profileId = e.target.dataset.profileId;
                                     const profile = window.userProfiles.find(p => p.id === profileId);
 
-                                    if (profileId && confirm(`Opravdu chcete smazat profil "${profile?.name}"?`)) {
+                                    if (profileId && profile) {
                                         await window.deleteProfile(profileId);
-                                        // NENÍ POTŘEBA VOLAT showProfileModal() - už se volá v refreshProfileDisplay()
+                                        // NENÍ POTŘEBA VOLAT showProfileModal() - už se volá v refreshProfileDisplayAfterDelete()
                                     }
                                 });
                             }
@@ -1759,13 +1802,19 @@
             await loadUserRecipes();
         }
 
-        // Funkce pro smazání profilu - UPRAVENÁ
+        // Funkce pro smazání profilu - OPRAVENÁ
         window.deleteProfile = async function (profileId) {
-            if (!confirm("Opravdu chcete smazat tento profil? Všechna data budou nenávratně ztracena.")) {
+            const profileToDelete = window.userProfiles.find(p => p.id === profileId);
+            if (!profileToDelete) {
+                console.error("❌ Profil k smazání nebyl nalezen:", profileId);
                 return;
             }
 
-            console.log("🗑️ Mazání profilu:", profileId);
+            if (!confirm(`Opravdu chcete smazat profil "${profileToDelete.name}"? Všechna data budou nenávratně ztracena.`)) {
+                return;
+            }
+
+            console.log("🗑️ Mazání profilu:", profileId, "název:", profileToDelete.name);
 
             try {
                 // SMĚZÁNÍ Z SUPABASE
@@ -1789,41 +1838,65 @@
                 }
 
                 // ODEBRÁNÍ Z POLE userProfiles
-                const profileName = window.userProfiles.find(p => p.id === profileId)?.name;
                 window.userProfiles = window.userProfiles.filter(profile => profile.id !== profileId);
                 console.log("✅ Profil odebrán z userProfiles");
 
                 // Feedback pro uživatele
-                window.showCustomNotification(`Profil "${profileName}" byl úspěšně smazán`, 'success');
+                window.showCustomNotification(`Profil "${profileToDelete.name}" byl úspěšně smazán`, 'success');
 
-                // OKAMŽITÉ OBNOVENÍ ZOBRAZENÍ PROFILŮ - PŘIDÁNO
-                await refreshProfileDisplay();
-
-                // Pokud byl smazán aktuální profil, vyberte jiný nebo vytvořte nový
-                if (window.currentProfileId === profileId) {
-                    window.currentProfileId = null;
-                    console.log("ℹ️ Aktuální profil byl smazán, hledám náhradní...");
-
-                    if (window.userProfiles.length > 0) {
-                        await window.selectProfile(window.userProfiles[0].id);
-                        window.showCustomNotification(`Aktivní profil změněn na "${window.userProfiles[0].name}"`, 'info');
-                    } else {
-                        console.log("ℹ️ Žádné profily nezůstaly, zobrazuji vytvoření profilu");
-                        window.showCreateProfileModal();
-                    }
-                }
+                // OKAMŽITÉ OBNOVENÍ ZOBRAZENÍ PROFILŮ - OPRAVENÉ
+                await refreshProfileDisplayAfterDelete(profileId);
 
             } catch (error) {
                 console.error("Chyba při mazání profilu:", error);
                 window.showCustomNotification("Chyba při mazání profilu: " + error.message, 'error');
             }
-            
-            if (window.userProfiles.length === 0) {
-                console.log("ℹ️ Všechny profily byly smazány");
-                window.hideCurrentProfileDisplay();
-                window.showCustomNotification("Všechny profily byly smazány. Vytvořte si nový profil.", 'info');
-            }
         };
+
+        // NOVÁ FUNKCE: Obnovení zobrazení profilů po smazání - OPRAVENÁ
+        async function refreshProfileDisplayAfterDelete(deletedProfileId) {
+            console.log("🔄 Obnovuji zobrazení profilů po smazání...");
+
+            // 1. Znovu načíst profily z databáze pro aktuálnost
+            await window.loadUserProfiles();
+            console.log("✅ Profily znovu načteny, zbývá:", window.userProfiles.length);
+
+            // 2. Zkontrolovat a upravit aktuální profil
+            if (window.currentProfileId === deletedProfileId) {
+                console.log("ℹ️ Aktuální profil byl smazán, hledám náhradní...");
+
+                if (window.userProfiles.length > 0) {
+                    window.currentProfileId = window.userProfiles[0].id;
+                    console.log("✅ Nový aktuální profil:", window.currentProfileId);
+
+                    // Načíst nastavení pro nový profil
+                    await loadUserSettings();
+                    await window.loadAndDisplayCurrentProfile();
+
+                    window.showCustomNotification(`Aktivní profil změněn na "${window.userProfiles[0].name}"`, 'info');
+                } else {
+                    window.currentProfileId = null;
+                    window.hideCurrentProfileDisplay();
+                    console.log("ℹ️ Žádné profily nezůstaly");
+                    window.showCustomNotification("Všechny profily byly smazány. Vytvořte si nový profil.", 'info');
+                }
+            }
+
+            // 3. Znovu zobrazit modální okno s aktuálním seznamem - POUZE POKUD JE OTEVŘENÉ
+            const profileModal = document.getElementById('profileModal');
+            if (profileModal && profileModal.style.display === 'flex') {
+                console.log("🔄 Znovu zobrazuji modální okno profilů...");
+                // Zavřít a znovu otevřít pro kompletní obnovení
+                profileModal.style.display = 'none';
+                window.isProfileModalShowing = false;
+
+                setTimeout(async () => {
+                    await window.showProfileModal();
+                }, 100);
+            }
+
+            console.log("✅ Zobrazení profilů obnoveno");
+        }
 
         // NOVÁ FUNKCE: Obnovení zobrazení profilů
         async function refreshProfileDisplay() {
@@ -4351,14 +4424,13 @@
                 // Znovu najít tlačítko po clone
                 const newConfirmCreateProfileBtn = document.getElementById('confirmCreateProfile');
 
-                newConfirmCreateProfileBtn.addEventListener('click', async function (event) {
+                document.getElementById('confirmCreateProfile').addEventListener('click', async function (event) {
                     event.preventDefault();
                     event.stopPropagation();
                     event.stopImmediatePropagation();
 
-                    console.log("🎯 Kliknuto na vytvoření profilu - ZABRÁNĚNO DUPLICITĚ");
+                    console.log("🎯 Kliknuto na vytvoření profilu");
 
-                    // Zabránit vícenásobnému kliknutí
                     if (this.disabled) {
                         console.log("⚠️ Tlačítko již je disabled - přeskočeno");
                         return;
@@ -4384,11 +4456,14 @@
                             console.log("🆔 Nové ID profilu:", newProfileId);
 
                             if (newProfileId) {
-                                await window.selectProfile(newProfileId);
+                                // Zavřít modální okno vytvoření profilu
                                 const createProfileModal = document.getElementById('createProfileModal');
                                 if (createProfileModal) {
                                     createProfileModal.style.display = 'none';
+                                    console.log("✅ Modální okno vytvoření profilu zavřeno");
                                 }
+
+                                // NENÍ POTŘEBA VOLAT selectProfile() - už se volá v createNewProfile()
                             }
                         } catch (error) {
                             console.error("❌ Chyba při vytváření profilu:", error);

@@ -704,6 +704,7 @@ button:hover {
     margin: 0;
     /* Override previous margin */
 }
+
 /*Zelené tlačítko*/
 #confirmCreateRecipeButton {
     background-color: #28a745;
@@ -1221,7 +1222,7 @@ button:hover {
         min-width: 120px;
         padding: 6px 10px;
     }
-    
+
     .profile-email {
         font-size: 0.7em;
     }
@@ -1351,7 +1352,8 @@ button:hover {
 .modal-recipe-content {
     position: relative;
     max-height: 90vh;
-    overflow: hidden; /* Skryjeme scroll na hlavním kontejneru */
+    overflow: hidden;
+    /* Skryjeme scroll na hlavním kontejneru */
 }
 
 .modal-recipe-scroll-container {
@@ -1384,7 +1386,8 @@ button:hover {
     justify-content: space-between;
     align-items: baseline;
     margin-bottom: 2px;
-    padding: 0 10px; /* Odsazení od okrajů */
+    padding: 0 10px;
+    /* Odsazení od okrajů */
 }
 
 /* Původní vzhled pro detail potraviny */
@@ -1403,15 +1406,19 @@ button:hover {
     top: 15px;
     right: 15px;
     z-index: 1001;
-    background-color: transparent !important; /* PRŮHLEDNÉ POZADÍ */
-    border: none !important; /* ŽÁDNÝ OKRAJ */
-    border-radius: 0 !important; /* ŽÁDNÉ ZAOBLENÍ */
+    background-color: transparent !important;
+    /* PRŮHLEDNÉ POZADÍ */
+    border: none !important;
+    /* ŽÁDNÝ OKRAJ */
+    border-radius: 0 !important;
+    /* ŽÁDNÉ ZAOBLENÍ */
     width: auto !important;
     height: auto !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: none !important; /* ŽÁDNÝ STÍN */
+    box-shadow: none !important;
+    /* ŽÁDNÝ STÍN */
     font-size: 28px;
     font-weight: bold;
     color: #aaa;
@@ -1480,15 +1487,16 @@ button:hover {
     }
 
     #detailsModal.modal-recipe-open .modal-content {
-        width: 90vw !important; /* Stejné jako ostatní okna */
+        width: 90vw !important;
+        /* Stejné jako ostatní okna */
         max-width: 90vw !important;
     }
-    
+
     #detailsModal.modal-recipe-open .modal-recipe-header {
-        width: 55vw !important; 
+        width: 55vw !important;
         max-width: 55vw !important;
     }
-    
+
     /* Ostatní modální okna zachovat původní vzhled */
     #detailsModal .modal-content {
         width: 90vw;
@@ -1502,7 +1510,7 @@ button:hover {
         width: 90vw !important;
         max-width: 90vw !important;
     }
-    
+
     /* Okno pro vytvoření receptu/profilu */
     #createRecipeModal .modal-content,
     #createProfileModal .modal-content {
@@ -1517,7 +1525,7 @@ button:hover {
         max-width: 90vw !important;
         padding: 15px !important;
     }
-    
+
     /* Okno s nastavením */
     #settingsModal .modal-content {
         width: 90vw !important;
@@ -1529,14 +1537,15 @@ button:hover {
         max-width: 90vw !important;
         margin: 10px auto !important;
     }
-    
+
     .modal-scrollable-container {
         max-width: 100% !important;
         overflow-x: hidden !important;
     }
-    
+
     * {
-        max-width: 100%; /* Zajistí že nic nepřesahuje */
+        max-width: 100%;
+        /* Zajistí že nic nepřesahuje */
         box-sizing: border-box;
     }
 }
@@ -1773,20 +1782,26 @@ button:hover {
 }
 
 /* Ikona koše */
-/* Styly pro ikonku mazání profilu */
+/* Styly pro ikonku mazání profilu - ŽÁDNÉ EFEKTY */
 .profile-delete {
     width: 20px;
     height: 20px;
     cursor: pointer;
-    padding: 6px;
+    padding: 8px;
     border-radius: 4px;
-    transition: background-color 0.2s ease;
     opacity: 0.7;
+    flex-shrink: 0;
 }
 
 .profile-delete:hover {
-    background-color: rgba(244, 67, 54, 0.1);
     opacity: 1;
+}
+
+/* Odstranění všech transformací */
+.profile-delete:hover,
+.profile-delete:active {
+    transform: none;
+    background-color: transparent;
 }
 
 .loading-spinner {
@@ -1849,7 +1864,8 @@ button:hover {
 .profile-display-clickable {
     display: flex;
     flex-direction: column;
-    align-items: center !important; /* Zarovnání na střed */
+    align-items: center !important;
+    /* Zarovnání na střed */
     justify-content: center;
     text-align: center;
     cursor: pointer;
@@ -1866,14 +1882,15 @@ button:hover {
     background-color: #f8f9fa;
     border-color: #007bff;
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* Zarovnání ikonky a názvu profilu na střed */
 .profile-info {
     display: flex;
     align-items: center;
-    justify-content: center !important; /* Zarovnání na střed */
+    justify-content: center !important;
+    /* Zarovnání na střed */
     gap: 8px;
     width: 100%;
 }
@@ -1990,7 +2007,8 @@ button:hover {
 
 .create-profile-buttons {
     display: flex;
-    justify-content: space-between; /* Tlačítka na opačných stranách */
+    justify-content: space-between;
+    /* Tlačítka na opačných stranách */
     gap: 10px;
     width: 100%;
     margin-top: 15px;
@@ -2018,8 +2036,10 @@ button:hover {
 /* Červené tlačítko Zrušit */
 #cancelCreateProfile {
     /* Zrušit - vpravo, standardní velikost */
-    order: 2; /* Druhé v pořadí (vpravo) */
-    flex: 1; /* Standardní velikost */
+    order: 2;
+    /* Druhé v pořadí (vpravo) */
+    flex: 1;
+    /* Standardní velikost */
     padding: 10px 15px;
     background-color: #f44336;
     color: white;
@@ -2041,8 +2061,10 @@ button:hover {
 /* Zelené tlačítko Vytvořit */
 #confirmCreateProfile {
     /* Vytvořit - vlevo, 2x delší */
-    order: 1; /* První v pořadí (vlevo) */
-    flex: 2; /* 2x větší než Zrušit */
+    order: 1;
+    /* První v pořadí (vlevo) */
+    flex: 2;
+    /* 2x větší než Zrušit */
     padding: 10px 15px;
     background-color: #28a745;
     color: white;
@@ -2094,6 +2116,7 @@ button:hover {
     /* Zajistí, že nebude překrývat levý a pravý panel */
     padding: 0 100px;
 }
+
 /* Styly pro rozbalovací sekce v nastavení */
 .setting-section {
     border-bottom: 1px solid #eee;
@@ -2143,14 +2166,16 @@ button:hover {
     width: 100%;
 }
 
-.setting-section-header.active + .setting-section-content {
-    max-height: 1000px; /* Dostatečně vysoká hodnota pro pohodlné zobrazení všech položek */
+.setting-section-header.active+.setting-section-content {
+    max-height: 1000px;
+    /* Dostatečně vysoká hodnota pro pohodlné zobrazení všech položek */
 }
 
 /* SPRÁVNÉ ŘEŠENÍ */
 .setting-section-content .setting-item {
     border-bottom: none !important;
-    margin-bottom: 8px; /* Zachováme jen mezeru mezi položkami */
+    margin-bottom: 8px;
+    /* Zachováme jen mezeru mezi položkami */
     padding-bottom: 0;
 }
 
@@ -2158,8 +2183,10 @@ button:hover {
 #settingsModal .toggle-switch {
     width: 36px;
     height: 20px;
-    flex-shrink: 0; /* Zabrání zmenšování */
-    margin-right: 10px; /* Místo margin-left */
+    flex-shrink: 0;
+    /* Zabrání zmenšování */
+    margin-right: 10px;
+    /* Místo margin-left */
 }
 
 #settingsModal .toggle-switch .slider {
@@ -2173,7 +2200,7 @@ button:hover {
     bottom: 2px;
 }
 
-#settingsModal .toggle-switch input:checked + .slider:before {
+#settingsModal .toggle-switch input:checked+.slider:before {
     transform: translateX(16px);
 }
 
@@ -2186,7 +2213,8 @@ button:hover {
 /* SPECIFIČTĚJŠÍ - posun pouze popisků */
 #settingsModal .setting-section-content .setting-item .setting-label {
     margin-left: 15px;
-    flex-grow: 1; /* Zajistí že label zabere dostatek místa */
+    flex-grow: 1;
+    /* Zajistí že label zabere dostatek místa */
 }
 
 #settingsModal .setting-section-content .setting-item {
@@ -2207,7 +2235,8 @@ button:hover {
 #settingsModal .setting-section-header .setting-label {
     font-weight: bold !important;
     color: #333;
-    font-size: 1em; /* Zachováme původní velikost písma */
+    font-size: 1em;
+    /* Zachováme původní velikost písma */
 }
 
 /* Styly pro informace o profilu v nastavení - ZACHOVÁNÍ PŮVODNÍHO DESIGNU */
