@@ -603,8 +603,10 @@ button:hover {
     max-width: 450px !important;
     width: 90% !important;
     overflow-x: hidden;
-    max-height: 80vh; /* Maximální výška */
-    overflow-y: auto; /* Scrollování pokud je obsah příliš vysoký */
+    max-height: 80vh;
+    /* Maximální výška */
+    overflow-y: auto;
+    /* Scrollování pokud je obsah příliš vysoký */
 }
 
 #existingRecipesList {
@@ -690,79 +692,95 @@ button:hover {
     z-index: 11;
 }
 
+/* Notifikační okno - opravený design */
 #customNotificationModal {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1001;
-    background-color: rgba(255, 255, 255, 0);
-    padding: 0;
-    border-radius: 0;
-    box-shadow: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.6) !important;
 }
 
 #customNotificationModal .modal-content {
-    background-color: #fefefe;
-    padding: 20px;
-    border: 1px solid #888;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    max-width: 450px !important;
-    width: 90% !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+    width: 350px !important;
+    max-width: 350px !important;
+    margin: 20px auto;
+    padding: 25px;
 }
 
 #customNotificationMessage {
     margin-top: 0;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     color: #333;
-    font-size: 1em;
+    font-size: 1.1em;
     line-height: 1.5;
+    text-align: center;
+    font-weight: 500;
 }
 
 .notification-controls {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
+    align-items: center;
     width: 100%;
-    padding-top: 15px;
+    padding-top: 20px;
     border-top: 1px solid #eee;
     flex-wrap: nowrap;
-    gap: 10px;
+    gap: 20px;
 }
 
 .notification-toggle-container {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 5px;
+    gap: 8px; /* Menší mezera mezi přepínačem a textem */
+    flex-shrink: 0;
+}
+
+.notification-buttons-container {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    align-items: center;
     flex-shrink: 0;
 }
 
 .notification-button {
-    padding: 8px 15px;
-    background-color: #4CAF50;
-    color: white;
+    padding: 10px 20px;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 0.85em;
-    transition: background-color 0.3s ease;
-    flex-shrink: 0;
-    width: auto;
-    min-width: 60px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    font-family: 'Dutch801 Rm BT', serif;
+    min-width: 80px;
+    font-weight: 500;
 }
 
-.notification-button:hover {
-    background-color: #45a049;
+/* NE - ČERVENÁ (původní barva) */
+.notification-button.no-button {
+    background-color: #dc3545;
+    color: white;
+}
+
+.notification-button.no-button:hover {
+    background-color: #c82333;
+}
+
+/* ANO - ZELENÁ (původní barva) */
+.notification-button.yes-button {
+    background-color: #28a745;
+    color: white;
+}
+
+.notification-button.yes-button:hover {
+    background-color: #218838;
+}
+
+/* OK - MODRÁ */
+.notification-button.ok-button {
+    background-color: #28a745;
+    color: white;
+}
+
+.notification-button.ok-button:hover {
+    background-color: #218838;
 }
 
 .toggle-switch {
@@ -822,28 +840,33 @@ button:hover {
     white-space: nowrap;
 }
 
+/* Notifikační okno - zmenšený přepínač a text */
 .notification-toggle-switch {
-    width: 30px;
-    height: 16px;
+    width: 30px !important; /* Poloviční velikost */
+    height: 16px !important;
+    flex-shrink: 0;
 }
 
 .notification-toggle-switch .slider {
-    border-radius: 16px;
+    border-radius: 16px !important;
 }
 
 .notification-toggle-switch .slider:before {
-    height: 12px;
-    width: 12px;
-    left: 2px;
-    bottom: 2px;
+    height: 12px !important;
+    width: 12px !important;
+    left: 2px !important;
+    bottom: 2px !important;
 }
 
-.notification-toggle-switch input:checked+.slider:before {
-    transform: translateX(14px);
+.notification-toggle-switch input:checked + .slider:before {
+    transform: translateX(14px) !important; /* Upraveno pro menší velikost */
 }
 
-.notification-toggle-label {
-    font-size: 0.7em;
+.toggle-label {
+    font-size: 0.8em !important; /* O jednu třetinu menší (z 0.9em na 0.8em) */
+    color: #555;
+    user-select: none;
+    white-space: nowrap;
 }
 
 #settingsModal .modal-content {
@@ -1322,9 +1345,11 @@ button:hover {
     0% {
         border-color: #4CAF50;
     }
+
     50% {
         border-color: #ffeb3b;
     }
+
     100% {
         border-color: #4CAF50;
     }
@@ -1341,10 +1366,12 @@ button:hover {
         border-color: #4CAF50;
         box-shadow: 0 0 0 rgba(76, 175, 80, 0);
     }
+
     50% {
         border-color: #4CAF50;
         box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
     }
+
     100% {
         border-color: #4CAF50;
         box-shadow: 0 0 0 rgba(76, 175, 80, 0);
@@ -1405,9 +1432,11 @@ button:hover {
     0% {
         opacity: 0.6;
     }
+
     50% {
         opacity: 1;
     }
+
     100% {
         opacity: 0.6;
     }
@@ -1484,6 +1513,7 @@ button:hover {
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }
@@ -1573,6 +1603,19 @@ button:hover {
 #settingsProfileInfo .profile-display-clickable {
     align-items: center !important;
     justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#settingsProfileInfo .profile-display-clickable:hover {
+    background-color: #f8f9fa;
+    border-color: #007bff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+#settingsProfileInfo .profile-display-clickable:active {
+    transform: scale(0.95);
 }
 
 #settingsProfileInfo .profile-info {
@@ -1641,6 +1684,50 @@ button:hover {
 #profileModal .modal-content {
     max-width: 450px !important;
     width: 90% !important;
+}
+
+#profileModal,
+#createProfileModal {
+    z-index: 1000 !important;
+}
+
+#settingsModal {
+    z-index: 999 !important;
+}
+
+/* Tlačítko "Vytvořit nový profil" v okně profilů */
+#createNewProfileBtn {
+    background-color: #007bff !important;
+    color: white !important;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    font-family: 'Dutch801 Rm BT', serif;
+    width: 100%;
+    margin-top: 10px;
+}
+
+#createNewProfileBtn:hover {
+    background-color: #0056b3 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+#createNewProfileBtn:active {
+    transform: translateY(0);
+}
+
+/* Zajistěte, že všechny modrá tlačítka jsou konzistentní */
+#createNewProfileBtn.btn-primary {
+    background-color: #007bff !important;
+    color: white !important;
+}
+
+#createNewProfileBtn.btn-primary:hover {
+    background-color: #0056b3 !important;
 }
 
 #createProfileModal h3 {
@@ -1799,7 +1886,7 @@ button:hover {
     padding: 0 15px;
 }
 
-.setting-section-header.active + .setting-section-content {
+.setting-section-header.active+.setting-section-content {
     max-height: 1000px;
     opacity: 1;
     padding: 10px 15px;
@@ -1918,6 +2005,13 @@ button:hover {
 
 /* RESPONZIVITA */
 @media (max-width: 480px) {
+    #customNotificationModal .modal-content {
+        width: 95% !important;
+        max-width: 95% !important;
+        margin: 10px auto;
+        padding: 20px;
+    }
+
     .profile-display-clickable {
         max-width: 160px;
         min-width: 120px;
@@ -2018,8 +2112,7 @@ button:hover {
     }
 }
 
-@media (max-width: 375px) {
-}
+@media (max-width: 375px) {}
 
 @media (max-width: 768px) {
     .main-controls button {
