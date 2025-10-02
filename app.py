@@ -596,3 +596,13 @@ if __name__ == '__main__':
         print(f"  {rule}")
 
     app.run(debug=True, host='0.0.0.0', port=5000)
+
+# Přidejte na konec app.py pro lepší diagnostiku
+@app.route('/debug')
+def debug_info():
+    """Debug endpoint pro kontrolu konfigurace"""
+    return jsonify({
+        "supabase_url": supabase_url,
+        "supabase_initialized": supabase is not None,
+        "app_id": app_id
+    })
