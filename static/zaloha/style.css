@@ -924,18 +924,28 @@ button:hover {
     transition: background-color 0.2s;
     overflow: hidden;
     justify-content: space-between;
-    gap: 15px;
+    gap: 10px;
 }
 
 .recipe-list-item:hover {
     background-color: #f5f5f5;
 }
 
+.recipe-number-name-container {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    gap: 2px;
+    /* Minimální mezera mezi číslem a názvem */
+}
+
 .recipe-number {
     font-weight: bold;
     color: #666;
-    min-width: 30px;
+    min-width: 20px;
     flex-shrink: 0;
+    text-align: right;
 }
 
 .recipe-name {
@@ -944,7 +954,9 @@ button:hover {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    margin: 0 10px;
+    margin: 1;
+    padding-left: 2px;
+    /* Minimální odsazení od čísla */
 }
 
 .recipe-calories {
@@ -1276,26 +1288,35 @@ button:hover {
     width: 100%;
 }
 
+/* OBSAH - NEJSPODNĚJŠÍ VRSTVA */
 #detailsModal.modal-recipe-open .modal-scrollable-container {
+    flex: 1 1 auto;
+    overflow-y: auto;
     padding: 10px 15px 20px 15px;
-    width: 100%;
-    box-sizing: border-box;
+    background-color: #fefefe;
+    z-index: 10;
+    /* Nižší než hlavička */
+    position: relative;
+    margin-top: 5;
 }
 
+/* HLAVIČKA - BEZ STÍNŮ A S VĚTŠÍ VÝŠKOU */
 #detailsModal.modal-recipe-open .modal-recipe-header {
     position: sticky;
     top: 0;
-    z-index: 10;
-    background: #fefefe !important;
+    z-index: 20;
+    background: #fefefe !important; /* STEJNÁ BARVA JAKO POZADÍ OBSAHU */
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 15px;
+    padding: 20px 15px; /* VĚTŠÍ PADDING PRO VĚTŠÍ VÝŠKU */
     border-bottom: 1px solid #f0f0f0;
     margin: 0;
     border-radius: 12px 12px 0 0;
     width: 100%;
     box-sizing: border-box;
+    min-height: 240px; /* VĚTŠÍ MINIMÁLNÍ VÝŠKA PRO BUDOUCÍ TLAČÍTKA */
+    /* ODSTRANĚNO: box-shadow */
 }
 
 #detailsModal.modal-recipe-open .modal-content {
@@ -1308,6 +1329,80 @@ button:hover {
     width: 95vw;
     max-width: 500px;
     margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* KALORICKÁ HODNOTA - NEJVYŠŠÍ VRSTVA */
+#detailsModal.modal-recipe-open .energy-display-group {
+    z-index: 30;
+    /* Nejvyšší v hlavičce */
+    position: relative;
+    min-height: 160px;
+}
+
+/* NÁZEV RECEPTU - NEJVYŠŠÍ VRSTVA */
+#detailsModal.modal-recipe-open .modal-header-name {
+    z-index: 30;
+    /* Nejvyšší v hlavičce */
+    position: relative;
+    flex-grow: 1;
+    flex-shrink: 1;
+    font-size: 2em;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
+    line-height: 1.2;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+    min-height: 80px;
+}
+
+/* IKONKA RECEPTU - NEJVYŠŠÍ VRSTVA */
+#detailsModal.modal-recipe-open .modal-header-image {
+    z-index: 30;
+    /* Nejvyšší v hlavičce */
+    position: relative;
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+    min-height: 80px;
+}
+
+/* KŘÍŽEK - BEZ POZADÍ */
+#detailsModal.modal-recipe-open .close-button {
+    z-index: 40 !important;
+    position: absolute !important;
+    top: 15px !important;
+    right: 15px !important;
+    background-color: transparent !important; /* PRŮHLEDNÉ POZADÍ */
+    border-radius: 50% !important;
+    width: 30px !important;
+    height: 30px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 24px !important;
+    font-weight: bold !important;
+    color: #aaa !important;
+    cursor: pointer !important;
+    border: none !important;
+    /* ODSTRANĚNO: box-shadow */
+}
+
+#detailsModal.modal-recipe-open .close-button:hover {
+    color: #000 !important;
+    background-color: transparent !important; /* PRŮHLEDNÉ I PŘI HOVERU */
+}
+
+/* ODSTRANĚNÍ TEXTURY PRŮHLEDNOSTI */
+#detailsModal.modal-recipe-open .modal-recipe-header::after {
+    content: none; /* ODSTRANĚNO */
 }
 
 .amount-display {
@@ -1571,6 +1666,10 @@ button:hover {
     transition: all 0.2s ease;
     max-width: 200px;
     min-width: 150px;
+    /* PŘIDÁNO: Zabraňuje roztažení na celou šířku */
+    width: auto !important;
+    align-self: flex-start;
+    margin: 0;
 }
 
 .profile-display-clickable:hover {
@@ -2009,8 +2108,40 @@ button:hover {
 
 /* RESPONZIVITA */
 @media (max-width: 480px) {
+    #detailsModal.modal-recipe-open .modal-recipe-header {
+        flex-wrap: wrap;
+        min-height: 140px; /* JEŠTĚ VĚTŠÍ HLAVIČKA */
+        gap: 10px;
+        padding: 15px 12px;
+    }
+
+    #detailsModal.modal-recipe-open .modal-header-image {
+        width: 60px;
+        height: 60px;
+    }
+    
+    #detailsModal.modal-recipe-open .modal-header-name {
+        font-size: 1.1em;
+        order: 1;
+        width: 100%;
+        text-align: center;
+        margin-top: 8px;
+        min-height: 50px;
+    }
+    
+    #detailsModal.modal-recipe-open .energy-display-group {
+        order: 2;
+        text-align: center;
+        width: 100%;
+    }
+    
+    #detailsModal.modal-recipe-open .modal-scrollable-container {
+        padding-top: 10px;
+    }
+
     .personal-card-content .form-group label {
-        font-size: 0.75em; /* Ještě menší text na velmi malých obrazovkách */
+        font-size: 0.75em;
+        /* Ještě menší text na velmi malých obrazovkách */
     }
 
     .macros-subtitle {
@@ -2153,33 +2284,39 @@ button:hover {
 }
 
 @media (max-width: 768px) {
+
     /* Všechny sekce jako samostatné bloky */
     .personal-card-section {
-        order: unset !important; /* Resetujeme order */
+        order: unset !important;
+        /* Resetujeme order */
         margin-bottom: 15px;
     }
 
     /* Explicitní pořadí sekcí */
     .personal-card-column:first-child .personal-card-section:nth-child(1) {
-        order: 1; /* Základní údaje první */
+        order: 1;
+        /* Základní údaje první */
     }
-    
+
     .personal-card-column:last-child .personal-card-section:nth-child(1) {
-        order: 2; /* Cíl a intenzita druhá */
+        order: 2;
+        /* Cíl a intenzita druhá */
     }
-    
+
     .personal-card-column:last-child .personal-card-section:nth-child(2) {
-        order: 3; /* Výsledky třetí */
+        order: 3;
+        /* Výsledky třetí */
     }
-    
+
     .personal-card-column:first-child .personal-card-section:nth-child(2) {
-        order: 4; /* Makroživiny čtvrtá */
+        order: 4;
+        /* Makroživiny čtvrtá */
     }
 
     .gender-group {
         flex: 1 !important;
     }
-    
+
     .macro-row .macro-item {
         flex: 1;
         min-width: 0;
@@ -2189,11 +2326,11 @@ button:hover {
         display: flex;
         gap: 8px;
     }
-    
+
     .results-grid-single-line {
         gap: 6px;
     }
-    
+
     .result-item-single {
         min-height: 40px;
         padding: 8px 10px;
@@ -2202,8 +2339,12 @@ button:hover {
     .personal-card-content .form-row .form-group {
         align-items: stretch;
     }
-    
-    #age, #height, #weight, #bodyFat, #targetWeight {
+
+    #age,
+    #height,
+    #weight,
+    #bodyFat,
+    #targetWeight {
         width: 100% !important;
         align-self: stretch;
     }
@@ -2211,11 +2352,11 @@ button:hover {
     .macros-row {
         flex-wrap: wrap;
     }
-    
+
     .macros-row .macro-item {
         flex: 0 0 calc(50% - 4px);
     }
-    
+
     #personalCardModal .modal-content {
         width: 95% !important;
         max-width: 95% !important;
@@ -2231,34 +2372,41 @@ button:hover {
         gap: 15px;
     }
 
-     .personal-card-column {
-        display: contents; /* Zrušíme sloupce na mobilu */
+    .personal-card-column {
+        display: contents;
+        /* Zrušíme sloupce na mobilu */
     }
-    
+
     /* Explicitní pořadí sekcí */
     .personal-card-section:nth-child(1) {
-        order: 1; /* Základní údaje */
+        order: 1;
+        /* Základní údaje */
     }
-    
+
     .personal-card-section:nth-child(2) {
-        order: 2; /* Cíl a intenzita */
+        order: 2;
+        /* Cíl a intenzita */
     }
-    
+
     .personal-card-section:nth-child(3) {
-        order: 3; /* Výsledky */
+        order: 3;
+        /* Výsledky */
     }
-    
+
     .personal-card-section:nth-child(4) {
-        order: 4; /* Makroživiny */
+        order: 4;
+        /* Makroživiny */
     }
 
     /* Změníme pořadí sekcí pomocí order */
     .personal-card-column:first-child {
-        order: 1; /* Základní údaje první */
+        order: 1;
+        /* Základní údaje první */
     }
 
     .personal-card-column:last-child {
-        order: 2; /* Cíle a výsledky druhé */
+        order: 2;
+        /* Cíle a výsledky druhé */
     }
 
     .results-and-macros-container {
@@ -2299,7 +2447,8 @@ button:hover {
 
     /* Makroživiny až na konec */
     .macros-section {
-        order: 3; /* Makroživiny poslední */
+        order: 3;
+        /* Makroživiny poslední */
         margin-top: 10px;
     }
 
@@ -2314,7 +2463,8 @@ button:hover {
     }
 
     .personal-card-content .form-group {
-        flex: 1 !important; /* Na mobilu všechno plná šířka */
+        flex: 1 !important;
+        /* Na mobilu všechno plná šířka */
         width: 100%;
     }
 
@@ -2345,14 +2495,59 @@ button:hover {
         font-size: 14px !important;
     }
 
+    /* MODÁLNÍ OKNO RECEPTU - VRSTVENÍ PRO MOBIL */
     #detailsModal.modal-recipe-open .modal-content {
-        width: 90vw !important;
-        max-width: 90vw !important;
+        position: relative;
+        max-height: 90vh;
+        overflow: hidden;
+        background-color: #fefefe;
+        border-radius: 12px;
+        padding: 0 !important;
+        width: 95vw;
+        max-width: 500px;
+        margin: 20px auto;
+        display: flex;
+        flex-direction: column;
     }
 
     #detailsModal.modal-recipe-open .modal-recipe-header {
-        width: 55vw !important;
-        max-width: 55vw !important;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        min-height: 180px; /* VĚTŠÍ HLAVIČKA NA MOBILU */
+        padding: 15px 15px; /* VĚTŠÍ PADDING */
+    }
+
+    #detailsModal.modal-recipe-open .modal-header-image {
+        width: 70px; /* VĚTŠÍ IKONKA */
+        height: 70px;
+    }
+
+    #detailsModal.modal-recipe-open .modal-header-name {
+        font-size: 1.2em;
+        min-height: 60px;
+    }
+
+    #detailsModal.modal-recipe-open .energy-header {
+        font-size: 1.4em;
+    }
+    
+    #detailsModal.modal-recipe-open .energy-sub-header {
+        font-size: 0.8em;
+    }
+
+    #detailsModal.modal-recipe-open .close-button {
+        top: 12px !important;
+        right: 12px !important;
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 22px !important;
+    }
+
+    /* Zajistíme, že obsah bude rolovat POD hlavičkou */
+    #detailsModal.modal-recipe-open .modal-scrollable-container {
+        padding-top: 5px;
+        margin-top: -5px; /* Jemné přesažení pro optický efekt */
     }
 
     #detailsModal .modal-content {
@@ -2560,8 +2755,10 @@ button:hover {
 
 /* MODÁLNÍ OKNO OSOBNÍ KARTY */
 #personalCardModal .modal-content {
-    max-width: 595px !important; /* 700px - 15% = 595px */
-    width: 85% !important; /* O 15% menší než hlavní okno */
+    max-width: 595px !important;
+    /* 700px - 15% = 595px */
+    width: 85% !important;
+    /* O 15% menší než hlavní okno */
 }
 
 .personal-card-modal {
@@ -2588,11 +2785,13 @@ button:hover {
 
 /* Zúžení pole pro pohlaví */
 .gender-group {
-    flex: 0.6 !important; /* Užší než ostatní pole */
+    flex: 0.6 !important;
+    /* Užší než ostatní pole */
 }
 
 .gender-group .form-input {
-    width: 100px !important; /* Dostatečná šířka pro text */
+    width: 100px !important;
+    /* Dostatečná šířka pro text */
     align-self: flex-start;
 }
 
@@ -2722,11 +2921,13 @@ button:hover {
 /* OBSAH - DVOU SLOUPCŮ */
 /* Styly pro select pohlaví */
 #gender option[value=""] {
-    color: #999; /* Šedá pro placeholder ♂/♀ */
+    color: #999;
+    /* Šedá pro placeholder ♂/♀ */
 }
 
 #gender option:not([value=""]) {
-    color: #000; /* Černá pro skutečné možnosti */
+    color: #000;
+    /* Černá pro skutečné možnosti */
 }
 
 .macros-row {
@@ -2785,13 +2986,15 @@ button:hover {
 .macros-row .macro-label {
     font-weight: 600;
     color: #495057;
-    font-size: 0.7em; /* Menší text */
+    font-size: 0.7em;
+    /* Menší text */
 }
 
 .macros-row .macro-value {
     font-weight: 700;
     color: #333;
-    font-size: 0.8em; /* Menší text */
+    font-size: 0.8em;
+    /* Menší text */
 }
 
 .personal-card-content {
@@ -2799,7 +3002,8 @@ button:hover {
     gap: 20px;
     padding: 20px;
     min-height: auto;
-    align-items: flex-start; /* Zarovnání horní hrany */
+    align-items: flex-start;
+    /* Zarovnání horní hrany */
 }
 
 .personal-card-column {
@@ -2809,7 +3013,8 @@ button:hover {
 }
 
 .personal-card-column:first-child {
-    flex: 1.2; /* Levý sloupec má více místa */
+    flex: 1.2;
+    /* Levý sloupec má více místa */
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -2817,11 +3022,13 @@ button:hover {
 
 /* NOVÉ: Rozložení výsledků a makroživin vedle sebe */
 .results-and-macros-container {
-     display: block; /* Změněno z flex na block */
+    display: block;
+    /* Změněno z flex na block */
 }
 
 .personal-card-column:last-child {
-    flex: 0.8; /* Pravý sloupec je užší */
+    flex: 0.8;
+    /* Pravý sloupec je užší */
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -2832,8 +3039,10 @@ button:hover {
     padding: 15px;
     background: #f8f9fa;
     border-radius: 12px;
-    border: 1px solid #e9ecef; /* VRÁCENO: Ohraničení */
-    margin-bottom: 15px; /* VRÁCENO: Mezera mezi sekcemi */
+    border: 1px solid #e9ecef;
+    /* VRÁCENO: Ohraničení */
+    margin-bottom: 15px;
+    /* VRÁCENO: Mezera mezi sekcemi */
 }
 
 .personal-card-section:last-child {
@@ -2844,7 +3053,8 @@ button:hover {
     font-size: 1.1em;
     margin-bottom: 15px;
     color: #333;
-    border-bottom: 1px solid #dee2e6; /* VRÁCENO: Spodní čára nadpisu */
+    border-bottom: 1px solid #dee2e6;
+    /* VRÁCENO: Spodní čára nadpisu */
     padding-bottom: 8px;
 }
 
@@ -2923,7 +3133,8 @@ select.form-input {
     background: white;
     border-radius: 8px;
     border: 1px solid #e9ecef;
-    min-height: 44px; /* Konzistentní výška */
+    min-height: 44px;
+    /* Konzistentní výška */
 }
 
 .result-item.highlight {
@@ -3090,7 +3301,8 @@ select.form-input {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    margin-bottom: 0; /* Odstraníme spodní margin v rámci řádku */
+    margin-bottom: 0;
+    /* Odstraníme spodní margin v rámci řádku */
     flex: 1;
 }
 
@@ -3103,28 +3315,33 @@ select.form-input {
 /* Zarovnání levých okrajů specifických polí */
 .personal-card-content .form-row .form-group:nth-child(2) {
     align-items: flex-start;
-    margin-left: -15px; /* Posun pomocí negativního marginu */
+    margin-left: -15px;
+    /* Posun pomocí negativního marginu */
 }
 
 /* Speciální úprava pro skupiny s dlouhými popisky */
 .form-group:has(#weight),
 .form-group:has(#activityLevel) {
-    flex: 1.2; /* Více místa pro delší popisky */
+    flex: 1.2;
+    /* Více místa pro delší popisky */
 }
 
 .form-group:has(#bodyFat),
 .form-group:has(#gender) {
-    flex: 0.8; /* Méně místa pro kratší popisky */
+    flex: 0.8;
+    /* Méně místa pro kratší popisky */
 }
 
 .personal-card-content .form-input {
     width: 100%;
-    align-self: stretch; /* Zarovnání šířky */
+    align-self: stretch;
+    /* Zarovnání šířky */
 }
 
 /* Upravíme selecty aby byly konzistentní */
 .personal-card-content select.form-input {
-    height: 44px; /* Stejná výška jako input pole */
+    height: 44px;
+    /* Stejná výška jako input pole */
     line-height: 44px;
     padding: 0 15px !important;
 }
@@ -3135,7 +3352,11 @@ select.form-input {
 }
 
 /* Speciální úprava pro číselná pole, aby byla menší */
-#age, #height, #weight, #bodyFat, #targetWeight {
+#age,
+#height,
+#weight,
+#bodyFat,
+#targetWeight {
     width: 80px !important;
     text-align: center;
     padding: 8px 5px !important;
@@ -3145,12 +3366,14 @@ select.form-input {
 /* Alternativa bez :has() selektoru - přidejte třídy k HTML */
 .weight-group,
 .activity-level-group {
-    flex: 1.2 !important; /* Více místa pro delší popisky */
+    flex: 1.2 !important;
+    /* Více místa pro delší popisky */
 }
 
 .body-fat-group,
 .gender-group {
-    flex: 0.8 !important; /* Méně místa pro kratší popisky */
+    flex: 0.8 !important;
+    /* Méně místa pro kratší popisky */
 }
 
 /* PŘESNÉ ZAROVNÁNÍ POLÍ S TŘÍDOU */
@@ -3165,22 +3388,15 @@ select.form-input {
 }
 
 /* SPECIFICKÉ ZAROVNÁNÍ PRO VĚK, HMOTNOST, AKTIVITU */
-.personal-card-content .form-row:nth-child(1) .form-group:nth-child(2), /* Věk */
-.personal-card-content .form-row:nth-child(2) .form-group:nth-child(2), /* Aktuální hmotnost */
-.personal-card-content .form-row:nth-child(3) .form-group:nth-child(2) { /* Denní aktivita */
+.personal-card-content .form-row:nth-child(1) .form-group:nth-child(2),
+/* Věk */
+.personal-card-content .form-row:nth-child(2) .form-group:nth-child(2),
+/* Aktuální hmotnost */
+.personal-card-content .form-row:nth-child(3) .form-group:nth-child(2) {
+    /* Denní aktivita */
     margin-left: 0;
     padding-left: 0;
     align-items: flex-start !important;
-}
-
-/* Vizualizace zarovnání (pro testování - pak odstranit) */
-.personal-card-content .form-row:nth-child(1) .form-group:nth-child(2)::before,
-.personal-card-content .form-row:nth-child(2) .form-group:nth-child(2)::before,
-.personal-card-content .form-row:nth-child(3) .form-group:nth-child(2)::before {
-    content: "│";
-    color: red;
-    position: absolute;
-    left: 0;
 }
 
 /* PŘESNÉ ZAROVNÁNÍ POMOCÍ TŘÍD */

@@ -38,7 +38,7 @@
             <div id="userIdDisplay"></div>
             <h1>Kalorická kalkulačka</h1>
 
-            <div id="currentProfileDisplay" style="display: none;">
+            <div id="currentProfileDisplay" style="display: none;" class="profile-button-container">
                 <div class="profile-display-clickable">
                     <div class="profile-email" id="currentProfileEmail"></div>
                     <div class="profile-info">
@@ -186,30 +186,23 @@
 
                     <!-- CÍL A INTENZITA S CÍLOVOU HMOTNOSTÍ -->
                     <div class="personal-card-section">
-                        <h3>🎯 Cíl a intenzita</h3>
+                        <h3>🎯 Cíl</h3>
 
                         <div class="form-group">
                             <label for="goal">Cíl</label>
                             <select id="goal" class="form-input">
-                                <option value="">Vyberte cíl</option>
+                                <option value="" disabled selected>Vyberte cíl</option>
                                 <option value="loss">Redukce hmotnosti</option>
                                 <option value="maintain">Udržení hmotnosti</option>
                                 <option value="gain">Nabírání hmotnosti</option>
                             </select>
                         </div>
 
-                        <div class="form-group" id="intensityGroup">
-                            <label for="intensity">Intenzita</label>
-                            <select id="intensity" class="form-input">
-                                <option value="">Vyberte intenzitu</option>
-                                <option value="light">Lehká</option>
-                                <option value="moderate">Střední</option>
-                                <option value="hard">Těžká</option>
-                            </select>
-                        </div>
+                        <!-- SKRYTÁ INTENZITA - VŽDY "light" -->
+                        <input type="hidden" id="intensity" value="light">
 
-                        <!-- PŘESUNUTO: Cílová hmotnost -->
-                        <div class="form-group">
+                        <!-- PŘESUNUTO: Cílová hmotnost S VĚTŠÍM ROZESTUPEM -->
+                        <div class="form-group" style="margin-top: 25px;">
                             <label for="targetWeight">Cílová hmotnost (kg)</label>
                             <input type="number" id="targetWeight" class="form-input" placeholder="70" min="30"
                                 max="300" step="0.1">
@@ -593,6 +586,7 @@
                 closePersonalCardModal();
             }
         });
+
         // Hlavní výpočetní funkce
         function calculatePersonalCard() {
             // Načtení hodnot z formuláře
@@ -609,15 +603,19 @@
             // Zobrazení výsledků
             displayResults(calculations);
 
-            // Uložení dat pro pozdější uložení
+            // Uložení kompletních dat pro pozdější uložení
             personalCardData = {
                 formData: formData,
-                calculations: calculations
+                calculations: calculations,
+                timestamp: new Date().toISOString()
             };
 
             // Povolení tlačítka Uložit
             document.getElementById('savePersonalCard').disabled = false;
+
+            console.log("📊 Vypočítaná data:", personalCardData);
         }
+
         // Načtení dat z formuláře
         function getFormData() {
             return {
@@ -629,9 +627,10 @@
                 targetWeight: parseFloat(document.getElementById('targetWeight').value) || 0,
                 activityLevel: parseFloat(document.getElementById('activityLevel').value) || 0,
                 goal: document.getElementById('goal').value,
-                intensity: document.getElementById('intensity').value
+                intensity: 'light' // VŽDY POUŽÍVÁME LEHKOÚ INTENZITU
             };
         }
+
         // Validace formuláře
         function validateFormData(data) {
             const errors = [];
@@ -644,9 +643,10 @@
             if (!data.targetWeight || data.targetWeight < 30 || data.targetWeight > 300) errors.push('Cílová hmotnost musí být mezi 30 a 300 kg');
             if (!data.activityLevel) errors.push('Vyberte úroveň aktivity');
             if (!data.goal) errors.push('Vyberte cíl');
-            if (data.goal !== 'maintain' && !data.intensity) errors.push('Vyberte intenzitu');
+            // ODSTRAŇTE validaci intenzity - již není potřeba
+            // if (data.goal !== 'maintain' && !data.intensity) errors.push('Vyberte intenzitu');
 
-            // Validace cílové hmotnosti
+            // Validace cílové hmotnosti zůstává
             if (data.goal === 'loss' && data.targetWeight >= data.weight) {
                 errors.push('Cílová hmotnost musí být nižší než aktuální pro redukci');
             }
@@ -664,16 +664,21 @@
 
         // Hlavní výpočetní funkce - Katch-McArdle
         function performCalculations(data) {
+            console.log("🔢 Spouštím výpočty s daty:", data);
+
             // 1. Výpočet Lean Body Mass
             const leanBodyMass = data.weight * (1 - data.bodyFat / 100);
+            console.log("💪 Lean Body Mass:", leanBodyMass);
 
             // 2. BMR - Katch-McArdle vzorec
             const bmr = 370 + (21.6 * leanBodyMass);
+            console.log("🔥 BMR:", bmr);
 
             // 3. TDEE - Total Daily Energy Expenditure
             const tdee = bmr * data.activityLevel;
+            console.log("⚡ TDEE:", tdee);
 
-            // 4. Cílový kalorický příjem
+            // 4. Cílový kalorický příjem (s novými procenty)
             const targetCalories = calculateTargetCalories(tdee, data.goal, data.intensity);
 
             // 5. Makroživiny
@@ -682,7 +687,7 @@
             // 6. Rozdíl hmotnosti
             const weightDiff = data.targetWeight - data.weight;
 
-            return {
+            const results = {
                 bmr: Math.round(bmr),
                 tdee: Math.round(tdee),
                 targetCalories: Math.round(targetCalories),
@@ -690,18 +695,46 @@
                 macros: macros,
                 leanBodyMass: Math.round(leanBodyMass * 10) / 10
             };
+
+            console.log("🎯 Konečné výsledky:", results);
+            return results;
         }
+
         // Výpočet cílového kalorického příjmu
         function calculateTargetCalories(tdee, goal, intensity) {
+            console.log("🧮 Výpočet kalorického příjmu:", { tdee, goal, intensity });
+
             const adjustments = {
-                loss: { light: -250, moderate: -500, hard: -750 },
-                maintain: { light: 0, moderate: 0, hard: 0 },
-                gain: { light: 250, moderate: 500, hard: 750 }
+                loss: {
+                    light: -0.12,   // -12% z TDEE
+                    moderate: -0.20, // -20% z TDEE
+                    hard: -0.30     // -30% z TDEE
+                },
+                maintain: {
+                    light: 0,
+                    moderate: 0,
+                    hard: 0
+                },
+                gain: {
+                    light: 0.10,    // +10% z TDEE
+                    moderate: 0.125, // +12.5% z TDEE
+                    hard: 0.15      // +15% z TDEE
+                }
             };
 
-            const adjustment = adjustments[goal][intensity] || 0;
-            return tdee + adjustment;
+            const adjustmentPercentage = adjustments[goal][intensity] || 0;
+            const adjustment = tdee * adjustmentPercentage;
+            const targetCalories = tdee + adjustment;
+
+            console.log("📊 Výsledek výpočtu:", {
+                adjustmentPercentage: (adjustmentPercentage * 100) + '%',
+                adjustment: Math.round(adjustment),
+                targetCalories: Math.round(targetCalories)
+            });
+
+            return targetCalories;
         }
+
         // Výpočet makroživin
         function calculateMacros(calories, goal, weight) {
             // Bílkoviny (g) - podle cíle
@@ -765,10 +798,17 @@
 
         // Ukládání a načítání dat
         async function savePersonalCardData() {
-            if (!personalCardData) return;
+            if (!personalCardData) {
+                window.showCustomNotification("Nejdříve spočítejte data pomocí tlačítka 'Spočítat'", 'error');
+                return;
+            }
 
-            // Uložení do Supabase
-            await saveToSupabase(personalCardData);
+            try {
+                // Uložení do Supabase včetně vypočítaných hodnot
+                await saveToSupabase(personalCardData);
+            } catch (error) {
+                console.error("Chyba při ukládání:", error);
+            }
         }
 
         async function saveToSupabase(data) {
@@ -778,49 +818,55 @@
                     .upsert({
                         user_id: window.currentUser.id,
                         profile_id: window.currentProfileId,
-                        data: data,
+                        form_data: data.formData,       // Původní data z formuláře
+                        calculations: data.calculations, // Vypočítané hodnoty
+                        timestamp: data.timestamp,
                         created_at: new Date().toISOString(),
                         updated_at: new Date().toISOString()
                     }, {
-                        onConflict: 'profile_id' // Aktualizujeme pokud již záznam existuje
+                        onConflict: 'user_id,profile_id'
                     });
 
                 if (error) throw error;
 
                 window.showCustomNotification('Osobní data byla úspěšně uložena!', 'success');
+                console.log("💾 Uložena kompletní data:", data);
             } catch (error) {
-                console.error('Chyba při ukládání osobních dat:', error);
+                console.error('❌ Chyba při ukládání osobních dat:', error);
                 window.showCustomNotification('Chyba při ukládání dat: ' + error.message, 'error');
             }
         }
 
 
         async function loadPersonalCardData() {
-            if (!window.currentProfileId) return;
+            if (!window.currentProfileId) {
+                console.log("❌ Nelze načíst data - není vybrán profil");
+                return;
+            }
 
-            // Zobraz indikátor načítání
             const saveButton = document.getElementById('savePersonalCard');
             const originalText = saveButton.textContent;
             saveButton.textContent = 'Načítám...';
             saveButton.disabled = true;
 
             try {
-                const data = await loadFromSupabase();
+                const loadedData = await loadFromSupabase();
 
-                if (data) {
-                    fillFormWithData(data);
-                    personalCardData = { formData: data };
-                    saveButton.disabled = false;
+                if (loadedData && loadedData.formData) {
+                    console.log("✅ Data načtena z DB");
+                    fillFormWithData(loadedData);
                     saveButton.textContent = 'Data načtena';
 
-                    // Po chvíli vrátit původní text
                     setTimeout(() => {
                         saveButton.textContent = originalText;
                     }, 2000);
                 } else {
+                    console.log("ℹ️ Žádná data k načtení");
                     saveButton.textContent = originalText;
+                    saveButton.disabled = true;
                 }
             } catch (error) {
+                console.error("❌ Chyba při načítání dat:", error);
                 saveButton.textContent = originalText;
                 saveButton.disabled = false;
             }
@@ -830,32 +876,60 @@
             try {
                 const { data, error } = await window.supabaseClient
                     .from('personal_cards')
-                    .select('data')
+                    .select('*')
                     .eq('profile_id', window.currentProfileId)
                     .single();
 
-                if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
-                return data ? data.data : null;
+                if (error && error.code !== 'PGRST116') throw error;
+
+                if (data) {
+                    console.log("📥 Načtena kompletní data:", data);
+                    // Vrátíme strukturovaná data
+                    return {
+                        formData: data.form_data,
+                        calculations: data.calculations,
+                        timestamp: data.timestamp
+                    };
+                }
+                return null;
             } catch (error) {
-                console.error('Chyba při načítání osobních dat:', error);
+                console.error('❌ Chyba při načítání osobních dat:', error);
                 return null;
             }
         }
 
-        function fillFormWithData(data) {
-            if (data.gender) document.getElementById('gender').value = data.gender;
-            if (data.age) document.getElementById('age').value = data.age;
-            if (data.height) document.getElementById('height').value = data.height;
-            if (data.weight) document.getElementById('weight').value = data.weight;
-            if (data.bodyFat) document.getElementById('bodyFat').value = data.bodyFat;
-            if (data.targetWeight) document.getElementById('targetWeight').value = data.targetWeight;
-            if (data.activityLevel) document.getElementById('activityLevel').value = data.activityLevel;
-            if (data.goal) {
-                document.getElementById('goal').value = data.goal;
-                // Trigger change event pro zobrazení/skrytí intenzity
-                document.getElementById('goal').dispatchEvent(new Event('change'));
+
+
+        function fillFormWithData(loadedData) {
+            if (!loadedData) return;
+
+            const { formData, calculations } = loadedData;
+
+            console.log("🔄 Plním formulář daty:", formData);
+
+            // Naplníme formulář
+            if (formData.gender) document.getElementById('gender').value = formData.gender;
+            if (formData.age) document.getElementById('age').value = formData.age;
+            if (formData.height) document.getElementById('height').value = formData.height;
+            if (formData.weight) document.getElementById('weight').value = formData.weight;
+            if (formData.bodyFat) document.getElementById('bodyFat').value = formData.bodyFat;
+            if (formData.targetWeight) document.getElementById('targetWeight').value = formData.targetWeight;
+            if (formData.activityLevel) document.getElementById('activityLevel').value = formData.activityLevel;
+            if (formData.goal) {
+                document.getElementById('goal').value = formData.goal;
             }
-            if (data.intensity) document.getElementById('intensity').value = data.intensity;
+            // INTENZITA SE JIŽ NENAČÍTÁ - VŽDY "light"
+
+            // Pokud máme vypočítané hodnoty, zobrazíme je
+            if (calculations) {
+                console.log("📊 Zobrazuji vypočítané hodnoty:", calculations);
+                displayResults(calculations);
+
+                personalCardData = loadedData;
+                document.getElementById('savePersonalCard').disabled = false;
+            }
+
+            console.log("✅ Formulář naplněn daty");
         }
 
         function debugLog(message) {
@@ -1314,11 +1388,7 @@
             const newProfileNameInput = document.getElementById('newProfileName');
 
             if (createProfileModal) {
-                // DŮLEŽITÉ: Zajistíme, že userSettings je inicializováno
-                if (!window.userSettings) {
-                    window.userSettings = getDefaultSettings();
-                    console.log("🎯 Inicializováno userSettings v showCreateProfileModal:", window.userSettings);
-                }
+                window.isProfileModalShowing = true;
 
                 createProfileModal.style.display = 'flex';
                 if (newProfileNameInput) {
@@ -2490,8 +2560,10 @@
                 const formattedCalories = formatNumberForDisplay(totalCalories, 'kcal', true);
 
                 recipeItem.innerHTML = `
-                    <div class="recipe-number">${index + 1}.</div>
-                    <div class="recipe-name">${recipe.name}</div>
+                    <div class="recipe-number-name-container">
+                        <div class="recipe-number">${index + 1}.</div>
+                        <div class="recipe-name">${recipe.name}</div>
+                    </div>
                     <div class="recipe-calories">${formattedCalories}</div>
                     <div class="recipe-actions">
                         <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat" class="recipe-delete-icon" data-recipe-id="${recipe.id}" data-recipe-name="${recipe.name}">
@@ -3564,14 +3636,14 @@
             document.getElementById('savePersonalCard').addEventListener('click', savePersonalCardData);
 
             // Event listener pro změnu cíle (zobrazí/skryje intenzitu)
-            document.getElementById('goal').addEventListener('change', function () {
+            /*document.getElementById('goal').addEventListener('change', function () {
                 const intensityGroup = document.getElementById('intensityGroup');
                 if (this.value === 'maintain') {
                     intensityGroup.style.display = 'none';
                 } else {
                     intensityGroup.style.display = 'block';
                 }
-            });
+            });*/
 
             // Event listener pro změnu cíle
             const goalSelect = document.getElementById('goal');
@@ -3643,6 +3715,7 @@
 
             document.getElementById('cancelCreateProfile').addEventListener('click', function () {
                 document.getElementById('createProfileModal').style.display = 'none';
+                window.isProfileModalShowing = false;
             });
 
             document.getElementById('profileModal').addEventListener('click', function (event) {
