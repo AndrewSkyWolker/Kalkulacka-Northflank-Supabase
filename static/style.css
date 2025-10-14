@@ -34,14 +34,13 @@ h1 {
 }
 
 .settings-icon {
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    width: 24px;
-    height: 24px;
-    background-color: transparent;
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    width: 24px !important;
+    height: 24px !important;
     cursor: pointer;
-    transition: opacity 0.2s ease-in-out;
+    z-index: 10;
 }
 
 .settings-icon:hover {
@@ -114,16 +113,67 @@ button:hover {
 }
 
 .sticky-header-wrapper {
-    position: sticky;
-    top: 0;
-    background-color: #fff;
+    position: relative;
+    padding: 8px 50px 12px 50px !important; /* Větší padding pro ikonky */
+}
+
+/* Nová ikonka profilu v hlavičce */
+.profile-icon-header {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 6px 0 !important; /* ZMENŠENÝ PADDING */
+    border-radius: 0 !important; /* ODSTRANIT ZAOBLENÍ */
+    background: transparent !important; /* PRŮHLEDNÉ POZADÍ */
+    border: none !important; /* ODSTRANIT OKRAJ */
     z-index: 10;
-    padding: 20px;
-    padding-bottom: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin: 0;
-    border-bottom: 1px solid #eee;
-    flex-shrink: 0;
+    transition: opacity 0.2s; /* JEN ZMĚNA PRŮHLEDNOSTI */
+}
+
+/* Styl pro modální okno změny profilu */
+.current-profile-info {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.current-profile-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #495057;
+    margin-top: 5px;
+}
+
+.profile-icon-header:hover {
+    background: transparent !important; /* POZADÍ ZŮSTÁVÁ PRŮHLEDNÉ */
+    opacity: 0.7; /* JEN LEHCE ZTMAVIT */
+}
+
+.profile-header-icon {
+    width: 22px !important;  /* TROCHU VĚTŠÍ IKONA */
+    height: 22px !important; /* TROCHU VĚTŠÍ IKONA */
+}
+
+.profile-name-header {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #495057;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
+/* ZVÝRAZNĚNÍ PŘI NASTAVENÉM PROFILU */
+.profile-icon-header.has-profile .profile-name-header {
+    color: #007bff; /* MODRÁ BARVA PRO AKTIVNÍ PROFIL */
+    font-weight: 600;
 }
 
 #results {
@@ -132,15 +182,60 @@ button:hover {
 }
 
 .food-item {
-    background-color: #e9e9e9;
-    border: 1px solid #ddd;
-    padding: 8px 5px;
-    margin-bottom: 10px;
-    border-radius: 12px;
     display: flex;
-    align-items: flex-start;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: #f8f9fa; /* ŠEDIVÉ POZADÍ PRO SAMOSTATNÉ POTRAVINY */
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    margin-bottom: 10px;
+}
+
+.food-item-info {
+    flex: 1;
+}
+
+.food-item-details {
+    font-size: 0.85em;
+    color: #6c757d;
+}
+
+.recipe-actions button {
+    background: transparent !important; /* PRŮHLEDNÉ POZADÍ */
+    border: none;
     cursor: pointer;
-    position: relative;
+    padding: 6px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.recipe-actions button:hover {
+    background: rgba(255, 255, 255, 0.3) !important; /* JEN LEHKÝ NÁSTIN PŘI HOVERU */
+}
+
+.recipe-actions button img {
+    width: 16px !important;  /* DŮLEŽITÉ: pevná velikost */
+    height: 16px !important;
+    opacity: 0.7;
+}
+
+.recipe-actions button:hover img {
+    opacity: 1;
+}
+
+.food-item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.food-item-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
 }
 
 .food-item:hover {
@@ -493,9 +588,205 @@ button:hover {
     flex-shrink: 0;
 }
 
+/* STYL VÝSLEDKŮ VYHLEDÁVÁNÍ - STEJNÝ JAKO DENNÍ PŘÍJEM */
+.search-results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.food-item-potravina {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 15px;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    min-height: 70px;
+}
+
+.food-item-potravina:hover {
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0,123,255,0.15);
+    transform: translateY(-1px);
+}
+
+/* HLAVNÍ VÝSLEDKY VYHLEDÁVÁNÍ NA STRÁNCE */
+#results .food-item-potravina {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 15px;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 10px;
+    min-height: 70px;
+}
+
+#results .food-item-potravina:hover {
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0,123,255,0.15);
+}
+
+/* DODATEČNÉ STYLY */
+.food-type {
+    background: #f8f9fa;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: #6c757d;
+    border: 1px solid #e9ecef;
+}
+
+/* PRÁZDNÝ STAV */
+.search-results-container:empty::before {
+    content: "Zadejte hledaný výraz...";
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    padding: 40px 20px;
+}
+
+/* OBRÁZEK POTRAVINY */
+.food-item-potravina .image-wrapper {
+    flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #f8f9fa;
+    margin-right: 12px;
+}
+
+.food-item-potravina .image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* BADGE S KALORIEMI - STEJNÝ JAKO AMOUNT-BADGE */
+.food-item-potravina .calories-badge {
+    background: #e74c3c;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.food-item-potravina .food-item-actions button {
+    background: none;
+    border: none;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.food-item-potravina .food-item-actions button:hover {
+    background: #f8f9fa;
+}
+
+.food-item-potravina .food-item-actions img {
+    width: 18px;
+    height: 18px;
+    opacity: 0.7;
+}
+
+.food-item-potravina .food-item-actions button:hover img {
+    opacity: 1;
+}
+
+/* TYP POTRAVINY BADGE */
+.food-item-potravina .food-type-badge {
+    background: #f8f9fa;
+    color: #6c757d;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    border: 1px solid #e9ecef;
+}
+
+/* AKČNÍ SEKCE - STEJNÁ JAKO V DENNÍM PŘÍJMU */
+.food-item-potravina .food-item-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: 15px;
+}
+
+/* INFORMACE O POTRAVINĚ - STEJNÉ JAKO V DENNÍM PŘÍJMU */
+.food-item-potravina .food-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.food-item-potravina .food-item-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.food-item-potravina .food-item-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+/* DETAILY POTRAVINY */
+.food-item-potravina .food-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.food-item-potravina .food-details h3 {
+    margin: 0 0 5px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.food-item-potravina .calories-and-type-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.food-item-potravina .calories-display {
+    font-weight: 500;
+    color: #e74c3c;
+}
+
 .food-item.food-item-potravina {
-    background-color: #e0f2f7;
-    border-color: #a7d9ed;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .food-item.food-item-recept {
@@ -948,15 +1239,15 @@ button:hover {
     text-align: right;
 }
 
-.recipe-name {
+.recipe-details {
     flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    margin: 1;
-    padding-left: 2px;
-    /* Minimální odsazení od čísla */
+}
+
+.recipe-name {
+    font-weight: 700;
+    color: #2c5aa0;
+    font-size: 1.1em;
+    margin-bottom: 4px;
 }
 
 .recipe-calories {
@@ -967,12 +1258,175 @@ button:hover {
     margin-right: 10px;
 }
 
+.recipe-totals {
+    font-size: 0.85em;
+    color: #4a6fa5;
+    font-weight: 600;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.total-amount {
+    background: #2c5aa0;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.75em;
+    font-weight: 500;
+}
+
 .recipe-actions {
     display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    min-width: 30px;
+    gap: 8px;
     flex-shrink: 0;
+}
+
+.toggle-recipe-btn, .delete-recipe-group-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.toggle-recipe-btn:hover, .delete-recipe-group-btn:hover {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.toggle-icon {
+    width: 16px !important;
+    height: 16px !important;
+    transition: transform 0.3s ease;
+}
+
+.toggle-icon.expanded {
+    transform: rotate(180deg);
+}
+
+/* INGREDIENCE RECEPTU */
+.recipe-ingredients {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease;
+    background: #f8fbff;
+}
+
+.recipe-ingredients.expanded {
+    max-height: 5000px !important; /* DOSTATEČNĚ VELKÉ PRO ROZBALENÍ */
+}
+
+.recipe-ingredient-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    cursor: pointer;
+}
+
+.recipe-ingredient-item:hover {
+    border-color: #007bff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+.recipe-ingredient-item:last-child {
+    border-bottom: none;
+}
+
+.ingredient-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ingredient-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.ingredient-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.amount-badge {
+    background: #6f42c1;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.ingredient-actions button {
+    background: none;
+    border: none;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.ingredient-actions button:hover {
+    background: #f8f9fa;
+}
+
+.ingredient-actions img {
+    width: 18px;
+    height: 18px;
+    opacity: 0.7;
+}
+
+.ingredient-actions button:hover img {
+    opacity: 1;
+}
+
+.ingredient-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: 15px;
+}
+
+.ingredient-actions button, 
+.food-item-actions button {
+    background: transparent !important; /* PRŮHLEDNÉ POZADÍ */
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.ingredient-actions button:hover,
+.food-item-actions button:hover {
+    background: rgba(0, 0, 0, 0.05) !important; /* JEN LEHKÝ NÁSTIN PŘI HOVERU */
+}
+
+.ingredient-actions img, 
+.food-item-actions img {
+    width: 16px !important;
+    height: 16px !important;
+    opacity: 0.7;
+}
+
+.ingredient-actions button:hover img,
+.food-item-actions button:hover img {
+    opacity: 1;
 }
 
 .recipe-delete-icon {
@@ -1047,11 +1501,15 @@ button:hover {
 }
 
 .recipe-icon {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.2s;
+    font-size: 1.5em;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 8px;
+    flex-shrink: 0;
 }
 
 .recipe-icon:hover {
@@ -1415,17 +1873,8 @@ button:hover {
 }
 
 #barcodeButton {
-    padding: 12px 15px;
     background-color: #6c757d;
     color: white;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-left: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 #barcodeButton:hover {
@@ -1619,16 +2068,7 @@ button:hover {
 }
 
 #currentProfileDisplay {
-    position: absolute;
-    top: 10px;
-    left: 20px;
-    z-index: 11;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background-color: transparent;
-    padding: 0;
-    border: none;
+    margin: 5px 0 !important;
 }
 
 .profile-icon {
@@ -1653,23 +2093,7 @@ button:hover {
 }
 
 .profile-display-clickable {
-    display: flex;
-    flex-direction: column;
-    align-items: center !important;
-    justify-content: center;
-    text-align: center;
-    cursor: pointer;
-    padding: 8px 12px;
-    background-color: rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
-    border: 1px solid #e0e0e0;
-    transition: all 0.2s ease;
-    max-width: 200px;
-    min-width: 150px;
-    /* PŘIDÁNO: Zabraňuje roztažení na celou šířku */
-    width: auto !important;
-    align-self: flex-start;
-    margin: 0;
+    padding: 6px 10px !important;
 }
 
 .profile-display-clickable:hover {
@@ -1860,11 +2284,57 @@ button:hover {
     margin-top: 15px;
 }
 
+/* Červené tlačítko Zrušit - S ZAOBLENÍM */
+.btn-cancel {
+    background-color: #dc3545 !important;
+    color: white !important;
+    border: 1px solid #dc3545 !important;
+    padding: 10px 20px !important;
+    border-radius: 12px !important; /* ZAOBLENÍ ZPĚT */
+    cursor: pointer !important;
+    font-size: 0.9rem !important;
+    transition: background-color 0.2s !important;
+}
+
+.btn-cancel:hover {
+    background-color: #c82333 !important;
+    border-color: #c82333 !important;
+}
+
+.btn-cancel:active {
+    background-color: #bd2130 !important;
+}
+
 #newProfileName:focus {
     outline: none;
     border-color: #000000;
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
     transform: translateY(-1px);
+}
+
+/* VERZE POUZE S IKONKOU - KRUHOVÁ */
+.profile-icon-header.compact {
+    padding: 8px !important;
+    border-radius: 50% !important; /* DOKONALÝ KRUH */
+    background: transparent !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.profile-icon-header.compact .profile-name-header {
+    display: none !important;
+}
+
+.profile-icon-header.compact .profile-header-icon {
+    width: 24px !important;
+    height: 24px !important;
+}
+
+.profile-icon-header.compact:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
 }
 
 #cancelCreateProfile {
@@ -1935,11 +2405,11 @@ button:hover {
 }
 
 .sticky-header-wrapper h1 {
+    font-size: clamp(1.4rem, 4vw, 1.8rem) !important;
+    margin: 15px 0 12px 0 !important;
+    line-height: 1.2 !important;
     text-align: center;
-    color: #333;
-    margin-bottom: 20px;
-    margin-top: 40px;
-    padding: 0 100px;
+    padding: 0 !important;
 }
 
 .setting-section {
@@ -2106,212 +2576,94 @@ button:hover {
     flex-direction: column;
 }
 
-/* RESPONZIVITA */
-@media (max-width: 480px) {
-    #detailsModal.modal-recipe-open .modal-recipe-header {
-        flex-wrap: wrap;
-        min-height: 140px; /* JEŠTĚ VĚTŠÍ HLAVIČKA */
-        gap: 10px;
-        padding: 15px 12px;
-    }
-
-    #detailsModal.modal-recipe-open .modal-header-image {
-        width: 60px;
-        height: 60px;
-    }
-    
-    #detailsModal.modal-recipe-open .modal-header-name {
-        font-size: 1.1em;
-        order: 1;
-        width: 100%;
-        text-align: center;
-        margin-top: 8px;
-        min-height: 50px;
-    }
-    
-    #detailsModal.modal-recipe-open .energy-display-group {
-        order: 2;
-        text-align: center;
-        width: 100%;
-    }
-    
-    #detailsModal.modal-recipe-open .modal-scrollable-container {
-        padding-top: 10px;
-    }
-
-    .personal-card-content .form-group label {
-        font-size: 0.75em;
-        /* Ještě menší text na velmi malých obrazovkách */
-    }
-
-    .macros-subtitle {
-        font-size: 0.75em;
-    }
-
-    .macro-row {
+/*@media (max-width: 768px) {
+    .main-controls-header {
         flex-direction: column;
-        gap: 6px;
+        align-items: stretch;
     }
 
-    .header-controls {
-        gap: 5px;
-        right: 10px;
+    .main-controls-header button {
+        max-width: none;
     }
 
-    #personalCardButton {
-        padding: 4px 8px;
-        font-size: 11px;
+    #searchModalForm {
+        flex-direction: column;
     }
 
-    #personalCardModal .modal-content {
-        width: 98% !important;
-        margin: 10px auto;
+    .daily-intake-header h2 {
+        font-size: 1.3em;
     }
 
-    .personal-card-content {
+    #dailyIntakeSection {
+        padding: 0 15px;
+    }
+
+    .daily-intake-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
         padding: 15px;
     }
-
-    .personal-card-section {
-        padding: 15px;
-    }
-
-    #customNotificationModal .modal-content {
-        width: 95% !important;
-        max-width: 95% !important;
-        margin: 10px auto;
-        padding: 20px;
-    }
-
-    .profile-display-clickable {
-        max-width: 160px;
-        min-width: 120px;
-        padding: 6px 10px;
-    }
-
-    .profile-email {
-        font-size: 0.7em;
-    }
-
-    #currentProfileDisplay {
-        left: 10px;
-        padding: 5px 8px;
-        max-width: 180px;
-    }
-
-    #currentProfileName {
-        max-width: 120px;
-        font-size: 0.85em;
-    }
-
-    .profile-icon {
-        width: 16px;
-        height: 16px;
-    }
-
-    .main-controls button {
-        width: 48% !important;
-        max-width: 140px !important;
-        padding: 8px !important;
-        font-size: 13px !important;
-    }
-
-    #detailsModal.modal-recipe-open .modal-content {
-        width: 85vw !important;
-        max-width: 85vw !important;
-    }
-
-    .food-item {
-        flex-direction: row;
-        align-items: flex-start;
-    }
-
-    .food-item img {
-        margin-bottom: 0;
-        margin-right: 15px;
-    }
-
-    .food-details {
-        width: auto;
-        margin-right: 0;
-        margin-bottom: 0;
-    }
-
-    #customNotificationModal {
-        bottom: 10px;
-        right: 10px;
-        max-width: calc(100% - 20px);
-    }
-
-    .search-and-recipes-container {
-        flex-direction: column;
-        align-items: center;
+    
+    .charts-grid {
+        grid-template-columns: repeat(2, 1fr);
         gap: 15px;
     }
-
-    .main-controls {
-        width: 100%;
-        justify-content: center;
+    
+    .circular-chart {
+        width: 80px;
+        height: 80px;
     }
-
-    .main-controls button {
-        width: 90%;
-        max-width: 250px;
+    
+    .chart-title {
+        font-size: 0.8em;
     }
-
-    form {
+    
+    .chart-value {
+        font-size: 0.8em;
+    }
+    
+    .chart-label {
+        font-size: 0.7em;
+    }
+    
+    .meal-header {
         flex-direction: column;
-        align-items: center;
         gap: 10px;
-        width: 100%;
+        align-items: flex-start;
     }
-
-    input[type="text"] {
-        width: 90%;
+    
+    .add-meal-btn {
+        align-self: stretch;
     }
-
-    button[type="submit"] {
-        width: 90%;
-        max-width: 250px;
-    }
-
-    .modal-content {
-        width: 95% !important;
-        max-width: 95% !important;
-        margin: 10px auto;
-        padding: 15px;
-    }
-}
-
-@media (max-width: 768px) {
 
     /* Všechny sekce jako samostatné bloky */
-    .personal-card-section {
+/*    .personal-card-section {
         order: unset !important;
         /* Resetujeme order */
-        margin-bottom: 15px;
+/*        margin-bottom: 15px;
     }
 
     /* Explicitní pořadí sekcí */
-    .personal-card-column:first-child .personal-card-section:nth-child(1) {
+/*    .personal-card-column:first-child .personal-card-section:nth-child(1) {
         order: 1;
         /* Základní údaje první */
-    }
+/*    }
 
     .personal-card-column:last-child .personal-card-section:nth-child(1) {
         order: 2;
         /* Cíl a intenzita druhá */
-    }
+/*    }
 
     .personal-card-column:last-child .personal-card-section:nth-child(2) {
         order: 3;
         /* Výsledky třetí */
-    }
+/*    }
 
     .personal-card-column:first-child .personal-card-section:nth-child(2) {
         order: 4;
         /* Makroživiny čtvrtá */
-    }
+/*   }
 
     .gender-group {
         flex: 1 !important;
@@ -2375,39 +2727,39 @@ button:hover {
     .personal-card-column {
         display: contents;
         /* Zrušíme sloupce na mobilu */
-    }
+/*    }
 
     /* Explicitní pořadí sekcí */
-    .personal-card-section:nth-child(1) {
+/*    .personal-card-section:nth-child(1) {
         order: 1;
         /* Základní údaje */
-    }
+/*    }
 
     .personal-card-section:nth-child(2) {
         order: 2;
         /* Cíl a intenzita */
-    }
+/*    }
 
     .personal-card-section:nth-child(3) {
         order: 3;
         /* Výsledky */
-    }
+/*    }
 
     .personal-card-section:nth-child(4) {
         order: 4;
         /* Makroživiny */
-    }
+/*    }
 
     /* Změníme pořadí sekcí pomocí order */
-    .personal-card-column:first-child {
+/*    .personal-card-column:first-child {
         order: 1;
         /* Základní údaje první */
-    }
+/*    }
 
     .personal-card-column:last-child {
         order: 2;
         /* Cíle a výsledky druhé */
-    }
+/*    }
 
     .results-and-macros-container {
         flex-direction: column;
@@ -2446,10 +2798,10 @@ button:hover {
     }
 
     /* Makroživiny až na konec */
-    .macros-section {
+/*    .macros-section {
         order: 3;
         /* Makroživiny poslední */
-        margin-top: 10px;
+/*        margin-top: 10px;
     }
 
     #age,
@@ -2465,7 +2817,7 @@ button:hover {
     .personal-card-content .form-group {
         flex: 1 !important;
         /* Na mobilu všechno plná šířka */
-        width: 100%;
+/*        width: 100%;
     }
 
     .header-controls {
@@ -2481,7 +2833,7 @@ button:hover {
     #personalCardButton span {
         display: none;
         /* Skryj text na mobilech */
-    }
+/*    }
 
     #personalCardButton::before {
         content: "🧘";
@@ -2494,9 +2846,9 @@ button:hover {
         padding: 10px !important;
         font-size: 14px !important;
     }
-
+*/
     /* MODÁLNÍ OKNO RECEPTU - VRSTVENÍ PRO MOBIL */
-    #detailsModal.modal-recipe-open .modal-content {
+/*    #detailsModal.modal-recipe-open .modal-content {
         position: relative;
         max-height: 90vh;
         overflow: hidden;
@@ -2514,13 +2866,13 @@ button:hover {
         position: sticky;
         top: 0;
         z-index: 20;
-        min-height: 180px; /* VĚTŠÍ HLAVIČKA NA MOBILU */
-        padding: 15px 15px; /* VĚTŠÍ PADDING */
-    }
-
-    #detailsModal.modal-recipe-open .modal-header-image {
+       min-height: 180px; /* VĚTŠÍ HLAVIČKA NA MOBILU */
+/*        padding: 15px 15px; /* VĚTŠÍ PADDING */
+/*    }
+*/
+/*    #detailsModal.modal-recipe-open .modal-header-image {
         width: 70px; /* VĚTŠÍ IKONKA */
-        height: 70px;
+/*       height: 70px;
     }
 
     #detailsModal.modal-recipe-open .modal-header-name {
@@ -2543,12 +2895,12 @@ button:hover {
         height: 28px !important;
         font-size: 22px !important;
     }
-
+*/
     /* Zajistíme, že obsah bude rolovat POD hlavičkou */
-    #detailsModal.modal-recipe-open .modal-scrollable-container {
+/*   #detailsModal.modal-recipe-open .modal-scrollable-container {
         padding-top: 5px;
         margin-top: -5px; /* Jemné přesažení pro optický efekt */
-    }
+/*    }
 
     #detailsModal .modal-content {
         width: 90vw;
@@ -2600,7 +2952,7 @@ button:hover {
         width: 90% !important;
         max-width: 90% !important;
     }
-}
+}*/
 
 /* Styly pro tlačítka v přihlašovacím okně */
 #loginModal .modal-action-buttons button {
@@ -3408,4 +3760,435 @@ select.form-input {
 
 .aligned-right .form-input {
     margin-left: 0 !important;
+}
+
+/* DENNÍ PŘÍJEM - HLAVNÍ STYLY */
+#dailyIntakeSection {
+    margin-top: 20px;
+    padding: 0 20px;
+    display: none; /* Zůstane skryté dokud není aktivní */
+}
+
+.daily-intake-header {
+    padding: 10px 15px 8px 15px !important;
+    margin-bottom: 10px !important;
+}
+
+.daily-intake-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 1.5em;
+}
+
+.date-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.current-date {
+    font-size: 1rem !important;
+    font-weight: 500;
+    color: #333;
+    min-width: 200px;
+    text-align: center;
+}
+
+.date-nav-btn {
+    padding: 6px 12px !important;
+    font-size: 0.9rem !important;
+}
+
+.date-nav-btn:hover {
+    background: #0056b3;
+}
+
+/* KRUHOVÉ GRAFY */
+.intake-overview {
+    background: white;
+    border-radius: 0 0 12px 12px;
+    padding: 20px;
+    margin-bottom: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+    justify-items: center;
+}
+
+.chart-container {
+    text-align: center;
+    padding: 10px;
+}
+
+.chart-title {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 10px;
+    font-size: 0.9em;
+}
+
+.circular-chart {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 10px;
+}
+
+.circular-chart-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.circle-bg {
+    fill: none;
+    stroke: #e9ecef;
+    stroke-width: 3.8;
+}
+
+.circle {
+    fill: none;
+    stroke-width: 3.8;
+    stroke-linecap: round;
+    animation: progress 1s ease-out forwards;
+    transition: stroke-dasharray 0.5s ease;
+}
+
+/* BARVY PRO RŮZNÉ TYPY GRAFŮ */
+.circle {
+    stroke: #007bff; /* Kalorie - modrá */
+}
+
+.circle.protein {
+    stroke: #f44336; /* Bílkoviny - červená */
+}
+
+.circle.carbs {
+    stroke: #2196f3; /* Sacharidy - světle modrá */
+}
+
+.circle.fats {
+    stroke: #ffc107; /* Tuky - oranžová */
+}
+
+.circle.fiber {
+    stroke: #28a745; /* Vláknina - zelená */
+}
+
+.percentage {
+    fill: #333;
+    font-size: 0.5em;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+.chart-details {
+    margin-top: 8px;
+}
+
+.chart-value {
+    font-weight: 700;
+    color: #333;
+    font-size: 0.85em;
+    margin-bottom: 2px;
+}
+
+.chart-label {
+    font-size: 0.75em;
+    color: #6c757d;
+}
+
+@keyframes progress {
+    0% {
+        stroke-dasharray: 0 100;
+    }
+}
+
+/* SEKCE JÍDEL */
+.meals-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.meal-category {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.meal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.meal-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.2em;
+}
+
+.add-meal-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+}
+
+.add-meal-btn:hover {
+    background: #218838;
+}
+
+.meal-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.meal-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.meal-item-info {
+    flex: 1;
+}
+
+.meal-item-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.meal-item-details {
+    font-size: 0.85em;
+    color: #6c757d;
+}
+
+.meal-item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.meal-item-action {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.meal-item-action:hover {
+    background: #e9ecef;
+}
+
+.meal-item-action img {
+    width: 18px;
+    height: 18px;
+    opacity: 0.7;
+}
+
+.meal-item-action:hover img {
+    opacity: 1;
+}
+
+.empty-meal-message {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px dashed #dee2e6;
+}
+
+#dailyIntakeButton {
+    background-color: #6f42c1;
+    color: white;
+}
+
+#dailyIntakeButton:hover {
+    background-color: #5a32a3;
+}
+
+#results, #dailyIntakeSection {
+    transition: opacity 0.3s ease;
+}
+
+.hidden-section {
+    display: none !important;
+}
+
+.main-controls-header {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0 5px 0 !important;
+    flex-wrap: nowrap;
+}
+
+.main-controls-header button {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 8px !important;
+    font-size: 0.9rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.main-controls-header button.active {
+    background-color: #007bff;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+#recipesButton {
+    background-color: #28a745;
+    color: white;
+}
+
+#searchModalButton {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.main-controls-header button:hover:not(.active) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+#mainContent {
+    padding: 0 20px;
+    min-height: 400px;
+}
+
+.search-modal-content {
+    max-width: 600px !important;
+    width: 90% !important;
+    max-height: 80vh;
+}
+
+.search-modal-content h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+#searchModalForm {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#searchModalQuery {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.search-results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.recipe-group {
+    background: #e8f4fd; /* SVĚTLE MODRÉ POZADÍ PRO RECEPTY */
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border: 2px solid #b8d9f3;
+    overflow: hidden;
+}
+
+.recipe-header {
+    padding: 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.recipe-header:hover {
+    background-color: #d4eafc;
+}
+
+.recipe-header.expanded {
+    background-color: #cfe6fc;
+    border-bottom: 1px solid #b8d9f3;
+}
+
+.recipe-main-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.goals-warning {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.warning-icon {
+    font-size: 2em;
+    flex-shrink: 0;
+}
+
+.warning-content {
+    flex: 1;
+}
+
+.warning-content h3 {
+    margin: 0 0 8px 0;
+    color: #856404;
+}
+
+.warning-content p {
+    margin: 0 0 15px 0;
+    color: #856404;
+}
+
+#openPersonalCardBtn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#openPersonalCardBtn:hover {
+    background: #0056b3;
 }
