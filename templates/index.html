@@ -10,35 +10,24 @@
 </head>
 
 <body data-app-id="{{ app_id }}" data-supabase-url="{{ supabase_url }}" data-supabase-key="{{ supabase_key }}">
+
+    <!-- HLAVNÍ KONTEJNER -->
     <div class="container">
-        <div id="userMenu" style="position: absolute; top: 10px; right: 60px; z-index: 11; display: none;">
-            <button id="logoutBtn" style="padding: 5px 10px; font-size: 12px;">Odhlásit se</button>
-        </div>
-
-        <div id="globalLoading"
-            style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-            <div style="text-align: center;">
-                <div style="margin-bottom: 10px;">Načítání aplikace...</div>
-                <div class="loading-spinner"></div>
-            </div>
-        </div>
-
-        <button id="manualInitButton"
-            style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999;">
-            Obnovit aplikaci
-        </button>
-
+        <!-- HLAVIČKA S OVLÁDACÍMI PRVKY -->
         <div class="sticky-header-wrapper">
-            <div class="header-controls">
-                <button id="loginMenuBtn" style="margin-left: 10px; padding: 5px 10px; display: none;">
-                    Přihlásit se
-                </button>
+
+            <div id="profileIconHeader" class="profile-icon-header">
+                <img src="{{ url_for('static', filename='icon/profil.png') }}" alt="Profil" class="profile-header-icon">
+                <span id="currentProfileNameHeader" class="profile-name-header">Profil</span>
             </div>
 
-            <div id="userIdDisplay"></div>
+            <!-- IKONKA NASTAVENÍ VPRAVO -->
+            <img id="settingsIcon" src="{{ url_for('static', filename='icon/nastaveni.png') }}" alt="Nastavení"
+                class="settings-icon">
+
             <h1>Kalorická kalkulačka</h1>
 
-            <div id="currentProfileDisplay" style="display: none;" class="profile-button-container">
+            <div id="currentProfileDisplay" style="display: none;">
                 <div class="profile-display-clickable">
                     <div class="profile-email" id="currentProfileEmail"></div>
                     <div class="profile-info">
@@ -49,27 +38,71 @@
                 </div>
             </div>
 
-            <img id="settingsIcon" src="{{ url_for('static', filename='icon/nastaveni.png') }}" alt="Nastavení"
-                class="settings-icon">
-
-            <div class="search-and-recipes-container">
-                <div class="main-controls">
-                    <button id="recipesButton" disabled>Recepty</button>
-                    <button id="barcodeButton" style="margin-left: 10px;">📷 Skenovat kód</button>
-                </div>
-
-                <form id="searchForm">
-                    <input type="text" id="query" name="query"
-                        placeholder="Zadejte název potraviny (např. jablko, kuře)">
-                    <button type="submit">Vyhledat</button>
-                </form>
+            <!-- HLAVNÍ OVLÁDACÍ PRVKY - 3 TLACÍTKA -->
+            <div class="main-controls-header">
+                <button id="recipesButton" disabled>Recepty</button>
+                <button id="dailyIntakeButton" class="active">📊 Denní příjem</button>
+                <button id="searchModalButton">🔍 Vyhledat</button>
             </div>
-
-            <div id="loading">Vyhledávám...</div>
-            <div id="error-message" class="error"></div>
         </div>
 
-        <div id="results"></div>
+        <!-- HLAVNÍ OBSAH - DENNÍ PŘÍJEM -->
+        <div id="mainContent">
+            <!-- DENNÍ PŘÍJEM SE ZDE ZOBRAZUJE JAKO HLAVNÍ OBSAH -->
+        </div>
+    </div>
+
+    <!-- MODÁLNÍ OKNO PRO ZMĚNU PROFILU -->
+    <div id="profileNameModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-button" id="closeProfileNameModal">&times;</span>
+            <h3>Změna jména profilu</h3>
+
+            <div class="current-profile-info">
+                <div class="profile-email" id="profileNameModalEmail"></div>
+                <div class="current-profile-name" id="currentProfileNameDisplay"></div>
+            </div>
+
+            <div class="form-group" style="margin: 20px 0;">
+                <label for="newProfileNameInput">Nové jméno profilu</label>
+                <input type="text" id="newProfileNameInput" class="form-input" placeholder="Zadejte nový název">
+            </div>
+
+            <div class="modal-action-buttons">
+                <button id="cancelProfileNameBtn" class="btn-cancel">Zrušit</button>
+                <button id="saveProfileNameBtn" class="btn-primary">Uložit změny</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODÁLNÍ OKNO PRO VYHLEDÁVÁNÍ -->
+    <div id="searchModal" class="modal-overlay">
+        <div class="modal-content search-modal-content">
+            <span class="close-button" id="closeSearchModal">&times;</span>
+            <h3>Vyhledat potraviny</h3>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button id="barcodeButtonInModal" class="btn-primary" style="flex: 1;">
+                    📷 Skenovat čárový kód
+                </button>
+            </div>
+
+            <form id="searchModalForm">
+                <input type="text" id="searchModalQuery" name="query"
+                    placeholder="Zadejte název potraviny (např. jablko, kuře)" autofocus>
+                <button type="submit">Vyhledat</button>
+            </form>
+
+            <div id="searchModalLoading" style="display: none; text-align: center; padding: 20px;">
+                Vyhledávám...
+            </div>
+
+            <div id="searchModalResults" class="search-results-container">
+                <!-- Výsledky vyhledávání se zobrazí zde -->
+            </div>
+
+            <div id="searchModalError" class="error" style="display: none;"></div>
+        </div>
     </div>
 
     <div id="personalCardModal" class="modal-overlay">
@@ -354,16 +387,6 @@
     <div id="settingsModal" class="modal-overlay">
         <div class="modal-content">
             <span class="close-button" id="closeSettingsModal">&times;</span>
-            <div id="settingsProfileInfo" class="settings-profile-info" style="display: none;">
-                <div class="profile-display-clickable">
-                    <div class="profile-email" id="settingsProfileEmail"></div>
-                    <div class="profile-info">
-                        <img src="{{ url_for('static', filename='icon/profil.png') }}" alt="Profil"
-                            class="profile-icon">
-                        <span id="settingsProfileName">Název profilu</span>
-                    </div>
-                </div>
-            </div>
 
             <h3>Nastavení</h3>
 
@@ -506,6 +529,155 @@
         </div>
     </div>
 
+    <!-- DENNÍ PŘÍJEM - HLAVNÍ SEKCE -->
+    <div id="dailyIntakeSection" style="display: none;">
+        <div class="daily-intake-header">
+            <div class="date-selector">
+                <button id="prevDayBtn" class="date-nav-btn">←</button>
+                <span id="currentDateDisplay" class="current-date"></span>
+                <button id="nextDayBtn" class="date-nav-btn">→</button>
+            </div>
+        </div>
+
+        <!-- CELKOVÝ PŘEHLED S KRUHOVÝMI GRAFY -->
+        <div class="intake-overview">
+            <div class="charts-grid">
+                <!-- KALORIE -->
+                <div class="chart-container">
+                    <div class="chart-title">Kalorie</div>
+                    <div class="circular-chart" id="caloriesChart">
+                        <svg viewBox="0 0 36 36" class="circular-chart-svg">
+                            <path class="circle-bg"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path class="circle" stroke-dasharray="0, 100"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <text x="18" y="20.35" class="percentage">0%</text>
+                        </svg>
+                    </div>
+                    <div class="chart-details">
+                        <div class="chart-value" id="caloriesValue">0 / 0 kcal</div>
+                        <div class="chart-label" id="caloriesLabel">Zbývá 0 kcal</div>
+                    </div>
+                </div>
+
+                <!-- BÍLKOVINY -->
+                <div class="chart-container">
+                    <div class="chart-title">Bílkoviny</div>
+                    <div class="circular-chart" id="proteinChart">
+                        <svg viewBox="0 0 36 36" class="circular-chart-svg">
+                            <path class="circle-bg"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path class="circle protein" stroke-dasharray="0, 100"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <text x="18" y="20.35" class="percentage">0%</text>
+                        </svg>
+                    </div>
+                    <div class="chart-details">
+                        <div class="chart-value" id="proteinValue">0 / 0 g</div>
+                        <div class="chart-label" id="proteinLabel">Zbývá 0 g</div>
+                    </div>
+                </div>
+
+                <!-- SACHARIDY -->
+                <div class="chart-container">
+                    <div class="chart-title">Sacharidy</div>
+                    <div class="circular-chart" id="carbsChart">
+                        <svg viewBox="0 0 36 36" class="circular-chart-svg">
+                            <path class="circle-bg"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path class="circle carbs" stroke-dasharray="0, 100"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <text x="18" y="20.35" class="percentage">0%</text>
+                        </svg>
+                    </div>
+                    <div class="chart-details">
+                        <div class="chart-value" id="carbsValue">0 / 0 g</div>
+                        <div class="chart-label" id="carbsLabel">Zbývá 0 g</div>
+                    </div>
+                </div>
+
+                <!-- TUKY -->
+                <div class="chart-container">
+                    <div class="chart-title">Tuky</div>
+                    <div class="circular-chart" id="fatsChart">
+                        <svg viewBox="0 0 36 36" class="circular-chart-svg">
+                            <path class="circle-bg"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path class="circle fats" stroke-dasharray="0, 100"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <text x="18" y="20.35" class="percentage">0%</text>
+                        </svg>
+                    </div>
+                    <div class="chart-details">
+                        <div class="chart-value" id="fatsValue">0 / 0 g</div>
+                        <div class="chart-label" id="fatsLabel">Zbývá 0 g</div>
+                    </div>
+                </div>
+
+                <!-- VLÁKNINA -->
+                <div class="chart-container">
+                    <div class="chart-title">Vláknina</div>
+                    <div class="circular-chart" id="fiberChart">
+                        <svg viewBox="0 0 36 36" class="circular-chart-svg">
+                            <path class="circle-bg"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path class="circle fiber" stroke-dasharray="0, 100"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <text x="18" y="20.35" class="percentage">0%</text>
+                        </svg>
+                    </div>
+                    <div class="chart-details">
+                        <div class="chart-value" id="fiberValue">0 / 0 g</div>
+                        <div class="chart-label" id="fiberLabel">Zbývá 0 g</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEZNAM JÍDEL -->
+        <div class="meals-section">
+            <div class="meal-category" data-meal-type="breakfast">
+                <div class="meal-header">
+                    <h3>🍳 Snídaně</h3>
+                    <button class="add-meal-btn" data-meal-type="breakfast">+ Přidat jídlo</button>
+                </div>
+                <div class="meal-items" id="breakfastItems"></div>
+            </div>
+
+            <div class="meal-category" data-meal-type="snack1">
+                <div class="meal-header">
+                    <h3>🥨 Dopolední svačina</h3>
+                    <button class="add-meal-btn" data-meal-type="snack1">+ Přidat jídlo</button>
+                </div>
+                <div class="meal-items" id="snack1Items"></div>
+            </div>
+
+            <div class="meal-category" data-meal-type="lunch">
+                <div class="meal-header">
+                    <h3>🍲 Oběd</h3>
+                    <button class="add-meal-btn" data-meal-type="lunch">+ Přidat jídlo</button>
+                </div>
+                <div class="meal-items" id="lunchItems"></div>
+            </div>
+
+            <div class="meal-category" data-meal-type="snack2">
+                <div class="meal-header">
+                    <h3>🍎 Odpolední svačina</h3>
+                    <button class="add-meal-btn" data-meal-type="snack2">+ Přidat jídlo</button>
+                </div>
+                <div class="meal-items" id="snack2Items"></div>
+            </div>
+
+            <div class="meal-category" data-meal-type="dinner">
+                <div class="meal-header">
+                    <h3>🍽️ Večeře</h3>
+                    <button class="add-meal-btn" data-meal-type="dinner">+ Přidat jídlo</button>
+                </div>
+                <div class="meal-items" id="dinnerItems"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
@@ -556,6 +728,31 @@
         let quaggaInitialized = false;
         let lastDetectedBarcode = null;
         let barcodeDetectionTimeout = null;
+
+        // =============================================
+        // DENNÍ PŘÍJEM - PROMĚNNÉ A KONFIGURACE
+        // =============================================
+        let currentDailyIntakeDate = new Date();
+        let dailyIntakeGoals = null;
+        let currentDailyIntakeData = null;
+
+        // Mapování typů jídel na české názvy
+        const mealTypeLabels = {
+            breakfast: 'Snídaně',
+            snack1: 'Dopolední svačina',
+            lunch: 'Oběd',
+            snack2: 'Odpolední svačina',
+            dinner: 'Večeře'
+        };
+
+        // Mapování typů jídel na emoji
+        const mealTypeEmojis = {
+            breakfast: '🍳',
+            snack1: '🥨',
+            lunch: '🍲',
+            snack2: '🍎',
+            dinner: '🍽️'
+        };
 
         // Inicializace globálních proměnných
         window.supabaseClient = null;
@@ -614,6 +811,281 @@
             document.getElementById('savePersonalCard').disabled = false;
 
             console.log("📊 Vypočítaná data:", personalCardData);
+        }
+
+        // Event listenery pro nová tlačítka
+        document.getElementById('searchModalButton').addEventListener('click', openSearchModal);
+        document.getElementById('closeSearchModal').addEventListener('click', closeSearchModal);
+
+        // Funkce pro otevření vyhledávacího modalu
+        function openSearchModal() {
+            console.log("🔍 Otevírám vyhledávací modal");
+            document.getElementById('searchModal').style.display = 'flex';
+            document.getElementById('searchModalQuery').value = '';
+            document.getElementById('searchModalQuery').focus();
+            document.getElementById('searchModalResults').innerHTML = '';
+            document.getElementById('searchModalError').style.display = 'none';
+        }
+
+        // Funkce pro zavření vyhledávacího modalu
+        function closeSearchModal() {
+            document.getElementById('searchModal').style.display = 'none';
+        }
+
+        // Event listener pro vyhledávací form v modalu
+        document.getElementById('searchModalForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const query = document.getElementById('searchModalQuery').value.trim();
+            if (!query) return;
+
+            await performSearch(query);
+        });
+
+        // Funkce pro zobrazení okna změny profilu
+        function showProfileNameModal() {
+            if (!window.currentProfileId || !window.userProfiles) {
+                window.showCustomNotification("Nejprve vyberte profil", 'info');
+                return;
+            }
+
+            const modal = document.getElementById('profileNameModal');
+            const currentProfile = window.userProfiles.find(p => p.id === window.currentProfileId);
+
+            if (!currentProfile) {
+                window.showCustomNotification("Profil nenalezen", 'error');
+                return;
+            }
+
+            // Naplň data
+            document.getElementById('profileNameModalEmail').textContent = window.currentUser?.email || '';
+            document.getElementById('currentProfileNameDisplay').textContent = currentProfile.name;
+            document.getElementById('newProfileNameInput').value = currentProfile.name;
+
+            modal.style.display = 'flex';
+            document.getElementById('newProfileNameInput').focus();
+        }
+
+        // Funkce pro uložení změny názvu profilu
+        async function saveProfileName() {
+            const newName = document.getElementById('newProfileNameInput').value.trim();
+
+            if (!newName) {
+                window.showCustomNotification("Zadejte název profilu", 'info');
+                return;
+            }
+
+            if (!window.currentProfileId) {
+                window.showCustomNotification("Není vybrán profil", 'error');
+                return;
+            }
+
+            try {
+                const { error } = await window.supabaseClient
+                    .from('profiles')
+                    .update({
+                        name: newName,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', window.currentProfileId);
+
+                if (error) throw error;
+
+                // Aktualizuj lokální data
+                const profileIndex = window.userProfiles.findIndex(p => p.id === window.currentProfileId);
+                if (profileIndex !== -1) {
+                    window.userProfiles[profileIndex].name = newName;
+                }
+
+                // Aktualizuj zobrazení
+                updateProfileHeaderDisplay();
+
+                // Zavři modal
+                document.getElementById('profileNameModal').style.display = 'none';
+
+                window.showCustomNotification(`Název profilu byl změněn na "${newName}"`, 'success');
+
+            } catch (error) {
+                console.error("❌ Chyba při změně názvu profilu:", error);
+                window.showCustomNotification("Chyba při změně názvu: " + error.message, 'error');
+            }
+        }
+
+        // Funkce pro aktualizaci zobrazení v hlavičce
+        function updateProfileHeaderDisplay() {
+            const profileNameHeader = document.getElementById('currentProfileNameHeader');
+            const profileIconHeader = document.getElementById('profileIconHeader');
+            const currentProfile = window.userProfiles.find(p => p.id === window.currentProfileId);
+
+            if (profileNameHeader && currentProfile) {
+                profileNameHeader.textContent = currentProfile.name;
+
+                // PŘIDAT TŘÍDU PRO ZVÝRAZNĚNÍ
+                if (profileIconHeader) {
+                    profileIconHeader.classList.add('has-profile');
+                }
+            } else if (profileIconHeader) {
+                // ODSTRANIT TŘÍDU POKUD NENÍ PROFIL
+                profileIconHeader.classList.remove('has-profile');
+            }
+        }
+
+        // Event listenery
+        document.getElementById('profileIconHeader')?.addEventListener('click', showProfileNameModal);
+        document.getElementById('closeProfileNameModal')?.addEventListener('click', () => {
+            document.getElementById('profileNameModal').style.display = 'none';
+        });
+        document.getElementById('saveProfileNameBtn')?.addEventListener('click', saveProfileName);
+        document.getElementById('cancelProfileNameBtn')?.addEventListener('click', () => {
+            document.getElementById('profileNameModal').style.display = 'none';
+        });
+
+        // Zavření modalu kliknutím mimo
+        document.getElementById('profileNameModal')?.addEventListener('click', function (event) {
+            if (event.target === this) {
+                this.style.display = 'none';
+            }
+        });
+
+        // Funkce pro vyhledávání
+        async function performSearch(query) {
+            const loadingDiv = document.getElementById('searchModalLoading');
+            const resultsDiv = document.getElementById('searchModalResults');
+            const errorDiv = document.getElementById('searchModalError');
+
+            resultsDiv.innerHTML = '';
+            errorDiv.style.display = 'none';
+            loadingDiv.style.display = 'block';
+
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `query=${encodeURIComponent(query)}`
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (line.trim() === '') continue;
+                        try {
+                            const item = JSON.parse(line);
+                            if (item.error) {
+                                errorDiv.textContent = `Chyba ze serveru: ${item.error}`;
+                                errorDiv.style.display = 'block';
+                                loadingDiv.style.display = 'none';
+                                return;
+                            }
+                            appendSearchResult(item);
+                        } catch (e) {
+                            console.error('Chyba při parsování JSON řádku:', e);
+                        }
+                    }
+                }
+
+                loadingDiv.style.display = 'none';
+                if (resultsDiv.innerHTML === '') {
+                    resultsDiv.innerHTML = '<p style="text-align: center; color: #888;">Nic nenalezeno.</p>';
+                }
+
+            } catch (error) {
+                console.error('Došlo k chybě:', error);
+                loadingDiv.style.display = 'none';
+                errorDiv.textContent = 'Došlo k chybě při komunikaci se serverem.';
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // Funkce pro přidání výsledku vyhledávání
+        function appendSearchResult(item) {
+            const resultsDiv = document.getElementById('searchModalResults');
+            const foodItemDiv = document.createElement('div');
+            foodItemDiv.classList.add('food-item', 'food-item-potravina');
+
+            let displayImageUrl = item.image_url || placeholderImage;
+
+            const { number: caloriesNum, unit: caloriesUnit } = parseValueAndUnit(item.calories);
+            const formattedCalories = formatNumberForDisplay(caloriesNum, caloriesUnit, true);
+
+            foodItemDiv.innerHTML = `
+                <div class="image-wrapper">
+                    <img src="${displayImageUrl}" alt="${item.name}" 
+                        onerror="this.onerror=null;this.src='${placeholderImage}'">
+                </div>
+                <div class="food-item-info">
+                    <div class="food-item-name">${item.name}</div>
+                    <div class="food-item-details">
+                        <span class="calories-badge">${formattedCalories}</span>
+                        <span class="food-type-badge">${item.food_type || 'Potravina'}</span>
+                    </div>
+                </div>
+                <div class="food-item-actions">
+                    <button class="add-food-item" title="Přidat do denního příjmu">
+                        <img src="{{ url_for('static', filename='icon/plus.png') }}" alt="Přidat">
+                    </button>
+                </div>
+            `;
+
+            // Event listener pro kliknutí na celou položku
+            if (item.slug) {
+                foodItemDiv.addEventListener('click', function (e) {
+                    // Zabránit spuštění při kliknutí na akční tlačítka
+                    if (!e.target.closest('.food-item-actions')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        closeSearchModal();
+                        showDetailsModal(item.slug, item.name, item.image_url, item.calories, item.food_type);
+                    }
+                });
+            }
+
+            // Event listener pro tlačítko přidání
+            const addButton = foodItemDiv.querySelector('.add-food-item');
+            if (addButton) {
+                addButton.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    console.log("➕ Přidávám potravinu:", item.name);
+                    // Zde můžeš přidat funkci pro rychlé přidání do denního příjmu
+                    window.showCustomNotification(`"${item.name}" připraveno k přidání do denního příjmu`, 'info');
+                });
+            }
+
+            resultsDiv.appendChild(foodItemDiv);
+        }
+
+        // Nová funkce pro zobrazení denního příjmu jako hlavního obsahu
+        function showDailyIntakeAsMainContent() {
+            console.log("📊 Zobrazuji denní příjem jako hlavní obsah");
+
+            const mainContent = document.getElementById('mainContent');
+            if (!mainContent) {
+                console.error("❌ Hlavní obsah nenalezen");
+                return;
+            }
+
+            // Vložíme HTML denního příjmu do hlavního obsahu
+            mainContent.innerHTML = document.getElementById('dailyIntakeSection').innerHTML;
+
+            // Inicializujeme denní příjem
+            if (!currentDailyIntakeData) {
+                initializeDailyIntake();
+            } else {
+                updateDailyIntakeDisplay();
+            }
         }
 
         // Načtení dat z formuláře
@@ -806,6 +1278,11 @@
             try {
                 // Uložení do Supabase včetně vypočítaných hodnot
                 await saveToSupabase(personalCardData);
+
+                // ✅ AKTUALIZUJEME CÍLE V DENNÍM PŘÍJMU
+                console.log("🔄 Aktualizuji cíle po uložení osobní karty");
+                await loadDailyIntakeGoals();
+
             } catch (error) {
                 console.error("Chyba při ukládání:", error);
             }
@@ -1186,6 +1663,8 @@
                     window.currentUser = null;
                     window.userProfiles = [];
                     window.currentProfileId = null;
+                    // ✅ RESETUJEME DENNÍ PŘÍJEM
+                    resetDailyIntakeData();
                     localStorage.clear();
                     location.reload();
                 }
@@ -1194,15 +1673,26 @@
             }
         }
 
+        // Přidejte funkci pro reset denního příjmu
+        function resetDailyIntakeData() {
+            console.log("🔄 Resetuji data denního příjmu");
+            currentDailyIntakeDate = new Date();
+            dailyIntakeGoals = null;
+            currentDailyIntakeData = null;
+            window.currentMealContext = null;
+        }
+
+        // Přidáme inicializaci denního příjmu do hlavní inicializace aplikace
         async function continueWithUser(user) {
             window.currentUser = user;
             updateLoginButton();
 
-            // Inicializujeme userSettings před načtením profilů
             window.userSettings = getDefaultSettings();
             console.log("🎯 Inicializováno userSettings při spuštění:", window.userSettings);
 
             await window.loadUserProfiles();
+
+            resetDailyIntakeData();
 
             if (window.userProfiles.length === 0) {
                 window.showCreateProfileModal();
@@ -1210,11 +1700,14 @@
                 const singleProfile = window.userProfiles[0];
                 await window.selectProfile(singleProfile.id);
 
-                // ZOBRAZÍME OZNÁMENÍ O AUTOMATICKÉM VÝBĚRU PROFILU
                 window.showCustomNotification(
                     `Profil "<strong>${singleProfile.name}</strong>" byl automaticky nastaven jako aktivní`,
                     'profileAutoSelect'
                 );
+
+                // ZOBRAZÍME DENNÍ PŘÍJEM JAKO HLAVNÍ OBSAH
+                showDailyIntakeAsMainContent();
+
             } else {
                 setTimeout(() => {
                     window.showProfileModal();
@@ -1232,8 +1725,46 @@
             }, 2000);
         }
 
+        // Také přidáme do funkce selectProfile:
+        window.selectProfile = async function (profileId) {
+            try {
+                const oldProfileId = window.currentProfileId;
+                window.currentProfileId = profileId;
+
+                await loadUserSettings();
+                await window.loadAndDisplayCurrentProfile();
+
+                updateProfileHeaderDisplay();
+
+                // ✅ RESETUJEME DENNÍ PŘÍJEM PŘI ZMĚNĚ PROFILU
+                resetDailyIntakeData();
+
+                // INICIALIZUJEME DENNÍ PŘÍJEM S NOVÝMI DATY
+                initializeDailyIntake();
+
+                if (oldProfileId && oldProfileId !== profileId) {
+                    const newProfile = window.userProfiles.find(p => p.id === profileId);
+                    if (newProfile) {
+                        window.showCustomNotification(
+                            `Profil byl změněn na "<strong>${newProfile.name}</strong>"`,
+                            'profileSwitch'
+                        );
+                    }
+                }
+
+            } catch (error) {
+                console.error("❌ Chyba při výběru profilu:", error);
+            }
+        };
+
         function updateLoginButton() {
             const loginBtn = document.getElementById('loginMenuBtn');
+
+            if (!loginBtn) {
+                console.log("ℹ️ loginMenuBtn neexistuje - pravděpodobně byl odstraněn z HTML");
+                return;
+            }
+
             if (window.currentUser && window.currentUser.email) {
                 loginBtn.style.display = 'none';
                 loginBtn.textContent = `Přihlášen: ${window.currentUser.email}`;
@@ -1484,7 +2015,6 @@
 
                 await loadUserSettings();
                 await window.loadAndDisplayCurrentProfile();
-                updateSettingsProfileInfo();
 
                 // OZNÁMENÍ PŘI RUČNÍ ZMĚNĚ PROFILU (volitelné)
                 if (oldProfileId && oldProfileId !== profileId) {
@@ -1619,21 +2149,21 @@
         };
 
         window.updateCurrentProfileDisplay = function (profileName) {
-            const profileDisplay = document.getElementById('currentProfileDisplay');
-            const profileNameSpan = document.getElementById('currentProfileName');
-            const profileEmailSpan = document.getElementById('currentProfileEmail');
+            // Staré zobrazení (může zůstat skryté)
+            const oldProfileDisplay = document.getElementById('currentProfileDisplay');
+            const oldProfileNameSpan = document.getElementById('currentProfileName');
 
-            if (profileDisplay && profileNameSpan && profileEmailSpan) {
-                profileNameSpan.textContent = profileName;
-                if (window.currentUser && window.currentUser.email) {
-                    profileEmailSpan.textContent = window.currentUser.email;
-                    profileEmailSpan.style.display = 'block';
-                } else {
-                    profileEmailSpan.style.display = 'none';
-                }
-                profileDisplay.style.display = 'none';
-                updateSettingsProfileInfo();
+            if (oldProfileDisplay && oldProfileNameSpan) {
+                oldProfileNameSpan.textContent = profileName;
+                oldProfileDisplay.style.display = 'none';
             }
+
+            // Nové zobrazení v hlavičce
+            const profileNameHeader = document.getElementById('currentProfileNameHeader');
+            if (profileNameHeader) {
+                profileNameHeader.textContent = profileName;
+            }
+
         };
 
         window.hideCurrentProfileDisplay = function () {
@@ -1642,33 +2172,6 @@
                 profileDisplay.style.display = 'none';
             }
         };
-
-        function updateSettingsProfileInfo() {
-            const profileInfo = document.getElementById('settingsProfileInfo');
-            const profileEmail = document.getElementById('settingsProfileEmail');
-            const profileName = document.getElementById('settingsProfileName');
-
-            if (window.currentUser && window.currentUser.email && window.currentProfileId) {
-                profileInfo.style.display = 'flex';
-                profileEmail.textContent = window.currentUser.email;
-                profileEmail.style.display = 'block';
-
-                if (window.userProfiles) {
-                    const profile = window.userProfiles.find(p => p.id === window.currentProfileId);
-                    if (profile) {
-                        profileName.textContent = profile.name;
-                    } else {
-                        profileName.textContent = 'Nevybrán profil';
-                    }
-                }
-
-                // DŮLEŽITÉ: Ujistěte se, že je element klikatelný
-                profileInfo.style.pointerEvents = 'auto';
-                profileInfo.style.cursor = 'pointer';
-            } else {
-                profileInfo.style.display = 'none';
-            }
-        }
 
         // =============================================
         // NASTAVENÍ UŽIVATELE
@@ -1963,8 +2466,25 @@
         if (searchForm) {
             searchForm.addEventListener('submit', async function (event) {
                 event.preventDefault();
-                const query = document.getElementById('query').value;
+
+                // Skryjeme denní příjem pokud je zobrazen
+                const dailySection = document.getElementById('dailyIntakeSection');
+                if (dailySection) {
+                    dailySection.style.display = 'none';
+                }
+
+                // Zobrazíme výsledky
                 const resultsDiv = document.getElementById('results');
+                if (resultsDiv) {
+                    resultsDiv.style.display = 'block';
+                }
+
+                // Skryjeme denní příjem pokud je zobrazen
+                document.getElementById('dailyIntakeSection').style.display = 'none';
+                document.getElementById('results').style.display = 'block';
+
+                const query = document.getElementById('query').value;
+                // const resultsDiv = document.getElementById('results');
                 const loadingDiv = document.getElementById('loading');
                 const errorDiv = document.getElementById('error-message');
 
@@ -2913,7 +3433,7 @@
                 } else {
                     ingredients.forEach((ingredient, index) => {
                         const ingredientItemDiv = document.createElement('div');
-                        ingredientItemDiv.classList.add('food-item', 'food-item-potravina');
+                        ingredientItemDiv.classList.add('recipe-ingredient-item'); // NOVÁ TŘÍDA
 
                         const ingPlaceholderImage = "{{ url_for('static', filename='icon/potraviny.png') }}";
                         let displayImageUrl = ingredient.imageUrl || ingPlaceholderImage;
@@ -2922,33 +3442,44 @@
                         const formattedIngredientKcal = formatNumberForDisplay(kcalNum, kcalUnit, true);
 
                         ingredientItemDiv.innerHTML = `
-                            <div class="image-wrapper" style="display: flex; flex-direction: column; align-items: center;">
+                            <div class="image-wrapper">
                                 <img src="${displayImageUrl}" alt="${ingredient.foodName}" 
                                     onerror="this.onerror=null;this.src='${ingPlaceholderImage}'" 
-                                    style="width: 55px; height: 55px; object-fit: cover; border-radius: 6px; padding-top: 8px;" />
-                                <div class="recipe-icons" style="margin-top: 5px;">
-                                    <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit" class="recipe-icon edit-icon" data-recipe-id="${recipeId}" data-ingredient-index="${index}" />
-                                    <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Odstranit" class="recipe-icon delete-icon" data-recipe-id="${recipeId}" data-ingredient-index="${index}" />
+                                    style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;" />
+                            </div>
+                            <div class="ingredient-info">
+                                <div class="ingredient-name">${ingredient.foodName}</div>
+                                <div class="ingredient-details">
+                                    <span class="amount-badge">${ingredient.amount} ${ingredient.unit}</span>
+                                    <span>${Math.round(ingredient.calories || kcalNum)} kcal</span>
+                                    ${ingredient.protein ? `<span>B: ${Math.round(ingredient.protein)}g</span>` : ''}
+                                    ${ingredient.carbs ? `<span>S: ${Math.round(ingredient.carbs)}g</span>` : ''}
+                                    ${ingredient.fat ? `<span>T: ${Math.round(ingredient.fat)}g</span>` : ''}
                                 </div>
                             </div>
-                            <div class="food-details">
-                                <h3>${ingredient.foodName}</h3>
-                                <div class="calories-and-type-row">
-                                    <div class="calories-and-type-row">
-                                        <span class="amount-display">Množství:  ${ingredient.amount} ${ingredient.unit}</span>
-                                        <span class="calories-display">Kalorie: ${formattedIngredientKcal}</span>
-                                    </div>
-                                </div>
+                            <div class="ingredient-actions">
+                                    <button class="edit-ingredient-btn" data-item-id="${ingredient.id}" 
+                                        data-recipe-id="${recipeId}" data-ingredient-index="${index}" 
+                                        title="Upravit ingredienci">
+                                    <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
+                                </button>
+                                <button class="delete-ingredient-btn" data-item-id="${ingredient.id}" 
+                                        data-recipe-id="${recipeId}" data-ingredient-index="${index}" 
+                                        title="Smazat ingredienci">
+                                    <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
+                                </button>
                             </div>
                         `;
+
                         ingredientsListEl.appendChild(ingredientItemDiv);
 
-                        const editIcon = ingredientItemDiv.querySelector('.edit-icon');
-                        if (editIcon) {
-                            editIcon.addEventListener('click', async (e) => {
+                        // Event listenery zůstávají stejné...
+                        const editBtn = ingredientItemDiv.querySelector('.edit-ingredient-btn');
+                        if (editBtn) {
+                            editBtn.addEventListener('click', async (e) => {
                                 e.stopPropagation();
-                                currentEditingRecipeId = e.target.dataset.recipeId;
-                                currentEditingIngredientIndex = parseInt(e.target.dataset.ingredientIndex);
+                                currentEditingRecipeId = e.target.closest('.edit-ingredient-btn').dataset.recipeId;
+                                currentEditingIngredientIndex = parseInt(e.target.closest('.edit-ingredient-btn').dataset.ingredientIndex);
                                 isEditingRecipeItem = true;
                                 editingRecipeContext = { recipeId: currentEditingRecipeId, recipeName: recipeName };
 
@@ -2969,12 +3500,12 @@
                             });
                         }
 
-                        const deleteIcon = ingredientItemDiv.querySelector('.delete-icon');
-                        if (deleteIcon) {
-                            deleteIcon.addEventListener('click', (e) => {
+                        const deleteBtn = ingredientItemDiv.querySelector('.delete-ingredient-btn');
+                        if (deleteBtn) {
+                            deleteBtn.addEventListener('click', (e) => {
                                 e.stopPropagation();
-                                const currentRecipeId = e.target.dataset.recipeId;
-                                const ingredientIndex = parseInt(e.target.dataset.ingredientIndex);
+                                const currentRecipeId = e.target.closest('.delete-ingredient-btn').dataset.recipeId;
+                                const ingredientIndex = parseInt(e.target.closest('.delete-ingredient-btn').dataset.ingredientIndex);
                                 const ingredientName = ingredient.foodName;
                                 deleteFoodItemFromRecipe(currentRecipeId, ingredientIndex, ingredientName, recipeName);
                             });
@@ -3221,11 +3752,11 @@
         // SKENOVÁNÍ ČÁROVÝCH KÓDŮ
         // =============================================
         function initBarcodeScanner() {
-            document.getElementById('barcodeButton').addEventListener('click', openBarcodeScanner);
-            document.getElementById('closeBarcodeModal').addEventListener('click', closeBarcodeScanner);
-            document.getElementById('toggleCameraButton').addEventListener('click', toggleCamera);
-            document.getElementById('toggleFlashButton').addEventListener('click', toggleFlash);
-            document.getElementById('submitManualBarcode').addEventListener('click', submitManualBarcode);
+            document.getElementById('barcodeButtonInModal')?.addEventListener('click', openBarcodeScanner);
+            document.getElementById('closeBarcodeModal')?.addEventListener('click', closeBarcodeScanner);
+            document.getElementById('toggleCameraButton')?.addEventListener('click', toggleCamera);
+            document.getElementById('toggleFlashButton')?.addEventListener('click', toggleFlash);
+            document.getElementById('submitManualBarcode')?.addEventListener('click', submitManualBarcode);
         }
 
         function initQuagga() {
@@ -3289,6 +3820,12 @@
         }
 
         async function openBarcodeScanner() {
+            // Bezpečnostní kontrola
+            if (!window.supabaseClient || !window.currentUser) {
+                window.showCustomNotification("Pro skenování se musíte přihlásit", 'info');
+                return;
+            }
+
             const barcodeModal = document.getElementById('barcodeModal');
             const barcodeStatus = document.getElementById('barcodeStatus');
 
@@ -3689,26 +4226,6 @@
                 closeProfileModal();
             });
 
-            document.getElementById('settingsProfileInfo').addEventListener('click', function (e) {
-                e.stopPropagation();
-                console.log("👤 Kliknuto na profil v nastavení");
-
-                // DŮLEŽITÉ: Nejprve sbalíme všechny sekce v nastavení
-                const hadOpenSections = collapseAllSettingsSections();
-
-                // Počkáme na animaci sbalení
-                const delay = hadOpenSections ? 150 : 0;
-
-                setTimeout(() => {
-                    // Zavřeme nastavení
-                    document.getElementById('settingsModal').style.display = 'none';
-
-                    // Poté otevřeme správu profilů
-                    setTimeout(() => {
-                        window.showProfileModal();
-                    }, 50);
-                }, delay);
-            });
             document.getElementById('closeCreateProfileModal').addEventListener('click', function () {
                 document.getElementById('createProfileModal').style.display = 'none';
             });
@@ -3835,11 +4352,18 @@
             });
 
             // Event listenery pro nastavení
-            document.getElementById('settingsIcon').addEventListener('click', () => {
-                document.getElementById('settingsModal').style.display = 'flex';
-                setTimeout(initializeSettingsSections, 100);
-                updateSettingsProfileInfo();
-            });
+            const settingsIcon = document.getElementById('settingsIcon');
+            if (settingsIcon) {
+                settingsIcon.addEventListener('click', () => {
+                    const settingsModal = document.getElementById('settingsModal');
+                    if (settingsModal) {
+                        settingsModal.style.display = 'flex';
+                        setTimeout(initializeSettingsSections, 100);
+                    }
+                });
+            } else {
+                console.log("ℹ️ settingsIcon neexistuje - pravděpodobně byl odstraněn z HTML");
+            }
 
             document.getElementById('switchAccountBtn').addEventListener('click', async function () {
                 // Nejprve sbalíme všechny otevřené sekce v nastavení
@@ -3905,6 +4429,1120 @@
                     closePersonalCardModal();
                 });
             }
+        });
+
+        // V sekci event listenerů přidejte:
+        document.getElementById('dailyIntakeButton').addEventListener('click', showDailyIntakeSection);
+
+        function showDailyIntakeSection() {
+            if (!checkInitialization()) {
+                window.showCustomNotification("Pro zobrazení denního příjmu se musíte přihlásit a vybrat profil", 'info');
+                return;
+            }
+
+            console.log("📊 Zobrazuji denní příjem pro profil:", window.currentProfileId);
+
+            // Skryjeme výsledky vyhledávání
+            const resultsDiv = document.getElementById('results');
+            if (resultsDiv) {
+                resultsDiv.style.display = 'none';
+                resultsDiv.innerHTML = '';
+            }
+
+            // Zobrazíme sekci denního příjmu
+            const dailySection = document.getElementById('dailyIntakeSection');
+            if (dailySection) {
+                dailySection.style.display = 'block';
+                console.log("✅ Sekce denního příjmu zobrazena");
+            } else {
+                console.error("❌ Sekce denního příjmu nenalezena");
+                return;
+            }
+
+            // ✅ PŘIDÁME KONTROLU - pokud nemáme data nebo jsou ze špatného profilu, načteme znova
+            if (!currentDailyIntakeData || !dailyIntakeGoals) {
+                console.log("🔄 Inicializuji denní příjem - data chybí");
+                initializeDailyIntake();
+            } else {
+                console.log("🔄 Aktualizuji zobrazení denního příjmu");
+                updateDailyIntakeDisplay();
+            }
+        }
+
+        // =============================================
+        // DENNÍ PŘÍJEM - HLAVNÍ FUNKCE
+        // =============================================
+
+        // Inicializace denního příjmu
+        function initializeDailyIntake() {
+            console.log("🔄 Inicializace denního příjmu pro profil:", window.currentProfileId);
+
+            // Zkontrolujte strukturu osobní karty (pro debug)
+            checkPersonalCardStructure();
+
+            // Načteme cíle z osobní karty
+            loadDailyIntakeGoals();
+
+            // Načteme data pro aktuální den
+            loadDailyIntakeData(currentDailyIntakeDate);
+
+            // Nastavíme event listenery
+            setupDailyIntakeEventListeners();
+        }
+
+        // Načtení cílů z osobní karty
+        async function loadDailyIntakeGoals() {
+            try {
+                if (!window.currentProfileId) {
+                    console.log("❌ Nelze načíst cíle - není vybrán profil");
+                    return;
+                }
+
+                console.log("🎯 Načítám cíle pro profil:", window.currentProfileId);
+
+                // OPRAVA: Správný select podle databázové struktury
+                const { data, error } = await window.supabaseClient
+                    .from('personal_cards')
+                    .select('form_data, calculations')
+                    .eq('profile_id', window.currentProfileId);
+
+                if (error) {
+                    console.error("❌ Chyba při načítání osobní karty:", error);
+                    throw error;
+                }
+
+                if (data && data.length > 0 && data[0].calculations) {
+                    const calculations = data[0].calculations;
+                    console.log("📦 Data osobní karty - calculations:", calculations);
+
+                    if (calculations.macros) {
+                        dailyIntakeGoals = {
+                            calories: calculations.targetCalories || 2000,
+                            protein: calculations.macros.protein || 150,
+                            carbs: calculations.macros.carbs || 250,
+                            fat: calculations.macros.fat || 67,
+                            fiber: calculations.macros.fiber || 30
+                        };
+                        console.log("✅ Načteny cíle z osobní karty:", dailyIntakeGoals);
+                    } else {
+                        console.log("ℹ️ Osobní karta existuje, ale neobsahuje makroživiny");
+                        dailyIntakeGoals = null;
+                    }
+                } else {
+                    console.log("ℹ️ Osobní karta neexistuje nebo nemá calculations");
+                    dailyIntakeGoals = null;
+                }
+            } catch (error) {
+                console.error("❌ Chyba při načítání cílů:", error);
+                dailyIntakeGoals = null;
+            }
+
+            // Aktualizujte display
+            if (currentDailyIntakeData) {
+                console.log("🔄 Aktualizuji zobrazení s cíly:", dailyIntakeGoals);
+                updateDailyIntakeDisplay();
+            }
+        }
+
+        async function checkPersonalCardStructure() {
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from('personal_cards')
+                    .select('data')
+                    .eq('profile_id', window.currentProfileId);
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    const cardData = data[0].data;
+                    console.log("🔍 Struktura osobní karty:", {
+                        hasData: !!cardData,
+                        dataKeys: cardData ? Object.keys(cardData) : 'žádná data',
+                        hasCalculations: cardData?.calculations ? 'ano' : 'ne',
+                        calculationsKeys: cardData?.calculations ? Object.keys(cardData.calculations) : 'žádné výpočty',
+                        hasMacros: cardData?.calculations?.macros ? 'ano' : 'ne',
+                        macrosKeys: cardData?.calculations?.macros ? Object.keys(cardData.calculations.macros) : 'žádné makroživiny'
+                    });
+                } else {
+                    console.log("ℹ️ Osobní karta neexistuje");
+                }
+            } catch (error) {
+                console.error("❌ Chyba při kontrole struktury osobní karty:", error);
+            }
+        }
+
+        // Načtení denních dat
+        async function loadDailyIntakeData(date) {
+            try {
+                if (!window.currentUser || !window.currentProfileId) {
+                    console.log("❌ Nelze načíst data - není přihlášení nebo profil");
+                    return;
+                }
+
+                const dateString = formatDateForAPI(date);
+                console.log("📅 Načítám data pro:", dateString, "profil:", window.currentProfileId);
+
+                // Jednodušší select bez nested polí
+                const { data: dailyData, error: dailyError } = await window.supabaseClient
+                    .from('daily_intakes')
+                    .select('id, intake_date')
+                    .eq('user_id', window.currentUser.id)
+                    .eq('profile_id', window.currentProfileId)
+                    .eq('intake_date', dateString);
+
+                if (dailyError) throw dailyError;
+
+                let dailyIntakeId = null;
+                let meals = [];
+
+                if (dailyData && dailyData.length > 0) {
+                    dailyIntakeId = dailyData[0].id;
+
+                    // Načteme meals pro tento daily_intake
+                    const { data: mealsData, error: mealsError } = await window.supabaseClient
+                        .from('daily_meals')
+                        .select('id, meal_type, meal_order')
+                        .eq('daily_intake_id', dailyIntakeId)
+                        .order('meal_order', { ascending: true });
+
+                    if (mealsError) throw mealsError;
+
+                    // Pro každé jídlo načteme položky
+                    for (const meal of mealsData) {
+                        const { data: itemsData, error: itemsError } = await window.supabaseClient
+                            .from('meal_items')
+                            .select('*')
+                            .eq('daily_meal_id', meal.id)
+                            .order('created_at', { ascending: true });
+
+                        if (itemsError) throw itemsError;
+
+                        meals.push({
+                            ...meal,
+                            meal_items: itemsData || []
+                        });
+                    }
+                }
+
+                currentDailyIntakeData = {
+                    id: dailyIntakeId,
+                    intake_date: dateString,
+                    daily_meals: meals
+                };
+
+                console.log("📊 Načtena denní data:", currentDailyIntakeData?.daily_meals?.length || 0, "jídel");
+                updateDailyIntakeDisplay();
+
+            } catch (error) {
+                console.error("❌ Chyba při načítání denních dat:", error);
+                window.showCustomNotification("Chyba při načítání denních dat: " + error.message, 'error');
+            }
+        }
+
+        // Aktualizace zobrazení
+        function updateDailyIntakeDisplay() {
+            updateDateDisplay();
+
+            // ✅ DŮLEŽITÉ: Zkontrolujte zda máme cíle (null znamená žádné cíle)
+            if (dailyIntakeGoals === null) {
+                console.log("⚠️ Cíle nejsou načteny, zobrazuji varování");
+                showGoalsWarning();
+                // NEVRACEJTE SE - pokračujte v zobrazení grafů s demo hodnotami
+            }
+
+            calculateAndDisplayTotals();
+            renderMealItems();
+        }
+
+        // Funkce pro zobrazení varování když nejsou cíle
+        function showGoalsWarning() {
+            const mainContent = document.getElementById('mainContent');
+            if (!mainContent) return;
+
+            const warningHtml = `
+                <div class="goals-warning">
+                    <div class="warning-icon">⚠️</div>
+                    <div class="warning-content">
+                        <h3>Chybí cíle pro denní příjem</h3>
+                        <p>Pro správné zobrazení denního příjmu je potřeba vyplnit osobní kartu.</p>
+                        <button id="openPersonalCardBtn" class="btn-primary">Otevřít osobní kartu</button>
+                    </div>
+                </div>
+            `;
+
+            // Najdeme nebo vytvoříme warning element
+            let warningElement = document.querySelector('.goals-warning');
+            if (!warningElement) {
+                warningElement = document.createElement('div');
+                warningElement.className = 'goals-warning';
+                warningElement.innerHTML = warningHtml;
+                mainContent.insertBefore(warningElement, mainContent.firstChild);
+            }
+
+            // Event listener pro tlačítko
+            document.getElementById('openPersonalCardBtn')?.addEventListener('click', () => {
+                showPersonalCardModal();
+            });
+        }
+
+        // Aktualizace zobrazení data
+        function updateDateDisplay() {
+            const dateDisplay = document.getElementById('currentDateDisplay');
+            if (dateDisplay) {
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                dateDisplay.textContent = currentDailyIntakeDate.toLocaleDateString('cs-CZ', options);
+            }
+        }
+
+        // Výpočet a zobrazení součtů
+        function calculateAndDisplayTotals() {
+            // ✅ Použijte demo cíle pokud nejsou načteny skutečné cíle
+            const goalsToUse = dailyIntakeGoals || {
+                calories: 2000,
+                protein: 150,
+                carbs: 250,
+                fat: 67,
+                fiber: 30
+            };
+
+            console.log("🧮 Používám cíle:", goalsToUse);
+
+            const totals = calculateDailyTotals();
+            console.log("🧮 Vypočítané součty:", totals);
+
+            updateCircularCharts(totals, goalsToUse);
+            updateChartDetails(totals, goalsToUse);
+        }
+
+        // Výpočet denních součtů
+        function calculateDailyTotals() {
+            const totals = {
+                calories: 0,
+                protein: 0,
+                carbs: 0,
+                fat: 0,
+                fiber: 0
+            };
+
+            if (!currentDailyIntakeData || !currentDailyIntakeData.daily_meals) {
+                return totals;
+            }
+
+            currentDailyIntakeData.daily_meals.forEach(meal => {
+                if (meal.meal_items) {
+                    meal.meal_items.forEach(item => {
+                        totals.calories += parseFloat(item.calories) || 0;
+                        totals.protein += parseFloat(item.protein) || 0;
+                        totals.carbs += parseFloat(item.carbs) || 0;
+                        totals.fat += parseFloat(item.fat) || 0;
+                        totals.fiber += parseFloat(item.fiber) || 0;
+                    });
+                }
+            });
+
+            return totals;
+        }
+
+        // Aktualizace kruhových grafů
+        function updateCircularCharts(totals, goals) {
+            updateCircularChart('caloriesChart', totals.calories, goals.calories, '');
+            updateCircularChart('proteinChart', totals.protein, goals.protein, 'protein');
+            updateCircularChart('carbsChart', totals.carbs, goals.carbs, 'carbs');
+            updateCircularChart('fatsChart', totals.fat, goals.fat, 'fats');
+            updateCircularChart('fiberChart', totals.fiber, goals.fiber, 'fiber');
+        }
+
+        // Aktualizace jednoho kruhového grafu
+        function updateCircularChart(chartId, current, goal, type = '') {
+            const chartElement = document.getElementById(chartId);
+            if (!chartElement) return;
+
+            const percentage = goal > 0 ? Math.min((current / goal) * 100, 100) : 0;
+            const circle = chartElement.querySelector('.circle');
+            const percentageText = chartElement.querySelector('.percentage');
+
+            if (circle && percentageText) {
+                circle.style.strokeDasharray = `${percentage}, 100`;
+                percentageText.textContent = `${Math.round(percentage)}%`;
+
+                // Dynamická barva podle procent
+                if (percentage >= 100) {
+                    circle.style.stroke = '#dc3545'; // Červená při překročení
+                } else if (percentage >= 80) {
+                    circle.style.stroke = '#ffc107'; // Oranžová při blízkém dosažení
+                } else {
+                    // Vrátíme původní barvu podle typu
+                    const originalColors = {
+                        protein: '#f44336',
+                        carbs: '#2196f3',
+                        fats: '#ffc107',
+                        fiber: '#28a745'
+                    };
+                    circle.style.stroke = originalColors[type] || '#007bff';
+                }
+            }
+        }
+
+        // Aktualizace detailů pod grafy
+        function updateChartDetails(totals, goals) {
+            updateChartDetail('calories', totals.calories, goals.calories, 'kcal');
+            updateChartDetail('protein', totals.protein, goals.protein, 'g');
+            updateChartDetail('carbs', totals.carbs, goals.carbs, 'g');
+            updateChartDetail('fats', totals.fat, goals.fat, 'g');
+            updateChartDetail('fiber', totals.fiber, goals.fiber, 'g');
+        }
+
+        // Aktualizace jednoho detailu
+        function updateChartDetail(type, current, goal, unit) {
+            const remaining = Math.max(goal - current, 0);
+
+            const valueElement = document.getElementById(`${type}Value`);
+            const labelElement = document.getElementById(`${type}Label`);
+
+            if (valueElement) {
+                valueElement.textContent = `${Math.round(current)} / ${Math.round(goal)} ${unit}`;
+            }
+
+            if (labelElement) {
+                labelElement.textContent = `Zbývá ${Math.round(remaining)} ${unit}`;
+            }
+        }
+
+        // Vykreslení položek jídel - S SESKUPENÍM RECEPTŮ
+        async function renderMealItems() {
+            const mealTypes = ['breakfast', 'snack1', 'lunch', 'snack2', 'dinner'];
+
+            for (const mealType of mealTypes) {
+                const container = document.getElementById(`${mealType}Items`);
+                if (!container) continue;
+
+                container.innerHTML = '';
+
+                const meals = currentDailyIntakeData.daily_meals?.filter(meal => meal.meal_type === mealType) || [];
+
+                if (meals.length === 0) {
+                    container.innerHTML = '<div class="empty-meal-message">Žádná jídla</div>';
+                    continue;
+                }
+
+                // PŘEDEJ ASYNC FUNKCI A POČKEJ NA VÝSLEDEK
+                const groupedItems = await groupMealItemsByRecipe(meals);
+
+                // Zbytek funkce zůstává stejný...
+                groupedItems.forEach(group => {
+                    if (group.isRecipe) {
+                        const recipeElement = createRecipeGroupElement(group, mealType);
+                        container.appendChild(recipeElement);
+                    } else {
+                        group.items.forEach(item => {
+                            const foodItemElement = createFoodItemElement(item, group.mealId);
+                            container.appendChild(foodItemElement);
+                        });
+                    }
+                });
+            }
+
+            // FALLBACK: Pokud se nic nevykreslilo, zobrazte původní zobrazení
+            setTimeout(() => {
+                const mealTypes = ['breakfast', 'snack1', 'lunch', 'snack2', 'dinner'];
+                let hasContent = false;
+
+                mealTypes.forEach(mealType => {
+                    const container = document.getElementById(`${mealType}Items`);
+                    if (container && container.children.length > 0) {
+                        hasContent = true;
+                    }
+                });
+
+                if (!hasContent) {
+                    console.log("🔄 Používám fallback zobrazení");
+                    renderMealItemsFallback();
+                }
+            }, 100);
+        }
+
+        // Fallback funkce pro původní zobrazení
+        function renderMealItemsFallback() {
+            const mealTypes = ['breakfast', 'snack1', 'lunch', 'snack2', 'dinner'];
+
+            mealTypes.forEach(mealType => {
+                const container = document.getElementById(`${mealType}Items`);
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                const meals = currentDailyIntakeData.daily_meals?.filter(meal => meal.meal_type === mealType) || [];
+
+                if (meals.length === 0) {
+                    container.innerHTML = '<div class="empty-meal-message">Žádná jídla</div>';
+                    return;
+                }
+
+                meals.forEach(meal => {
+                    if (meal.meal_items && meal.meal_items.length > 0) {
+                        meal.meal_items.forEach(item => {
+                            const mealItemElement = createFoodItemElement(item, meal.id);
+                            container.appendChild(mealItemElement);
+                        });
+                    }
+                });
+            });
+        }
+
+        async function getRecipeName(recipeId) {
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from('recipes')
+                    .select('name')
+                    .eq('id', recipeId)
+                    .single();
+
+                if (error) throw error;
+                return data?.name || 'Recept';
+            } catch (error) {
+                console.error("❌ Chyba při načítání názvu receptu:", error);
+                return 'Recept';
+            }
+        }
+
+        // Seskupte položky podle receptů
+        async function groupMealItemsByRecipe(meals) {
+            const groups = [];
+            const recipeNameCache = {}; // Cache pro názvy receptů
+
+            for (const meal of meals) {
+                if (!meal.meal_items || meal.meal_items.length === 0) continue;
+
+                console.log(`🔍 Zpracovávám jídlo ${meal.meal_type}:`, meal.meal_items.length, 'položek');
+
+                const recipeGroups = {};
+
+                for (const item of meal.meal_items) {
+                    const recipeId = item.recipe_id;
+
+                    console.log(`🥘 Položka: "${item.food_name}", recipe_id:`, recipeId);
+
+                    if (!recipeId) {
+                        // Samostatná potravina (bez receptu)
+                        groups.push({
+                            isRecipe: false,
+                            items: [item],
+                            mealId: meal.id,
+                            mealType: meal.meal_type
+                        });
+                        continue;
+                    }
+
+                    if (!recipeGroups[recipeId]) {
+                        // Načti název receptu z databáze
+                        if (!recipeNameCache[recipeId]) {
+                            recipeNameCache[recipeId] = await getRecipeName(recipeId);
+                        }
+
+                        console.log(`📋 Nová skupina receptu: ${recipeNameCache[recipeId]}`);
+                        recipeGroups[recipeId] = {
+                            isRecipe: true,
+                            recipeId: recipeId,
+                            recipeName: recipeNameCache[recipeId], // ← POUŽÍVÁME SKUTEČNÝ NÁZEV
+                            items: [],
+                            mealId: meal.id,
+                            mealType: meal.meal_type,
+                            totalCalories: 0,
+                            totalProtein: 0,
+                            totalCarbs: 0,
+                            totalFat: 0
+                        };
+                    }
+
+                    // Přidej položku do skupiny
+                    recipeGroups[recipeId].items.push(item);
+                    recipeGroups[recipeId].totalCalories += parseFloat(item.calories) || 0;
+                    recipeGroups[recipeId].totalProtein += parseFloat(item.protein) || 0;
+                    recipeGroups[recipeId].totalCarbs += parseFloat(item.carbs) || 0;
+                    recipeGroups[recipeId].totalFat += parseFloat(item.fat) || 0;
+                }
+
+                // Přidej skupiny receptů do výsledku
+                Object.values(recipeGroups).forEach(group => {
+                    groups.push(group);
+                });
+            }
+
+            return groups;
+        }
+
+        // Pomocná funkce pro získání názvu receptu z položek
+        function getRecipeNameFromItems(items, recipeId) {
+            // Najdeme první položku s tímto recipe_id, která má food_name
+            const recipeItem = items.find(item => item.recipe_id === recipeId && item.food_name);
+            return recipeItem ? recipeItem.food_name : 'Recept';
+        }
+
+        // Vytvoření elementu skupiny receptů S MNOŽSTVÍM
+        function createRecipeGroupElement(group, mealType) {
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'recipe-group';
+            groupDiv.dataset.recipeId = group.recipeId;
+            groupDiv.dataset.mealId = group.mealId;
+
+            // Spočítejte celkové množství
+            const totalAmount = group.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+            const mainUnit = group.items[0]?.unit || 'g'; // Použijeme jednotku z první položky
+
+            const isExpanded = false;
+
+            groupDiv.innerHTML = `
+                <div class="recipe-header ${isExpanded ? 'expanded' : ''}">
+                    <div class="recipe-main-info">
+                        <div class="recipe-icon">📋</div>
+                        <div class="recipe-details">
+                            <div class="recipe-name">${group.recipeName}</div>
+                            <div class="recipe-totals">
+                                <span class="total-amount">${Math.round(totalAmount)} ${mainUnit}</span>
+                                <span>${Math.round(group.totalCalories)} kcal</span>
+                                <span>B: ${Math.round(group.totalProtein)}g</span>
+                                <span>S: ${Math.round(group.totalCarbs)}g</span>
+                                <span>T: ${Math.round(group.totalFat)}g</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="recipe-actions">
+                        <button class="toggle-recipe-btn" title="Rozbalit ingredience">
+                            <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Rozbalit" class="toggle-icon ${isExpanded ? 'expanded' : ''}">
+                        </button>
+                        <button class="delete-recipe-group-btn" title="Smazat recept">
+                            <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat recept">
+                        </button>
+                    </div>
+                </div>
+                <div class="recipe-ingredients ${isExpanded ? 'expanded' : ''}">
+                    ${group.items.map(item => `
+                        <div class="recipe-ingredient-item">
+                            <div class="ingredient-info">
+                                <div class="ingredient-name">${item.food_name}</div>
+                                <div class="ingredient-details">
+                                    <span class="amount-badge">${item.amount} ${item.unit}</span>
+                                    <span>${Math.round(item.calories)} kcal</span>
+                                    ${item.protein ? `<span>B: ${Math.round(item.protein)}g</span>` : ''}
+                                    ${item.carbs ? `<span>S: ${Math.round(item.carbs)}g</span>` : ''}
+                                    ${item.fat ? `<span>T: ${Math.round(item.fat)}g</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="ingredient-actions">
+                                <button class="edit-ingredient-btn" data-item-id="${item.id}" title="Upravit ingredienci">
+                                    <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
+                                </button>
+                                <button class="delete-ingredient-btn" data-item-id="${item.id}" title="Smazat ingredienci">
+                                    <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            // Event listener pro rozbalení/sbalení - OPRAVENÉ
+            const toggleBtn = groupDiv.querySelector('.toggle-recipe-btn');
+            const ingredientsContainer = groupDiv.querySelector('.recipe-ingredients');
+            const recipeHeader = groupDiv.querySelector('.recipe-header');
+            const toggleIcon = groupDiv.querySelector('.toggle-icon');
+
+            toggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log("🎯 Kliknuto na rozbalení receptu");
+                console.log("📊 Stav před:", {
+                    containerExpanded: ingredientsContainer.classList.contains('expanded'),
+                    headerExpanded: recipeHeader.classList.contains('expanded'),
+                    iconExpanded: toggleIcon.classList.contains('expanded')
+                });
+
+                const isNowExpanded = !ingredientsContainer.classList.contains('expanded');
+
+                // Přepněte třídy
+                ingredientsContainer.classList.toggle('expanded', isNowExpanded);
+                recipeHeader.classList.toggle('expanded', isNowExpanded);
+                toggleIcon.classList.toggle('expanded', isNowExpanded);
+
+                console.log("📊 Stav po:", {
+                    containerExpanded: ingredientsContainer.classList.contains('expanded'),
+                    headerExpanded: recipeHeader.classList.contains('expanded'),
+                    iconExpanded: toggleIcon.classList.contains('expanded')
+                });
+                console.log(`📋 Recept ${isNowExpanded ? 'rozbalen' : 'sbalen'}`);
+            });
+
+            // Event listener pro kliknutí na celou hlavičku receptu (pro rozbalení)
+            recipeHeader.addEventListener('click', (e) => {
+                // Rozbalíme pouze pokud neklikneme na tlačítka
+                if (!e.target.closest('.recipe-actions')) {
+                    console.log("🎯 Kliknuto na hlavičku receptu");
+                    const isNowExpanded = !ingredientsContainer.classList.contains('expanded');
+
+                    ingredientsContainer.classList.toggle('expanded', isNowExpanded);
+                    recipeHeader.classList.toggle('expanded', isNowExpanded);
+                    toggleIcon.classList.toggle('expanded', isNowExpanded);
+                }
+            });
+
+            // Zbytek event listenerů zůstává stejný...
+            const deleteBtn = groupDiv.querySelector('.delete-recipe-group-btn');
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteRecipeGroup(group.recipeId, group.mealId, group.recipeName);
+            });
+
+            groupDiv.querySelectorAll('.edit-ingredient-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const itemId = e.target.closest('.edit-ingredient-btn').dataset.itemId;
+                    editMealItem(itemId);
+                });
+            });
+
+            groupDiv.querySelectorAll('.delete-ingredient-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const itemId = e.target.closest('.delete-ingredient-btn').dataset.itemId;
+                    const mealId = group.mealId;
+                    deleteMealItem(itemId, mealId);
+                });
+            });
+
+            return groupDiv;
+        }
+
+        // Vytvoření elementu samostatné potraviny S MNOŽSTVÍM
+        function createFoodItemElement(item, mealId) {
+            const div = document.createElement('div');
+            div.className = 'food-item';
+            div.innerHTML = `
+                <div class="food-item-info">
+                    <div class="food-item-name">${item.food_name}</div>
+                    <div class="food-item-details">
+                        <span class="amount-badge">${item.amount} ${item.unit}</span>
+                        <span>${Math.round(item.calories)} kcal</span>
+                        ${item.protein ? `<span>B: ${Math.round(item.protein)}g</span>` : ''}
+                        ${item.carbs ? `<span>S: ${Math.round(item.carbs)}g</span>` : ''}
+                        ${item.fat ? `<span>T: ${Math.round(item.fat)}g</span>` : ''}
+                    </div>
+                </div>
+                <div class="food-item-actions">
+                    <button class="edit-food-item" data-item-id="${item.id}" title="Upravit potravinu">
+                        <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
+                    </button>
+                    <button class="delete-food-item" data-item-id="${item.id}" data-meal-id="${mealId}" title="Smazat potravinu">
+                        <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
+                    </button>
+                </div>
+            `;
+
+            // Event listenery zůstávají stejné...
+            div.querySelector('.edit-food-item').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const itemId = e.target.closest('.edit-food-item').dataset.itemId;
+                editMealItem(itemId);
+            });
+
+            div.querySelector('.delete-food-item').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const itemId = e.target.closest('.delete-food-item').dataset.itemId;
+                const mealId = e.target.closest('.delete-food-item').dataset.mealId;
+                deleteMealItem(itemId, mealId);
+            });
+
+            return div;
+        }
+
+        // Funkce pro smazání celé skupiny receptů
+        async function deleteRecipeGroup(recipeId, mealId, recipeName) {
+            window.showCustomNotification(
+                `Opravdu chcete smazat celý recept "<strong>${recipeName}</strong>" včetně všech ingrediencí?`,
+                'confirmDeleteRecipe',
+                async () => {
+                    try {
+                        // Najdeme všechny položky s tímto recipe_id v daném jídle
+                        const { data: items, error: findError } = await window.supabaseClient
+                            .from('meal_items')
+                            .select('id')
+                            .eq('recipe_id', recipeId)
+                            .eq('daily_meal_id', mealId);
+
+                        if (findError) throw findError;
+
+                        // Smazeme všechny položky
+                        if (items && items.length > 0) {
+                            const { error: deleteError } = await window.supabaseClient
+                                .from('meal_items')
+                                .delete()
+                                .in('id', items.map(item => item.id));
+
+                            if (deleteError) throw deleteError;
+                        }
+
+                        window.showCustomNotification(`Recept "${recipeName}" byl smazán`, 'success');
+                        await loadDailyIntakeData(currentDailyIntakeDate);
+
+                    } catch (error) {
+                        console.error("❌ Chyba při mazání receptu:", error);
+                        window.showCustomNotification("Chyba při mazání receptu: " + error.message, 'error');
+                    }
+                },
+                true
+            );
+        }
+
+        // Vytvoření elementu položky jídla
+        function createMealItemElement(item, mealId) {
+            const div = document.createElement('div');
+            div.className = 'meal-item';
+            div.innerHTML = `
+        <div class="meal-item-info">
+            <div class="meal-item-name">${item.food_name}</div>
+            <div class="meal-item-details">
+                ${item.amount} ${item.unit} • ${Math.round(item.calories)} kcal
+                ${item.protein ? ` • B: ${Math.round(item.protein)}g` : ''}
+                ${item.carbs ? ` • S: ${Math.round(item.carbs)}g` : ''}
+                ${item.fat ? ` • T: ${Math.round(item.fat)}g` : ''}
+            </div>
+        </div>
+        <div class="meal-item-actions">
+            <button class="meal-item-action edit-meal-item" data-item-id="${item.id}">
+                <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
+            </button>
+            <button class="meal-item-action delete-meal-item" data-item-id="${item.id}" data-meal-id="${mealId}">
+                <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
+            </button>
+        </div>
+    `;
+
+            return div;
+        }
+
+        // Nastavení event listenerů
+        function setupDailyIntakeEventListeners() {
+            // Navigace mezi dny
+            document.getElementById('prevDayBtn')?.addEventListener('click', () => navigateDay(-1));
+            document.getElementById('nextDayBtn')?.addEventListener('click', () => navigateDay(1));
+
+            // Tlačítka pro přidání jídla
+            document.querySelectorAll('.add-meal-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const mealType = e.target.dataset.mealType;
+                    openRecipeSelectionForMeal(mealType);
+                });
+            });
+
+            // Delegace eventů pro akce s jídly
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.edit-meal-item')) {
+                    const itemId = e.target.closest('.edit-meal-item').dataset.itemId;
+                    editMealItem(itemId);
+                }
+
+                if (e.target.closest('.delete-meal-item')) {
+                    const itemId = e.target.closest('.delete-meal-item').dataset.itemId;
+                    const mealId = e.target.closest('.delete-meal-item').dataset.mealId;
+                    deleteMealItem(itemId, mealId);
+                }
+            });
+        }
+
+        // Navigace mezi dny
+        function navigateDay(direction) {
+            currentDailyIntakeDate.setDate(currentDailyIntakeDate.getDate() + direction);
+            loadDailyIntakeData(currentDailyIntakeDate);
+        }
+
+        // Otevření výběru receptu pro jídlo
+        function openRecipeSelectionForMeal(mealType) {
+            if (!checkInitialization()) return;
+
+            console.log("➕ Přidávám jídlo pro:", mealType, "profil:", window.currentProfileId);
+
+            // Uložíme kontext pro pozdější přidání
+            window.currentMealContext = {
+                mealType: mealType,
+                date: currentDailyIntakeDate,
+                profileId: window.currentProfileId // ✅ Uložíme i profil pro kontrolu
+            };
+
+            // Načteme a zobrazíme recepty PRO SPRÁVNÝ PROFIL
+            loadUserRecipesForMealSelection();
+            document.getElementById('selectRecipeModal').style.display = 'flex';
+        }
+
+        // Načtení receptů pro výběr do jídla
+        async function loadUserRecipesForMealSelection() {
+            if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) {
+                console.log("❌ Nelze načíst recepty - chybí uživatel nebo profil");
+                return;
+            }
+
+            try {
+                console.log("📋 Načítám recepty pro profil:", window.currentProfileId);
+
+                const { data, error } = await window.supabaseClient
+                    .from('recipes')
+                    .select('*')
+                    .eq('profile_id', window.currentProfileId) // ✅ DŮLEŽITÉ - filtr na profil
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                console.log("✅ Načteno receptů:", data?.length || 0);
+                displayRecipesForMealSelection(data || []);
+
+            } catch (error) {
+                console.error("❌ Chyba při načítání receptů:", error);
+                window.showCustomNotification("Chyba při načítání receptů: " + error.message, 'error');
+            }
+        }
+
+        // Zobrazení receptů pro výběr
+        function displayRecipesForMealSelection(recipes) {
+            const existingRecipesList = document.getElementById('existingRecipesList');
+            const recipeCountDisplay = document.getElementById('recipeCountDisplay');
+
+            if (!existingRecipesList) return;
+            existingRecipesList.innerHTML = '';
+
+            if (recipeCountDisplay) {
+                recipeCountDisplay.textContent = `Vyberte recept (${recipes.length})`;
+                recipeCountDisplay.style.display = 'block';
+            }
+
+            if (recipes.length === 0) {
+                existingRecipesList.innerHTML = '<li style="text-align: center; color: #888; padding: 20px;">Žádné recepty</li>';
+                return;
+            }
+
+            recipes.forEach((recipe, index) => {
+                const recipeItem = document.createElement('li');
+                recipeItem.className = 'recipe-list-item';
+
+                const totalCalories = calculateRecipeTotalCalories(recipe);
+                const formattedCalories = formatNumberForDisplay(totalCalories, 'kcal', true);
+
+                recipeItem.innerHTML = `
+            <div class="recipe-number">${index + 1}.</div>
+            <div class="recipe-name">${recipe.name}</div>
+            <div class="recipe-calories">${formattedCalories}</div>
+        `;
+
+                recipeItem.addEventListener('click', () => {
+                    addRecipeToMeal(recipe);
+                });
+
+                existingRecipesList.appendChild(recipeItem);
+            });
+        }
+
+        // Přidání receptu do jídla
+        async function addRecipeToMeal(recipe) {
+            if (!window.currentMealContext) {
+                window.showCustomNotification("Chyba: Chybí kontext jídla", 'error');
+                return;
+            }
+
+            // ✅ KONTROLA - zda se nezměnil profil během výběru
+            if (window.currentMealContext.profileId !== window.currentProfileId) {
+                window.showCustomNotification("Chyba: Profil se změnil během výběru receptu", 'error');
+                document.getElementById('selectRecipeModal').style.display = 'none';
+                return;
+            }
+
+            try {
+                const { mealType, date } = window.currentMealContext;
+
+                // Zavřeme modal
+                document.getElementById('selectRecipeModal').style.display = 'none';
+
+                // Přidáme recept do denního příjmu
+                await addRecipeToDailyIntake(recipe, mealType, date);
+
+                window.showCustomNotification(`Recept "${recipe.name}" byl přidán do ${mealTypeLabels[mealType]}!`, 'success');
+
+            } catch (error) {
+                console.error("❌ Chyba při přidávání receptu:", error);
+                window.showCustomNotification("Chyba při přidávání receptu: " + error.message, 'error');
+            }
+        }
+
+        // Přidání receptu do denního příjmu
+        async function addRecipeToDailyIntake(recipe, mealType, date) {
+            try {
+                // ✅ KONTROLA - recept musí patřit k aktuálnímu profilu
+                if (recipe.profile_id !== window.currentProfileId) {
+                    console.error("❌ Recept nepatří k aktuálnímu profilu:", recipe.profile_id, "vs", window.currentProfileId);
+                    window.showCustomNotification("Chyba: Recept nepatří k vybranému profilu", 'error');
+                    return;
+                }
+
+                const dateString = formatDateForAPI(date);
+
+                // 1. Zkontrolujeme/získáme denní záznam S KONTROLOU PROFILU
+                let dailyIntakeId = await getOrCreateDailyIntake(dateString);
+
+                // 2. Získáme/create meal pro daný typ
+                let mealId = await getOrCreateMeal(dailyIntakeId, mealType);
+
+                // 3. Přidáme všechny ingredience receptu jako položky jídla S RECIPE_ID
+                if (recipe.ingredients && recipe.ingredients.length > 0) {
+                    for (const ingredient of recipe.ingredients) {
+                        // ✅ DŮLEŽITÉ: Přidáme recipe_id k ingredienci
+                        const ingredientWithRecipeId = {
+                            ...ingredient,
+                            recipe_id: recipe.id // PŘIDÁME RECIPE_ID
+                        };
+
+                        await addMealItem(mealId, ingredientWithRecipeId, recipe.name);
+                    }
+                }
+
+                // 4. Znovu načteme data
+                await loadDailyIntakeData(date);
+
+            } catch (error) {
+                console.error("❌ Chyba při přidávání do denního příjmu:", error);
+                throw error;
+            }
+        }
+
+        // Pomocné funkce
+        function formatDateForAPI(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        async function getOrCreateDailyIntake(dateString) {
+            // Nejprve zkusíme najít existující záznam S KONTROLOU PROFILU
+            const { data: existing, error: findError } = await window.supabaseClient
+                .from('daily_intakes')
+                .select('id')
+                .eq('user_id', window.currentUser.id)
+                .eq('profile_id', window.currentProfileId) // ✅ DŮLEŽITÉ
+                .eq('intake_date', dateString)
+                .single();
+
+            if (findError && findError.code !== 'PGRST116') throw findError;
+
+            if (existing) {
+                return existing.id;
+            }
+
+            // Vytvoříme nový záznam S SPRÁVNÝM PROFIL_ID
+            const { data: newIntake, error: createError } = await window.supabaseClient
+                .from('daily_intakes')
+                .insert({
+                    user_id: window.currentUser.id,
+                    profile_id: window.currentProfileId, // ✅ DŮLEŽITÉ
+                    intake_date: dateString
+                })
+                .select()
+                .single();
+
+            if (createError) throw createError;
+            return newIntake.id;
+        }
+
+        async function getOrCreateMeal(dailyIntakeId, mealType) {
+            // Najdeme poslední pořadí pro tento typ jídla
+            const { data: existingMeals, error: findError } = await window.supabaseClient
+                .from('daily_meals')
+                .select('id, meal_order')
+                .eq('daily_intake_id', dailyIntakeId)
+                .eq('meal_type', mealType)
+                .order('meal_order', { ascending: false });
+
+            if (findError) throw findError;
+
+            const nextOrder = existingMeals && existingMeals.length > 0 ? existingMeals[0].meal_order + 1 : 0;
+
+            // Vytvoříme nové jídlo
+            const { data: newMeal, error: createError } = await window.supabaseClient
+                .from('daily_meals')
+                .insert({
+                    daily_intake_id: dailyIntakeId,
+                    meal_type: mealType,
+                    meal_order: nextOrder
+                })
+                .select()
+                .single();
+
+            if (createError) throw createError;
+            return newMeal.id;
+        }
+
+        async function addMealItem(mealId, ingredient, recipeName) {
+            console.log("➕ Přidávám položku s recipe_id:", {
+                mealId: mealId,
+                foodName: ingredient.foodName,
+                recipeId: ingredient.recipe_id, // Mělo by být nyní definováno
+                hasRecipeId: !!ingredient.recipe_id,
+                nutritionalDetails: ingredient.nutritionalDetails ? 'ano' : 'ne'
+            });
+
+            const { error } = await window.supabaseClient
+                .from('meal_items')
+                .insert({
+                    daily_meal_id: mealId,
+                    recipe_id: ingredient.recipe_id || null, // ✅ Uložíme recipe_id do databáze
+                    food_name: ingredient.foodName || 'Neznámá potravina',
+                    amount: ingredient.amount || 100,
+                    unit: ingredient.unit || 'g',
+                    calories: parseFloat(ingredient.kcal) || 0,
+                    protein: parseFloat(ingredient.nutritionalDetails?.protein) || 0,
+                    carbs: parseFloat(ingredient.nutritionalDetails?.carbs) || 0,
+                    fat: parseFloat(ingredient.nutritionalDetails?.fat) || 0,
+                    fiber: parseFloat(ingredient.nutritionalDetails?.fiber) || 0,
+                    nutritional_data: ingredient.nutritionalDetails || null
+                });
+
+            if (error) {
+                console.error("❌ Chyba při ukládání položky:", error);
+                throw error;
+            }
+
+            console.log("✅ Položka úspěšně uložena s recipe_id:", ingredient.recipe_id);
+        }
+
+        // Funkce pro úpravu a mazání (zatím základní)
+        function editMealItem(itemId) {
+            console.log("✏️ Úprava položky:", itemId);
+            window.showCustomNotification("Funkce úpravy bude brzy dostupná", 'info');
+        }
+
+        async function deleteMealItem(itemId, mealId) {
+            window.showCustomNotification(
+                `Opravdu chcete smazat tuto položku?`,
+                'confirmDeleteRecipeItem',
+                async () => {
+                    try {
+                        const { error } = await window.supabaseClient
+                            .from('meal_items')
+                            .delete()
+                            .eq('id', itemId);
+
+                        if (error) throw error;
+
+                        window.showCustomNotification("Položka byla smazána", 'success');
+                        await loadDailyIntakeData(currentDailyIntakeDate);
+
+                    } catch (error) {
+                        console.error("❌ Chyba při mazání položky:", error);
+                        window.showCustomNotification("Chyba při mazání položky: " + error.message, 'error');
+                    }
+                },
+                true
+            );
+        }
+
+        // Přidáme inicializaci denního příjmu do hlavní inicializace aplikace
+        // Upravte funkci continueWithUser v index.html:
+
+        // Event listener pro skenování v modalu
+        document.getElementById('barcodeButtonInModal')?.addEventListener('click', function () {
+            closeSearchModal();
+            openBarcodeScanner();
         });
     </script>
 </body>
