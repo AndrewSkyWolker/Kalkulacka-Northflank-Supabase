@@ -3442,34 +3442,30 @@
                         const formattedIngredientKcal = formatNumberForDisplay(kcalNum, kcalUnit, true);
 
                         ingredientItemDiv.innerHTML = `
-                            <div class="image-wrapper">
-                                <img src="${displayImageUrl}" alt="${ingredient.foodName}" 
-                                    onerror="this.onerror=null;this.src='${ingPlaceholderImage}'" 
-                                    style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;" />
-                            </div>
-                            <div class="ingredient-info">
-                                <div class="ingredient-name">${ingredient.foodName}</div>
-                                <div class="ingredient-details">
-                                    <span class="amount-badge">${ingredient.amount} ${ingredient.unit}</span>
-                                    <span>${Math.round(ingredient.calories || kcalNum)} kcal</span>
-                                    ${ingredient.protein ? `<span>B: ${Math.round(ingredient.protein)}g</span>` : ''}
-                                    ${ingredient.carbs ? `<span>S: ${Math.round(ingredient.carbs)}g</span>` : ''}
-                                    ${ingredient.fat ? `<span>T: ${Math.round(ingredient.fat)}g</span>` : ''}
-                                </div>
-                            </div>
-                            <div class="ingredient-actions">
-                                    <button class="edit-ingredient-btn" data-item-id="${ingredient.id}" 
-                                        data-recipe-id="${recipeId}" data-ingredient-index="${index}" 
-                                        title="Upravit ingredienci">
-                                    <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
-                                </button>
-                                <button class="delete-ingredient-btn" data-item-id="${ingredient.id}" 
-                                        data-recipe-id="${recipeId}" data-ingredient-index="${index}" 
-                                        title="Smazat ingredienci">
-                                    <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
-                                </button>
-                            </div>
-                        `;
+    <div class="ingredient-main-info">
+        <div class="ingredient-icon">🥘</div>
+        <div class="ingredient-details">
+            <div class="ingredient-name">${ingredient.foodName}</div>
+            <div class="ingredient-totals">
+                <span class="total-amount">${ingredient.amount} ${ingredient.unit}</span>
+                <span>${Math.round(ingredient.calories || kcalNum)} kcal</span>
+                ${ingredient.protein ? `<span>B: ${Math.round(ingredient.protein)}g</span>` : ''}
+                ${ingredient.carbs ? `<span>S: ${Math.round(ingredient.carbs)}g</span>` : ''}
+                ${ingredient.fat ? `<span>T: ${Math.round(ingredient.fat)}g</span>` : ''}
+            </div>
+        </div>
+    </div>
+    <div class="ingredient-actions">
+        <button class="edit-ingredient-btn" data-recipe-id="${recipeId}" 
+                data-ingredient-index="${index}" title="Upravit ingredienci">
+            <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
+        </button>
+        <button class="delete-ingredient-btn" data-recipe-id="${recipeId}" 
+                data-ingredient-index="${index}" title="Smazat ingredienci">
+            <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
+        </button>
+    </div>
+`;
 
                         ingredientsListEl.appendChild(ingredientItemDiv);
 

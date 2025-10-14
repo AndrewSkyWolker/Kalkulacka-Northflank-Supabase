@@ -604,16 +604,15 @@ button:hover {
     background: white;
     border: 1px solid #e9ecef;
     border-radius: 8px;
-    cursor: pointer;
+    margin-bottom: 8px;
     transition: all 0.2s;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    min-height: 70px;
+    cursor: pointer;
 }
 
 .food-item-potravina:hover {
     border-color: #007bff;
-    box-shadow: 0 2px 8px rgba(0,123,255,0.15);
-    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
 }
 
 /* HLAVNÍ VÝSLEDKY VYHLEDÁVÁNÍ NA STRÁNCE */
@@ -659,8 +658,8 @@ button:hover {
 /* OBRÁZEK POTRAVINY */
 .food-item-potravina .image-wrapper {
     flex-shrink: 0;
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border-radius: 6px;
     overflow: hidden;
     border: 1px solid #f8f9fa;
@@ -673,16 +672,45 @@ button:hover {
     object-fit: cover;
 }
 
-/* BADGE S KALORIEMI - STEJNÝ JAKO AMOUNT-BADGE */
-.food-item-potravina .calories-badge {
-    background: #e74c3c;
-    color: white;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
+.food-item-potravina .food-info {
+    flex: 1;
+    min-width: 0;
 }
 
+.food-item-potravina .food-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.food-item-potravina .food-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.food-item-potravina .calories-badge {
+    background: #6f42c1;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.food-item-potravina .food-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: 15px;
+}
+
+/* BADGE S KALORIEMI - STEJNÝ JAKO AMOUNT-BADGE */
 .food-item-potravina .food-item-actions button {
     background: none;
     border: none;
@@ -745,12 +773,6 @@ button:hover {
     gap: 12px;
     font-size: 0.85rem;
     color: #666;
-}
-
-/* DETAILY POTRAVINY */
-.food-item-potravina .food-details {
-    flex: 1;
-    min-width: 0;
 }
 
 .food-item-potravina .food-details h3 {
@@ -1321,8 +1343,8 @@ button:hover {
 .recipe-ingredient-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
+    justify-content: space-between;
+    padding: 12px 15px;
     background: white;
     border: 1px solid #e9ecef;
     border-radius: 8px;
@@ -1335,7 +1357,83 @@ button:hover {
 .recipe-ingredient-item:hover {
     border-color: #007bff;
     box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    transform: translateY(-1px);
+}
+
+.recipe-ingredient-item .ingredient-main-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.recipe-ingredient-item .ingredient-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.recipe-ingredient-item .ingredient-details {
+    flex: 1;
+    min-width: 0;
+}
+
+/* NÁZEV - STEJNÝ JAKO .recipe-name */
+.recipe-ingredient-item .ingredient-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* CELKY - STEJNÉ JAKO .recipe-totals */
+.recipe-ingredient-item .ingredient-totals {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+/* BADGE MNOŽSTVÍ - STEJNÝ JAKO .total-amount */
+.recipe-ingredient-item .total-amount {
+    background: #6f42c1;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* AKCE - STEJNÉ JAKO .recipe-actions */
+.recipe-ingredient-item .ingredient-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: 15px;
+}
+
+.recipe-ingredient-item .ingredient-actions button {
+    background: none;
+    border: none;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.recipe-ingredient-item .ingredient-actions button:hover {
+    background: #f8f9fa;
+}
+
+.recipe-ingredient-item .ingredient-actions img {
+    width: 18px;
+    height: 18px;
+    opacity: 0.7;
+}
+
+.recipe-ingredient-item .ingredient-actions button:hover img {
+    opacity: 1;
 }
 
 .recipe-ingredient-item:last-child {
