@@ -8,7 +8,8 @@ body {
 }
 
 body {
-    font-family: 'Dutch801 Rm BT', serif;
+    /* Nejprve se zkusí načíst Web Font, pokud selže, použije se záložní systémový serif */
+    font-family: 'Lora', 'Times New Roman', serif;
     background-color: #f4f4f4;
 }
 
@@ -117,10 +118,10 @@ button:hover {
     padding: 8px 50px 12px 50px !important; /* Větší padding pro ikonky */
 }
 
-/* Nová ikonka profilu v hlavičce */
+/* ikonka profilu v hlavičce */
 .profile-icon-header {
     position: absolute;
-    top: 10px;
+    top: 5px;
     left: 10px;
     display: flex;
     align-items: center;
@@ -156,8 +157,8 @@ button:hover {
 }
 
 .profile-header-icon {
-    width: 22px !important;  /* TROCHU VĚTŠÍ IKONA */
-    height: 22px !important; /* TROCHU VĚTŠÍ IKONA */
+    width: 24px !important;  /* TROCHU VĚTŠÍ IKONA */
+    height: 24px !important; /* TROCHU VĚTŠÍ IKONA */
 }
 
 .profile-name-header {
@@ -172,7 +173,7 @@ button:hover {
 
 /* ZVÝRAZNĚNÍ PŘI NASTAVENÉM PROFILU */
 .profile-icon-header.has-profile .profile-name-header {
-    color: #007bff; /* MODRÁ BARVA PRO AKTIVNÍ PROFIL */
+    color: #000000; /* MODRÁ BARVA PRO AKTIVNÍ PROFIL */
     font-weight: 600;
 }
 
@@ -234,7 +235,7 @@ button:hover {
 
 .food-item-name {
     font-weight: 600;
-    color: #333;
+    color: #11225a;
     margin-bottom: 4px;
 }
 
@@ -696,7 +697,7 @@ button:hover {
 }
 
 .food-item-potravina .calories-badge {
-    background: #6f42c1;
+    background: #0f316e;
     color: white;
     padding: 2px 8px;
     border-radius: 10px;
@@ -3912,23 +3913,111 @@ select.form-input {
 }
 
 .charts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 20px;
-    justify-items: center;
+    display: grid; /* Aktivujeme CSS mřížku */
+    
+    /* Vytvoří flexibilní mřížku: 
+       - auto-fit: zajistí, že se sloupce automaticky přizpůsobí dostupné šířce.
+       - minmax(180px, 1fr): minimální šířka sloupce bude 180px, jinak rozdělí prostor rovnoměrně (1fr). 
+         Toto zajistí, že se na mobilu zobrazí 1 sloupec a na desktopu 2 (nebo více). */
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+    
+    gap: 20px; /* Mezera mezi grafy (řádky a sloupce) */
 }
 
+/* Upravíme chart-container pro lepší vzhled a chování v mřížce */
 .chart-container {
+    /* Původní styly pro ohraničení a pozadí odstraněny */
+    background-color: transparent; /* Průhledné pozadí */
+    border: none; /* Odstranit ohraničení */
+    border-radius: 0;
+    padding: 15px 5px; /* Základní odsazení */
     text-align: center;
+    box-shadow: none; /* Odstranit stín */
+    width: 100%; 
+    height: auto;
+}
+
+.charts-grid-main {
+    display: grid;
+    /* Jeden sloupec uprostřed */
+    grid-template-columns: 1fr; 
+    justify-items: center; /* Vycentrování obsahu (Graf Kalorie) */
+    gap: 20px;
+    margin-bottom: 30px; /* mezera mezi Kaloriemi a Makry */
+    padding: 0 15px;
+}
+
+.chart-container.large-chart {
+    /* Vizuálně zvětší Kalorický graf na všech rozlišeních */
+    width: 160px; /* Zvětšeno pro Kalorie */
+    height: 190px;
+    max-width: 100%;
+}
+
+/* Styly pro Makro grafy (dva sloupce, menší) */
+.charts-grid-macros {
+    display: grid;
+    /* Dva sloupce, které se automaticky zmenší, pokud je okno malé */
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 15px; /* Menší mezera mezi malými grafy */
+    padding: 0 15px;
+}
+
+/* Zajištění, že rozložení platí i pro menší rozlišení, jak bylo požadováno */
+/* Žádné @media dotazy pro přepnutí na 1 sloupec, protože požadujete zachovat 2 sloupce */
+/* (Pro mobilní zobrazení by to mohlo vypadat stísněně, ale zachováváme požadavek) */
+
+/* Zajistíme, že grafy Makroživin budou menší */
+.charts-grid-macros .chart-container {
     padding: 10px;
+    width: auto;
+    height: auto;
+}
+
+/* Můžete také zmenšit velikost SVG kruhu pro makra, pokud je to nutné */
+.charts-grid-macros .circular-chart {
+    max-width: 120px; /* Zmenšení SVG */
+    margin: 0 auto;
+}
+
+/* Vycentrování textu procent uvnitř grafu */
+.circular-chart text.percentage {
+    /* Původní Y pozice byla 20.35, to není přesný střed */
+    dominant-baseline: central; /* Vertikálně centrováno */
+    text-anchor: middle; /* Horizontálně centrováno */
+    font-size: 0.5em; /* Lze upravit pro čitelnost */
+}
+
+/* Zvětšení písma procent POUZE pro graf Kalorie */
+/* Cílíme na procenta uvnitř kontejneru s třídou large-chart */
+.chart-container.large-chart .circular-chart text.percentage {
+    font-size: 0.57em; /* Zvětšeno písmo (původní bylo 0.5em) */
+}
+
+/* Cílíme na element .circular-chart uvnitř velkého kontejneru. */
+.chart-container.large-chart .circular-chart {
+    max-width: 100%; /* Zajišťuje, že se kruh roztáhne na celou šířku 310px */
+    width: 75%; 
+    height: auto;
+    /* Odstraníme jakékoliv marginy, pokud tam byly, aby se roztáhl */
+    margin: 0 auto; 
+}
+
+/* Cílíme na popisek uvnitř většího kontejneru Kalorií (large-chart) */
+.chart-container.large-chart .chart-title {
+    /* Zvětšíme velikost na 150% původní (např. 1.5em) */
+    /* Ponecháme 1.5em, což zajistí, že Kalorie bude viditelně větší než Makroživiny (1.25em) */
+    font-size: 1.3em; 
 }
 
 .chart-title {
-    font-weight: 600;
-    color: #495057;
+    font-size: 1.1em; 
+    font-weight: bold;
+    color: #333;
     margin-bottom: 10px;
-    font-size: 0.9em;
 }
+
+
 
 .circular-chart {
     width: 100px;
@@ -4290,3 +4379,77 @@ select.form-input {
 #openPersonalCardBtn:hover {
     background: #0056b3;
 }
+
+/* Přidejte do style.css pro malé tlačítko přidání v hlavičce */
+.add-food-item-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    margin-right: 5px; /* Mezera od názvu */
+    flex-shrink: 0; /* Zabrání zmenšení */
+}
+
+.add-food-item-btn:hover {
+    background: #0056b3;
+}
+
+/* Nutné pro umístění obrázku a informací vedle sebe */
+.recipe-header.search-header-custom {
+    display: flex; /* Zajistí prvky v řadě */
+    align-items: center;
+    gap: 15px; /* Mezera mezi obrázkem a textem */
+    /* Zde se ruší 'justify-content: space-between', protože chceme obrázek + info vlevo */
+}
+
+/* Styl pro obrázek - zmenšíme, aby se vešel do hlavičky */
+.recipe-header .image-wrapper {
+    width: 60px; /* Pevná šířka pro obrázek */
+    height: 60px; /* Pevná výška pro obrázek */
+    overflow: hidden;
+    border-radius: 8px; /* Zaoblené rohy obrázku */
+    flex-shrink: 0;
+}
+
+.recipe-header .image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Styl pro text a detaily - Kalorie a makra pod názvem */
+.recipe-header .food-item-info {
+    display: flex;
+    flex-direction: column; /* Umožní řadit název a detaily pod sebe */
+    flex-grow: 1; /* Zabere zbývající prostor */
+}
+
+.recipe-header .recipe-name {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 4px;
+}
+
+/* Styl pro makroživiny pod názvem */
+.recipe-summary-item-search {
+    font-size: 0.9em;
+    color: #555;
+    /* Zajistí kompaktní zobrazení */
+}
+
+/* Detailní styl pro makra */
+.macro-summary {
+    display: block; /* Každý souhrn na nový řádek */
+    margin-top: 2px;
+}
+
+

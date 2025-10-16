@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kalorická kalkulačka</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap">    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 </head>
 
@@ -18,14 +18,14 @@
 
             <div id="profileIconHeader" class="profile-icon-header">
                 <img src="{{ url_for('static', filename='icon/profil.png') }}" alt="Profil" class="profile-header-icon">
-                <span id="currentProfileNameHeader" class="profile-name-header">Profil</span>
+                <span id="currentProfileNameHeader" class="profile-name-header" style="display: none;">Profil</span>
             </div>
 
             <!-- IKONKA NASTAVENÍ VPRAVO -->
             <img id="settingsIcon" src="{{ url_for('static', filename='icon/nastaveni.png') }}" alt="Nastavení"
                 class="settings-icon">
 
-            <h1>Kalorická kalkulačka</h1>
+            <!--<h1>Kalorická kalkulačka</h1>-->         
 
             <div id="currentProfileDisplay" style="display: none;">
                 <div class="profile-display-clickable">
@@ -41,7 +41,7 @@
             <!-- HLAVNÍ OVLÁDACÍ PRVKY - 3 TLACÍTKA -->
             <div class="main-controls-header">
                 <button id="recipesButton" disabled>Recepty</button>
-                <button id="dailyIntakeButton" class="active">📊 Denní příjem</button>
+                <!-- <button id="dailyIntakeButton" class="active">📊 Denní příjem</button>-->
                 <button id="searchModalButton">🔍 Vyhledat</button>
             </div>
         </div>
@@ -387,7 +387,7 @@
     <div id="settingsModal" class="modal-overlay">
         <div class="modal-content">
             <span class="close-button" id="closeSettingsModal">&times;</span>
-
+            <h2>Kalorická kalkulačka</h2>
             <h3>Nastavení</h3>
 
             <div class="setting-item"
@@ -418,15 +418,9 @@
                             <span class="slider"></span>
                         </label>
                     </div>
+                
                     <div class="setting-item">
-                        <span class="setting-label">Potvrzení smazání profilu</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="confirmDeleteProfileToggle">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="setting-item">
-                        <span class="setting-label">Potvrzení smazání položky</span>
+                        <span class="setting-label">Potvrzení smazání položky receptu</span>
                         <label class="toggle-switch">
                             <input type="checkbox" id="confirmDeleteRecipeItemToggle">
                             <span class="slider"></span>
@@ -446,27 +440,7 @@
                             <span class="slider"></span>
                         </label>
                     </div>
-                    <div class="setting-item">
-                        <span class="setting-label">Oznámení vytvoření profilu</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="confirmProfileCreationToggle">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="setting-item">
-                        <span class="setting-label">Oznámení změny profilu</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="confirmProfileSwitchToggle">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="setting-item">
-                        <span class="setting-label">Oznámení automatického výběru profilu</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="confirmProfileAutoSelectToggle">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
+                
                     <div class="setting-item">
                         <span class="setting-label">Oznámení přidání potraviny</span>
                         <label class="toggle-switch">
@@ -541,9 +515,8 @@
 
         <!-- CELKOVÝ PŘEHLED S KRUHOVÝMI GRAFY -->
         <div class="intake-overview">
-            <div class="charts-grid">
-                <!-- KALORIE -->
-                <div class="chart-container">
+            <div class="charts-grid-main">
+                <div class="chart-container large-chart">
                     <div class="chart-title">Kalorie</div>
                     <div class="circular-chart" id="caloriesChart">
                         <svg viewBox="0 0 36 36" class="circular-chart-svg">
@@ -551,7 +524,7 @@
                                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                             <path class="circle" stroke-dasharray="0, 100"
                                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            <text x="18" y="20.35" class="percentage">0%</text>
+                            <text x="18.5" y="17.5" class="percentage">0%</text>
                         </svg>
                     </div>
                     <div class="chart-details">
@@ -559,8 +532,9 @@
                         <div class="chart-label" id="caloriesLabel">Zbývá 0 kcal</div>
                     </div>
                 </div>
+            </div>
 
-                <!-- BÍLKOVINY -->
+            <div class="charts-grid-macros">
                 <div class="chart-container">
                     <div class="chart-title">Bílkoviny</div>
                     <div class="circular-chart" id="proteinChart">
@@ -569,7 +543,7 @@
                                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                             <path class="circle protein" stroke-dasharray="0, 100"
                                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            <text x="18" y="20.35" class="percentage">0%</text>
+                            <text x="18" y="18" class="percentage">0%</text>
                         </svg>
                     </div>
                     <div class="chart-details">
@@ -578,7 +552,6 @@
                     </div>
                 </div>
 
-                <!-- SACHARIDY -->
                 <div class="chart-container">
                     <div class="chart-title">Sacharidy</div>
                     <div class="circular-chart" id="carbsChart">
@@ -587,7 +560,7 @@
                                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                             <path class="circle carbs" stroke-dasharray="0, 100"
                                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            <text x="18" y="20.35" class="percentage">0%</text>
+                            <text x="18" y="18" class="percentage">0%</text>
                         </svg>
                     </div>
                     <div class="chart-details">
@@ -596,7 +569,6 @@
                     </div>
                 </div>
 
-                <!-- TUKY -->
                 <div class="chart-container">
                     <div class="chart-title">Tuky</div>
                     <div class="circular-chart" id="fatsChart">
@@ -605,7 +577,7 @@
                                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                             <path class="circle fats" stroke-dasharray="0, 100"
                                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            <text x="18" y="20.35" class="percentage">0%</text>
+                            <text x="18" y="18" class="percentage">0%</text>
                         </svg>
                     </div>
                     <div class="chart-details">
@@ -614,7 +586,6 @@
                     </div>
                 </div>
 
-                <!-- VLÁKNINA -->
                 <div class="chart-container">
                     <div class="chart-title">Vláknina</div>
                     <div class="circular-chart" id="fiberChart">
@@ -623,7 +594,7 @@
                                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                             <path class="circle fiber" stroke-dasharray="0, 100"
                                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            <text x="18" y="20.35" class="percentage">0%</text>
+                            <text x="18" y="18" class="percentage">0%</text>
                         </svg>
                     </div>
                     <div class="chart-details">
@@ -1011,40 +982,57 @@
         }
 
         // Funkce pro přidání výsledku vyhledávání
+        // NOVÁ FUNKCE appendSearchResult(item)
         function appendSearchResult(item) {
             const resultsDiv = document.getElementById('searchModalResults');
-            const foodItemDiv = document.createElement('div');
-            foodItemDiv.classList.add('food-item', 'food-item-potravina');
 
-            let displayImageUrl = item.image_url || placeholderImage;
+            // Použijeme hlavní kontejner pro recept (světle modré pozadí, zaoblený roh)
+            const recipeGroupDiv = document.createElement('div');
+            recipeGroupDiv.classList.add('recipe-group');
 
+            // Vypočítáme formátované hodnoty
             const { number: caloriesNum, unit: caloriesUnit } = parseValueAndUnit(item.calories);
             const formattedCalories = formatNumberForDisplay(caloriesNum, caloriesUnit, true);
 
-            foodItemDiv.innerHTML = `
-                <div class="image-wrapper">
-                    <img src="${displayImageUrl}" alt="${item.name}" 
-                        onerror="this.onerror=null;this.src='${placeholderImage}'">
+            // HTML struktura kombinující RECIPE_HEADER a IMAGE
+            const headerHtml = `
+        <div class="recipe-header search-header-custom" data-food-id="${item.id || ''}" data-slug="${item.slug || ''}">
+            
+            <div class="image-wrapper">
+                <img src="${item.image_url || placeholderImage}" alt="${item.name}" 
+                    onerror="this.onerror=null;this.src='${placeholderImage}'">
+            </div>
+            
+            <div class="food-item-info">
+                <div class="recipe-name-wrapper">
+                    <div class="recipe-name">${item.name}</div>
                 </div>
-                <div class="food-item-info">
-                    <div class="food-item-name">${item.name}</div>
-                    <div class="food-item-details">
-                        <span class="calories-badge">${formattedCalories}</span>
-                        <span class="food-type-badge">${item.food_type || 'Potravina'}</span>
-                    </div>
+                
+                <div class="recipe-summary-item-search">
+                    <span class="total-calories">${formattedCalories}</span>
+                    <span class="macro-summary">
+                        B: 0 g / S: 0 g / T: 0 g / Vl: 0 g
+                    </span>
                 </div>
-                <div class="food-item-actions">
-                    <button class="add-food-item" title="Přidat do denního příjmu">
-                        <img src="{{ url_for('static', filename='icon/plus.png') }}" alt="Přidat">
-                    </button>
+            </div>
+            
+            <div class="food-item-actions">
                 </div>
-            `;
+            
+        </div>
+    `;
 
-            // Event listener pro kliknutí na celou položku
-            if (item.slug) {
-                foodItemDiv.addEventListener('click', function (e) {
-                    // Zabránit spuštění při kliknutí na akční tlačítka
-                    if (!e.target.closest('.food-item-actions')) {
+            recipeGroupDiv.innerHTML = headerHtml;
+
+            const headerDiv = recipeGroupDiv.querySelector('.recipe-header');
+
+            // --- EVENT LISTENER: Původní chování (kliknutí = zobrazení detailu) ---
+
+            if (item.slug && headerDiv) {
+                // Navážeme kliknutí na celou hlavičku, ale budeme muset zajistit, že se nespustí na akčních prvcích (pokud by se přidaly)
+                headerDiv.addEventListener('click', function (e) {
+                    // Kontrola, zda nebylo kliknuto na akční prvek (např. budoucí tlačítko Přidat)
+                    if (!e.target.closest('.add-food-item-btn')) { // Tlačítko Přidat jsme prozatím zrušili, ale kontrola je dobrá pro budoucí použití
                         e.preventDefault();
                         e.stopPropagation();
                         closeSearchModal();
@@ -1053,18 +1041,7 @@
                 });
             }
 
-            // Event listener pro tlačítko přidání
-            const addButton = foodItemDiv.querySelector('.add-food-item');
-            if (addButton) {
-                addButton.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    console.log("➕ Přidávám potravinu:", item.name);
-                    // Zde můžeš přidat funkci pro rychlé přidání do denního příjmu
-                    window.showCustomNotification(`"${item.name}" připraveno k přidání do denního příjmu`, 'info');
-                });
-            }
-
-            resultsDiv.appendChild(foodItemDiv);
+            resultsDiv.appendChild(recipeGroupDiv);
         }
 
         // Nová funkce pro zobrazení denního příjmu jako hlavního obsahu
@@ -1314,7 +1291,6 @@
             }
         }
 
-
         async function loadPersonalCardData() {
             if (!window.currentProfileId) {
                 console.log("❌ Nelze načíst data - není vybrán profil");
@@ -1375,7 +1351,23 @@
             }
         }
 
+        /**
+         * Převádí procentuální hodnotu (0-100) na barvu ve spektru Červená-Oranžová-Žlutá-Zelená.
+         * Používá metodu mapování HSV/HUE barvy na procenta.
+         * @param {number} percentage - Procentuální hodnota (0 až 100).
+         * @returns {string} Barva ve formátu 'rgb(r, g, b)'.
+         */
+        function percentageToColor(percentage) {
+            // Zajistíme, že procenta jsou v rozmezí 0 až 100
+            const p = Math.max(0, Math.min(100, percentage));
 
+            // Mapování na odstín HUE (0 = červená, 120 = zelená)
+            // Otočíme to: 0% = 0 (červená), 100% = 120 (zelená)
+            const hue = (p * 1.2);
+
+            // Použijeme HSL: H = plynulý přechod, S = 100%, L = 50%
+            return `hsl(${hue}, 100%, 40%)`; // Používáme 40% světlosti pro lepší sytost
+        }
 
         function fillFormWithData(loadedData) {
             if (!loadedData) return;
@@ -4748,33 +4740,42 @@
             updateCircularChart('fiberChart', totals.fiber, goals.fiber, 'fiber');
         }
 
-        // Aktualizace jednoho kruhového grafu
+        // Aktualizace jednoho kruhového grafu (UPRAVENO PRO DYNAMICKOU BARVU PROCENT)
         function updateCircularChart(chartId, current, goal, type = '') {
             const chartElement = document.getElementById(chartId);
             if (!chartElement) return;
 
+            // Zajištění, že procenta nepřekročí 100 (pro barvu a dasharray)
             const percentage = goal > 0 ? Math.min((current / goal) * 100, 100) : 0;
             const circle = chartElement.querySelector('.circle');
             const percentageText = chartElement.querySelector('.percentage');
+
+            // Původní barvy pro Makroživiny
+            const originalColors = {
+                protein: '#f44336', // Příklad barvy
+                carbs: '#2196f3',
+                fats: '#ffc107',
+                fiber: '#28a745'
+            };
+            const defaultMacroColor = originalColors[type] || '#007bff';
 
             if (circle && percentageText) {
                 circle.style.strokeDasharray = `${percentage}, 100`;
                 percentageText.textContent = `${Math.round(percentage)}%`;
 
-                // Dynamická barva podle procent
-                if (percentage >= 100) {
-                    circle.style.stroke = '#dc3545'; // Červená při překročení
-                } else if (percentage >= 80) {
-                    circle.style.stroke = '#ffc107'; // Oranžová při blízkém dosažení
+                // --- DYNAMICKÁ ZMĚNA BARVY TEXTU PROCENT (Platí pro VŠECHNY grafy) ---
+                const color = percentageToColor(percentage);
+                percentageText.style.fill = color; // Barva textu procent se mění vždy dynamicky
+
+                // --- LOGIKA PRO BARVU KRUHU (STROKE) ---
+                const isCaloriesChart = chartId === 'caloriesChart';
+
+                if (isCaloriesChart) {
+                    // Kalorie: Barva kruhu se mění dynamicky (stejně jako text procent)
+                    circle.style.stroke = color;
                 } else {
-                    // Vrátíme původní barvu podle typu
-                    const originalColors = {
-                        protein: '#f44336',
-                        carbs: '#2196f3',
-                        fats: '#ffc107',
-                        fiber: '#28a745'
-                    };
-                    circle.style.stroke = originalColors[type] || '#007bff';
+                    // Makroživiny: Barva kruhu je VŽDY původní, bez dynamické změny (při překročení cíle zůstane původní)
+                    circle.style.stroke = defaultMacroColor;
                 }
             }
         }
