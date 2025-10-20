@@ -178,7 +178,7 @@ button:hover {
     text-align: center;
     margin-bottom: 20px;
     padding: 15px;
-    background: #f8f9fa;
+    background: transparent;
     border-radius: 8px
 }
 
@@ -1186,7 +1186,7 @@ button:hover {
 
 #settingsModal h2 {
     text-align: center !important;
-    margin-bottom: 5px;
+    margin-top: -5px;
     width: 100%
 }
 
@@ -1198,12 +1198,21 @@ button:hover {
     text-align: left
 }
 
+.nastavení-tlacitek-profil {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: -20px;
+    padding: 5px 0;
+}
+
 .setting-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
     padding: 5px 0;
     border-bottom: 1px solid #eee
 }
@@ -2274,7 +2283,7 @@ button:hover {
 }
 
 #settingsModal {
-    z-index: 999 !important
+    z-index: 1001 !important;
 }
 
 #createNewProfileBtn {
@@ -3855,4 +3864,64 @@ select.form-input {
 .macro-summary {
     display: block;
     margin-top: 2px
+}
+
+/* STYLY PRO NOVÉ TLAČÍTKO A MODÁLNÍ OKNO */
+#addAsMealButton {
+    background-color: #6f42c1 !important;
+    color: white !important;
+    border: none !important;
+    padding: 10px 15px !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    transition: background-color 0.3s ease !important;
+    flex-grow: 1 !important;
+    margin: 5px !important;
+}
+
+#addAsMealButton:hover {
+    background-color: #5a32a3 !important;
+}
+
+/* Tlačítka výběru jídla */
+.meal-type-btn {
+    display: flex !important;
+    align-items: center !important;
+    padding: 15px 20px !important;
+    background-color: #f8f9fa !important;
+    border: 2px solid #e9ecef !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #333 !important;
+    transition: all 0.3s ease !important;
+    width: 100% !important;
+    text-align: left !important;
+}
+
+.meal-type-btn:hover {
+    background-color: #e9ecef !important;
+    border-color: #6f42c1 !important;
+    transform: translateY(-2px) !important;
+}
+
+.meal-type-btn:active {
+    transform: translateY(0) !important;
+}
+
+/* Navigační šipky pro datum */
+.date-nav-btn {
+    padding: 8px 12px !important;
+    background-color: #007bff !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+}
+
+.date-nav-btn:hover {
+    background-color: #0056b3 !important;
 }
