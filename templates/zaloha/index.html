@@ -54,7 +54,7 @@
     <div id="profileNameModal" class="modal-overlay">
         <div class="modal-content">
             <span class="close-button" id="closeProfileNameModal">&times;</span>
-            
+
             <div class="current-profile-info">
                 <div class="profile-email" id="profileNameModalEmail"></div>
                 <div class="current-profile-name" id="currentProfileNameDisplay"></div>
@@ -81,7 +81,7 @@
             </div>
 
             <div class="modal-action-buttons">
-                <button id="cancelProfileNameBtn" class="btn-cancel">Zrušit</button>
+                <!--<button id="cancelProfileNameBtn" class="btn-cancel">Zrušit</button>-->
                 <button id="saveProfileNameBtn" class="btn-primary">Uložit změny</button>
             </div>
         </div>
@@ -287,6 +287,47 @@
         </div>
     </div>
 
+    <!-- MODÁLNÍ OKNO PRO VÝBĚR JÍDLA -->
+    <div id="selectMealModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-button" id="closeSelectMealModal">&times;</span>
+            <h3>Přidat jako jídlo</h3>
+
+            <!-- VÝBĚR DATA -->
+            <div class="date-selector"
+                style="display: flex; justify-content: center; align-items: center; gap: 15px; margin: 20px 0;">
+                <button id="prevMealDayBtn" class="date-nav-btn">←</button>
+                <span id="selectedMealDate" class="current-date"
+                    style="font-weight: 600; min-width: 200px; text-align: center;"></span>
+                <button id="nextMealDayBtn" class="date-nav-btn">→</button>
+            </div>
+
+            <!-- SEZNAM JÍDEL -->
+            <div class="meals-selection" style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="meal-type-btn" data-meal-type="breakfast">
+                    <span style="font-size: 1.2em; margin-right: 10px;">🍳</span>
+                    Snídaně
+                </button>
+                <button class="meal-type-btn" data-meal-type="snack1">
+                    <span style="font-size: 1.2em; margin-right: 10px;">🥨</span>
+                    Dopolední svačina
+                </button>
+                <button class="meal-type-btn" data-meal-type="lunch">
+                    <span style="font-size: 1.2em; margin-right: 10px;">🍲</span>
+                    Oběd
+                </button>
+                <button class="meal-type-btn" data-meal-type="snack2">
+                    <span style="font-size: 1.2em; margin-right: 10px;">🍎</span>
+                    Odpolední svačina
+                </button>
+                <button class="meal-type-btn" data-meal-type="dinner">
+                    <span style="font-size: 1.2em; margin-right: 10px;">🍽️</span>
+                    Večeře
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modální okna -->
     <div id="loginModal" class="modal-overlay">
         <div class="modal-content">
@@ -310,18 +351,6 @@
             <!-- PŘIDÁNO: text-align: center pro zarovnání na střed -->
             <div class="email-verification-info" style="text-align: center;">
                 Po registraci je potřeba potvrdit email. Zkontrolujte si spam složku.
-            </div>
-        </div>
-    </div>
-
-    <div id="profileModal" class="modal-overlay">
-        <div class="modal-content">
-            <span class="close-button" id="closeProfileModal">&times;</span>
-            <h3>Správa profilů</h3>
-            <p class="profile-instruction-text">Vyberte si profil pro ukládání receptů a nastavení</p>
-            <div id="profileList"></div>
-            <div class="modal-action-buttons">
-                <button id="createNewProfileBtn" class="btn-primary">Vytvořit nový profil</button>
             </div>
         </div>
     </div>
@@ -663,6 +692,8 @@
         let userProfiles = [];
         let isCreatingProfile = false;
         let personalCardData = null;
+        let selectedMealDate = new Date();
+        let currentFoodItemForMeal = null;
 
         // Nastavení uživatele
         let userSettings = {
@@ -825,6 +856,229 @@
 
             modal.style.display = 'flex';
             document.getElementById('newProfileNameInput').focus();
+        }
+
+        // INICIALIZACE EVENT LISTENERŮ
+        function initializeMealModalListeners() {
+            console.log("🔧 Inicializuji listeners pro meal modal...");
+
+            // DEBUG: Které elementy existují?
+            console.log("📋 Dostupné elementy:");
+            console.log("- addAsMealButton:", document.getElementById('addAsMealButton'));
+            console.log("- selectMealModal:", document.getElementById('selectMealModal'));
+            console.log("- closeSelectMealModal:", document.getElementById('closeSelectMealModal'));
+            console.log("- meal-type-btn count:", document.querySelectorAll('.meal-type-btn').length);
+
+            // ✅ BEZPEČNÉ KONTROLY EXISTENCE ELEMENTŮ
+            const addAsMealButton = document.getElementById('addAsMealButton');
+            const closeSelectMealModalBtn = document.getElementById('closeSelectMealModal');
+            const prevMealDayBtn = document.getElementById('prevMealDayBtn');
+            const nextMealDayBtn = document.getElementById('nextMealDayBtn');
+            const selectMealModal = document.getElementById('selectMealModal');
+
+            // Tlačítko "Přidat jako jídlo"
+            if (addAsMealButton) {
+                console.log("✅ addAsMealButton nalezen, přidávám listener...");
+                addAsMealButton.addEventListener('click', function () {
+                    console.log("🎯 KLIKNUTO NA PŘIDAT JAKO JÍDLO!");
+
+                    if (!checkInitialization()) {
+                        console.log("❌ Inicializace selhala");
+                        return;
+                    }
+
+                    currentFoodItemForMeal = window.currentFoodItemForRecipe;
+                    console.log("📦 currentFoodItemForMeal:", currentFoodItemForMeal);
+
+                    if (!currentFoodItemForMeal) {
+                        window.showCustomNotification("Nejdříve vyberte potravinu", 'info');
+                        return;
+                    }
+
+                    openSelectMealModal();
+                });
+            } else {
+                console.log("❌ addAsMealButton NENALEZEN - problém v HTML nebo načasování");
+            }
+
+            // Zavírací tlačítko
+            if (closeSelectMealModalBtn) {
+                closeSelectMealModalBtn.addEventListener('click', closeSelectMealModal);
+                console.log("✅ closeSelectMealModal inicializován");
+            }
+
+            // Navigace datumu
+            if (prevMealDayBtn) {
+                prevMealDayBtn.addEventListener('click', () => navigateMealDay(-1));
+            }
+            if (nextMealDayBtn) {
+                nextMealDayBtn.addEventListener('click', () => navigateMealDay(1));
+            }
+
+            // Tlačítka výběru jídla
+            const mealTypeButtons = document.querySelectorAll('.meal-type-btn');
+            if (mealTypeButtons.length > 0) {
+                mealTypeButtons.forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const mealType = this.dataset.mealType;
+                        addFoodToMeal(mealType);
+                    });
+                });
+                console.log(`✅ ${mealTypeButtons.length} mealTypeButtons inicializováno`);
+            }
+
+            // Kliknutí mimo modal
+            if (selectMealModal) {
+                selectMealModal.addEventListener('click', function (event) {
+                    if (event.target === this) {
+                        closeSelectMealModal();
+                    }
+                });
+            }
+
+            console.log("🎯 Inicializace meal modal listeners dokončena");
+        }
+
+        // FUNKCE PRO OTEVŘENÍ MODALU
+        function openSelectMealModal() {
+            // ✅ POUŽIJ GLOBÁLNÍ PROMĚNNOU
+            const foodItem = window.currentFoodItemForRecipe;
+            console.log("🍽️ Otevírám výběr jídla pro:", foodItem?.foodName);
+
+            if (!foodItem) {
+                window.showCustomNotification("Nejdříve vyberte potravinu", 'info');
+                return;
+            }
+
+            // ✅ NASTAV PROMĚNNOU
+            currentFoodItemForMeal = foodItem;
+
+            // Nastav aktuální datum
+            selectedMealDate = new Date();
+            updateMealDateDisplay();
+
+            // Zavři detailní modal a otevři výběr jídla
+            document.getElementById('detailsModal').style.display = 'none';
+            document.getElementById('selectMealModal').style.display = 'flex';
+        }
+
+        // FUNKCE PRO ZAVŘENÍ MODALU
+        function closeSelectMealModal() {
+            document.getElementById('selectMealModal').style.display = 'none';
+            currentFoodItemForMeal = null;
+        }
+
+        // AKTUALIZACE ZOBRAZENÍ DATA
+        function updateMealDateDisplay() {
+            const dateDisplay = document.getElementById('selectedMealDate');
+            if (dateDisplay) {
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                dateDisplay.textContent = selectedMealDate.toLocaleDateString('cs-CZ', options);
+            }
+        }
+
+        // NAVIGACE MEZI DNY
+        function navigateMealDay(direction) {
+            selectedMealDate.setDate(selectedMealDate.getDate() + direction);
+            updateMealDateDisplay();
+        }
+
+        // HLAVNÍ FUNKCE PRO PŘIDÁNÍ DO JÍDLA
+        async function addFoodToMeal(mealType) {
+            console.log("🍽️ addFoodToMeal volána s:", {
+                mealType,
+                currentFoodItemForMeal,
+                hasFoodItem: !!currentFoodItemForMeal
+            });
+
+            // ✅ POUŽIJ GLOBÁLNÍ PROMĚNNOU POKUD LOCÁLNÍ CHYBÍ
+            const foodItem = currentFoodItemForMeal || window.currentFoodItemForRecipe;
+
+            if (!foodItem) {
+                console.error("❌ Žádná potravina k přidání:", {
+                    currentFoodItemForMeal,
+                    windowCurrentFoodItem: window.currentFoodItemForRecipe
+                });
+                window.showCustomNotification("Chyba: Žádná potravina k přidání", 'error');
+                return;
+            }
+
+            try {
+                console.log(`➕ Přidávám "${foodItem.foodName}" do ${mealTypeLabels[mealType]}`);
+
+                // Použijeme existující funkci pro přidání do denního příjmu
+                await addFoodItemToDailyMeal(foodItem, mealType, selectedMealDate);
+
+                // Zavřeme modaly
+                closeSelectMealModal();
+
+                window.showCustomNotification(
+                    `"${foodItem.foodName}" přidáno do ${mealTypeLabels[mealType]}!`,
+                    'success'
+                );
+
+            } catch (error) {
+                console.error("❌ Chyba při přidávání do jídla:", error);
+                window.showCustomNotification("Chyba: " + error.message, 'error');
+            }
+        }
+
+        // POMOCNÁ FUNKCE PRO PŘIDÁNÍ POTRAVINY DO DENNÍHO JÍDLA
+        async function addFoodItemToDailyMeal(foodItem, mealType, date) {
+            console.log("📦 addFoodItemToDailyMeal:", {
+                foodName: foodItem.foodName,
+                mealType,
+                date: date.toISOString().split('T')[0]
+            });
+
+            const dateString = formatDateForAPI(date);
+
+            try {
+                // 1. Získáme/create denní záznam
+                let dailyIntakeId = await getOrCreateDailyIntake(dateString);
+
+                // 2. Získáme/create meal pro daný typ
+                let mealId = await getOrCreateMeal(dailyIntakeId, mealType);
+
+                // 3. Přidáme potravinu jako položku jídla
+                console.log("💾 Ukládám potravinu do meal_items...");
+                const { error } = await window.supabaseClient
+                    .from('meal_items')
+                    .insert({
+                        daily_meal_id: mealId,
+                        food_name: foodItem.foodName || 'Neznámá potravina',
+                        amount: foodItem.amount || 100,
+                        unit: foodItem.unit || 'g',
+                        calories: parseFloat(foodItem.kcal) || 0,
+                        protein: parseFloat(foodItem.nutritionalDetails?.protein) || 0,
+                        carbs: parseFloat(foodItem.nutritionalDetails?.carbs) || 0,
+                        fat: parseFloat(foodItem.nutritionalDetails?.fat) || 0,
+                        fiber: parseFloat(foodItem.nutritionalDetails?.fiber) || 0,
+                        nutritional_data: foodItem.nutritionalDetails || null
+                    });
+
+                if (error) {
+                    console.error("❌ Chyba při ukládání meal_items:", error);
+                    throw error;
+                }
+
+                console.log("✅ Potravina úspěšně uložena");
+
+                // 4. Aktualizujeme zobrazení pokud jsme na aktuálním dni
+                if (isSameDay(date, currentDailyIntakeDate)) {
+                    console.log("🔄 Aktualizuji zobrazení denního příjmu...");
+                    await loadDailyIntakeData(currentDailyIntakeDate);
+                }
+
+            } catch (error) {
+                console.error("❌ Chyba v addFoodItemToDailyMeal:", error);
+                throw error;
+            }
+        }
+
+        // POMOCNÁ FUNKCE PRO POROVNÁNÍ DAT
+        function isSameDay(date1, date2) {
+            return date1.toDateString() === date2.toDateString();
         }
 
         // Funkce pro uložení změny názvu profilu
@@ -1537,6 +1791,9 @@
                 document.getElementById('loginPassword').value = '';
                 document.getElementById('loginError').style.display = 'none';
                 document.getElementById('loginSuccess').style.display = 'none';
+
+                // ✅ PŘIDÁNO: Aktualizace zobrazení křížku
+                updateLoginModalCloseAbility();
             }
         }
 
@@ -1688,12 +1945,14 @@
 
                 // ZOBRAZÍME DENNÍ PŘÍJEM JAKO HLAVNÍ OBSAH
                 showDailyIntakeAsMainContent();
-
             } else {
                 setTimeout(() => {
                     window.showProfileModal();
                 }, 500);
             }
+
+            // ✅ PŘIDÁNO: Aktualizace možnosti zavřít přihlašovací okno
+            updateLoginModalCloseAbility();
 
             window.isAppInitialized = true;
             const recipesButton = document.getElementById('recipesButton');
@@ -1706,7 +1965,6 @@
             }, 2000);
         }
 
-        // Také přidáme do funkce selectProfile:
         window.selectProfile = async function (profileId) {
             try {
                 const oldProfileId = window.currentProfileId;
@@ -1722,6 +1980,9 @@
 
                 // INICIALIZUJEME DENNÍ PŘÍJEM S NOVÝMI DATY
                 initializeDailyIntake();
+
+                // ✅ PŘIDÁNO: Aktualizace možnosti zavřít přihlašovací okno
+                updateLoginModalCloseAbility();
 
                 if (oldProfileId && oldProfileId !== profileId) {
                     const newProfile = window.userProfiles.find(p => p.id === profileId);
@@ -2632,6 +2893,7 @@
                         actionButtonsHtml = `
                             <div class="modal-action-buttons">
                                 <button id="addToRecipeButton">Přidat do receptu</button>
+                                <button id="addAsMealButton" style="background-color: #6f42c1; color: white;">Přidat jako jídlo</button>
                                 <button id="createAndAddRecipeButton" class="btn-primary">Vytvořit recept a přidat</button>
                             </div>
                         `;
@@ -2737,6 +2999,24 @@
                             document.getElementById('createRecipeModal').style.display = 'flex';
                             document.getElementById('newRecipeNameInput').value = '';
                             document.getElementById('newRecipeNameInput').focus();
+                        });
+                    }
+
+                    const addAsMealButton = document.getElementById('addAsMealButton');
+                    if (addAsMealButton) {
+                        addAsMealButton.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            console.log("🍽️ Kliknuto na Přidat jako jídlo");
+
+                            if (!checkInitialization()) return;
+
+                            // ✅ POUŽIJ PŘÍMO GLOBÁLNÍ PROMĚNNOU
+                            if (!window.currentFoodItemForRecipe) {
+                                window.showCustomNotification("Nejdříve vyberte potravinu", 'info');
+                                return;
+                            }
+
+                            openSelectMealModal();
                         });
                     }
 
@@ -3727,12 +4007,12 @@
         }
 
         function setupModalCloseHandlers() {
-            document.getElementById('profileModal').addEventListener('click', function (event) {
-                if (event.target === this) {
-                    console.log("❌ Kliknuto mimo profil modal");
-                    closeProfileModal();
-                }
-            });
+            //document.getElementById('profileModal').addEventListener('click', function (event) {
+            //    if (event.target === this) {
+            //        console.log("❌ Kliknuto mimo profil modal");
+            //        closeProfileModal();
+            //    }
+            //});
 
             document.getElementById('closeSettingsModal').addEventListener('click', function () {
                 collapseAllSettingsSections();
@@ -4214,14 +4494,90 @@
             }
         });
 
+        // ✅ PŘIDÁNO: Funkce pro aktualizaci zavírání přihlašovacího okna
+        function updateLoginModalCloseAbility() {
+            const closeButton = document.getElementById('closeLoginModal');
+            if (closeButton) {
+                if (window.currentUser && window.currentProfileId) {
+                    closeButton.style.display = 'block';
+                    console.log("✅ Přihlašovací okno lze zavřít - účet načten");
+                } else {
+                    closeButton.style.display = 'none';
+                    console.log("❌ Přihlašovací okno nelze zavřít - účet není načten");
+                }
+            }
+        }
+
         // =============================================
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
+            console.log("🏠 DOM načten, hledám elementy...");
+
+            // Debug - které elementy existují
+            console.log("addAsMealButton:", document.getElementById('addAsMealButton'));
+            console.log("selectMealModal:", document.getElementById('selectMealModal'));
+            console.log("meal-type-btn count:", document.querySelectorAll('.meal-type-btn').length);
+
+            // ✅ POČKÁME CHVILKU NEŽ SE VŠECHNY ELEMENTY NAČTOU
+            setTimeout(() => {
+                initializeMealModalListeners();
+            }, 100);
             if (window.appInitialized) return;
             window.appInitialized = true;
 
+            // ✅ PŘIDÁNO: Event listener pro křížek nastavení
+            document.getElementById('closeSettingsModal').addEventListener('click', function () {
+                console.log("❌ Kliknuto na zavírací křížek nastavení");
+                closeSettingsModal();
+            });
+
+            // ✅ PŘIDÁNO: Event listener pro kliknutí mimo modal nastavení
+            document.getElementById('settingsModal').addEventListener('click', function (event) {
+                if (event.target === this) {
+                    console.log("❌ Kliknuto mimo modal nastavení");
+                    closeSettingsModal();
+                }
+            });
+
+            // ✅ PŘIDÁNO: Podmíněné zavírání přihlašovacího okna
+            document.getElementById('loginModal').addEventListener('click', function (event) {
+                // Pouze pokud je načtený účet s profilem
+                if (event.target === this && window.currentUser && window.currentProfileId) {
+                    console.log("❌ Kliknuto mimo přihlašovací modal (účet načten)");
+                    hideLoginModal();
+                }
+            });
+
+            // ✅ PŘIDÁNO: Křížek pro přihlašovací okno (pouze pokud je účet načtený)
+            const loginCloseButton = document.createElement('span');
+            loginCloseButton.className = 'close-button';
+            loginCloseButton.innerHTML = '&times;';
+            loginCloseButton.id = 'closeLoginModal';
+            loginCloseButton.style.display = 'none'; // Skryté dokud není účet načten
+
+            loginCloseButton.addEventListener('click', function () {
+                if (window.currentUser && window.currentProfileId) {
+                    console.log("❌ Kliknuto na křížek přihlašovacího modalu");
+                    hideLoginModal();
+                }
+            });
+
+            // Přidáme křížek do přihlašovacího modalu
+            document.getElementById('loginModal').querySelector('.modal-content').appendChild(loginCloseButton);
+
             document.getElementById('personalCardButton').addEventListener('click', showPersonalCardModal);
+            // ✅ PŘIDÁNO: Event listener pro tlačítko "Otevřít osobní kartu" v modalu profilu
+            document.getElementById('personalCardButton').addEventListener('click', function () {
+                console.log("🎯 Kliknuto na Otevřít osobní kartu z profilu");
+
+                // Zavřeme modal profilu
+                document.getElementById('profileNameModal').style.display = 'none';
+
+                // Otevřeme osobní kartu
+                showPersonalCardModal();
+            });
+            
             //document.getElementById('closePersonalCard').addEventListener('click', closePersonalCardModal);
             document.getElementById('calculatePersonalCard').addEventListener('click', calculatePersonalCard);
             document.getElementById('savePersonalCard').addEventListener('click', savePersonalCardData);
@@ -4274,12 +4630,6 @@
                 document.getElementById('selectRecipeModal').style.display = 'none';
             });
 
-            document.getElementById('closeProfileModal').addEventListener('click', function (e) {
-                e.stopPropagation();
-                console.log("❌ Kliknuto na křížek v profil modalu");
-                closeProfileModal();
-            });
-
             document.getElementById('closeCreateProfileModal').addEventListener('click', function () {
                 document.getElementById('createProfileModal').style.display = 'none';
             });
@@ -4289,21 +4639,23 @@
                 window.isProfileModalShowing = false;
             });
 
-            document.getElementById('profileModal').addEventListener('click', function (event) {
+            initializeDetailsModalListeners();
+
+            // ✅ OPRAVA: Event listenery pro všechny modaly receptů a jídel
+            document.getElementById('selectRecipeModal').addEventListener('click', function (event) {
                 if (event.target === this) {
-                    console.log("❌ Kliknuto mimo profil modal");
-                    closeProfileModal();
+                    console.log("❌ Kliknuto mimo modal receptů");
+                    this.style.display = 'none';
                 }
             });
 
-            document.getElementById('closeProfileModal').addEventListener('click', function (e) {
-                e.stopPropagation();
-                console.log("❌ Kliknuto na křížek v profil modalu");
-                closeProfileModal();
+            document.getElementById('createRecipeModal').addEventListener('click', function (event) {
+                if (event.target === this) {
+                    console.log("❌ Kliknuto mimo modal vytvoření receptu");
+                    this.style.display = 'none';
+                }
             });
 
-            initializeDetailsModalListeners();
-            setupModalCloseHandlers();
             initBarcodeScanner();
 
             await initializeApplication();
@@ -4389,10 +4741,10 @@
                 }
             });
 
-            document.getElementById('createNewProfileBtn').addEventListener('click', () => {
-                document.getElementById('profileModal').style.display = 'none';
-                window.showCreateProfileModal();
-            });
+            //document.getElementById('createNewProfileBtn').addEventListener('click', () => {
+            //    document.getElementById('profileModal').style.display = 'none';
+            //    window.showCreateProfileModal();
+            //});
 
             // Event listenery pro recepty
             document.getElementById('recipesButton').addEventListener('click', async () => {
@@ -5623,6 +5975,21 @@
                 },
                 true
             );
+        }
+
+        function closeSettingsModal() {
+            console.log("🔴 Zavírám modal nastavení");
+
+            // Nejprve sbalíme všechny otevřené sekce
+            const hadOpenSections = collapseAllSettingsSections();
+
+            // Počkáme chvíli na animaci sbalení (pokud jsou nějaké sekce otevřené)
+            const delay = hadOpenSections ? 150 : 0;
+
+            setTimeout(() => {
+                document.getElementById('settingsModal').style.display = 'none';
+                console.log("✅ Modal nastavení zavřen");
+            }, delay);
         }
 
         // Event listener pro skenování v modalu
