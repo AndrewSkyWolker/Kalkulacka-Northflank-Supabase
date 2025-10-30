@@ -498,32 +498,36 @@
         </div>
     </div>
 
+    <!-- MODÁLNÍ OKNO PRO SKENOVÁNÍ - NOVÁ VERZE -->
     <div id="barcodeModal" class="modal-overlay">
         <div class="modal-content barcode-modal">
             <span class="close-button" id="closeBarcodeModal">&times;</span>
-            <h3>Skenovat čárový kód</h3>
+            <h3>📷 Skenovat čárový kód</h3>
+
+            <!-- KONTEJNER PRO KAMERU -->
             <div id="barcodeScannerContainer" class="barcode-scanner-container">
-                <div id="barcodeUnsupportedMessage" class="barcode-unsupported-message">
-                    <p>🔒 Skenování čárových kódů není v tomto prohlížeči dostupné</p>
-                    <p>Pro skenování kódů fotoaparátem:</p>
-                    <ul>
-                        <li>Použijte HTTPS připojení (zabezpečené)</li>
-                        <li>Povolte přístup ke kameře v prohlížeči</li>
-                        <li>Zkuste moderní prohlížeč (Chrome, Firefox, Edge)</li>
-                    </ul>
-                    <p>Můžete také zadat kód ručně:</p>
+                <div class="barcode-placeholder">
+                    <p>🔄 Připravuji kameru...</p>
+                </div>
+            </div>
+
+            <!-- OVLÁDACÍ TLAČÍTKA -->
+            <div class="barcode-controls">
+                <button id="toggleCameraButton" class="btn-small">🔄 Otočit kameru</button>
+                <button id="toggleFlashButton" class="btn-small" style="display:none;">⚡ Blesk</button>
+            </div>
+
+            <!-- STAV SKENOVÁNÍ -->
+            <div id="barcodeStatus" class="barcode-status">Klikněte pro spuštění kamery</div>
+
+            <!-- NÁHRADNÍ ŘEŠENÍ -->
+            <div class="barcode-fallback">
+                <p><strong>Nefunguje skenování?</strong></p>
+                <div class="manual-input-group">
                     <input type="text" id="manualBarcodeInput" placeholder="Zadejte čárový kód">
                     <button id="submitManualBarcode" class="btn-primary">Vyhledat</button>
                 </div>
-                <video id="barcodeVideo"></video>
-                <canvas id="barcodeCanvas"></canvas>
-                <div id="barcodeOverlay"></div>
             </div>
-            <div class="barcode-controls">
-                <button id="toggleCameraButton" class="btn-small">Přepnout kameru</button>
-                <button id="toggleFlashButton" class="btn-small">Blesk</button>
-            </div>
-            <div id="barcodeStatus"></div>
         </div>
     </div>
 
@@ -713,14 +717,17 @@
         const placeholderImage = "{{ url_for('static', filename='icon/potraviny.png') }}";
 
         // Proměnné pro skenování čárových kódů
-        let barcodeStream = null;
+        /*let barcodeStream = null;
         let barcodeFacingMode = 'environment';
         let barcodeFlashEnabled = false;
         let barcodeScanInterval = null;
         let quaggaInitialized = false;
         let lastDetectedBarcode = null;
         let barcodeDetectionTimeout = null;
-
+*/
+        let barcodeStream = null;
+        let barcodeScanningActive = false;
+        let currentFacingMode = 'environment';
         let barcodeScannerActive = false;
         let barcodeDetectionInterval = null;
 
@@ -4224,34 +4231,15 @@
             }
         }
 
-        // DETEKCE ČÁROVÝCH KÓDŮ
+        // ZAČÁTEK DETEKCE (zatím placeholder)
         function startBarcodeDetection() {
-            const video = document.getElementById('barcodeVideo');
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
+            const status = document.getElementById('barcodeStatus');
+            status.textContent = '🔍 Skenuji... Namiřte na čárový kód';
 
-            barcodeDetectionInterval = setInterval(async () => {
-                if (!barcodeScannerActive || video.readyState !== video.HAVE_ENOUGH_DATA) {
-                    return;
-                }
-
-                try {
-                    // Nastavení canvasu podle videa
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                    // Detekce čárových kódů
-                    const barcodes = await window.barcodeDetector.detect(canvas);
-
-                    if (barcodes.length > 0) {
-                        const barcode = barcodes[0];
-                        handleDetectedBarcode(barcode.rawValue);
-                    }
-                } catch (error) {
-                    console.error('Chyba při detekci:', error);
-                }
-            }, 500); // Kontrola každých 500ms
+            // Zde bude budoucí kód pro skutečnou detekci
+            setTimeout(() => {
+                status.textContent = '📱 Pro skenování použijte ruční zadání kódu níže';
+            }, 3000);
         }
 
         // ZPRACOVÁNÍ NALEZENÉHO KÓDU
@@ -4289,35 +4277,78 @@
             }
         }
 
-        // FALLBACK PRO STARŠÍ PROHLÍŽEČE
-        function showBarcodeFallbackMessage() {
+        // FALLBACK PRO RUČNÍ ZADÁNÍ
+        function showBarcodeFallback() {
             const container = document.getElementById('barcodeScannerContainer');
             container.innerHTML = `
-                <div class="barcode-fallback">
-                    <h4>📱 Skenování čárových kódů</h4>
-                    <p>Pro plnou funkčnost doporučujeme:</p>
-                    <ul>
-                        <li>iOS 16+ (Safari)</li>
-                        <li>Chrome 83+</li>
-                        <li>Edge 83+</li>
-                    </ul>
-                    <div class="manual-input">
-                        <input type="text" id="manualBarcodeInput" placeholder="Zadejte čárový kód ručně">
-                        <button id="submitManualBarcode" class="btn-primary">Vyhledat</button>
-                    </div>
+                <div class="barcode-placeholder">
+                    <p>🔒 Skenování není dostupné</p>
+                    <p>Použijte prosím ruční zadání kódu níže</p>
                 </div>
             `;
         }
 
-        function initBarcodeScanner() {
-            document.getElementById('barcodeButtonInModal')?.addEventListener('click', openBarcodeScanner);
-            document.getElementById('closeBarcodeModal')?.addEventListener('click', closeBarcodeScanner);
-            document.getElementById('toggleCameraButton')?.addEventListener('click', toggleCamera);
-            document.getElementById('toggleFlashButton')?.addEventListener('click', toggleFlash);
-            document.getElementById('submitManualBarcode')?.addEventListener('click', submitManualBarcode);
+        // ZPRACOVÁNÍ CHYB KAMERY
+        function getCameraErrorMessage(error) {
+            switch (error.name) {
+                case 'NotAllowedError':
+                    return 'Přístup ke kameře byl odepřen. Povolte kameru v nastavení prohlížeče.';
+                case 'NotFoundError':
+                    return 'Nebyla nalezena žádná kamera.';
+                case 'NotSupportedError':
+                    return 'Váš prohlížeč nepodporuje přístup ke kameře.';
+                case 'NotReadableError':
+                    return 'Kamera je již používaná jinou aplikací.';
+                default:
+                    return 'Nelze spustit kameru: ' + error.message;
+            }
         }
 
-        function initQuagga() {
+        // TLAČÍTKO PRO AKCI (pro iPhone)
+        function addBarcodeActionButton() {
+            const controls = document.querySelector('.barcode-controls');
+            if (!document.getElementById('startScanButton')) {
+                const scanButton = document.createElement('button');
+                scanButton.id = 'startScanButton';
+                scanButton.className = 'btn-primary';
+                scanButton.textContent = '🎯 Spustit skenování';
+                scanButton.onclick = startBarcodeDetection;
+                controls.appendChild(scanButton);
+            }
+        }
+
+        // INICIALIZACE EVENT LISTENERŮ
+        function initBarcodeScanner() {
+            console.log("🔄 Inicializuji nový skenér čárových kódů");
+
+            // Tlačítko pro otevření skenéru
+            document.getElementById('barcodeButtonInModal').addEventListener('click', openBarcodeScanner);
+
+            // Zavírací tlačítko
+            document.getElementById('closeBarcodeModal').addEventListener('click', closeBarcodeScanner);
+
+            // Přepínání kamery
+            document.getElementById('toggleCameraButton').addEventListener('click', toggleCamera);
+
+            // Ruční zadání
+            document.getElementById('submitManualBarcode').addEventListener('click', submitManualBarcode);
+
+            // Enter v ručním zadání
+            document.getElementById('manualBarcodeInput').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    submitManualBarcode();
+                }
+            });
+
+            // Kliknutí mimo modal
+            document.getElementById('barcodeModal').addEventListener('click', function (event) {
+                if (event.target === this) {
+                    closeBarcodeScanner();
+                }
+            });
+        }
+
+        /*function initQuagga() {
             if (typeof Quagga !== 'undefined') {
                 try {
                     Quagga.init({
@@ -4375,96 +4406,89 @@
                     console.error('Výjimka při inicializaci Quaggy:', error);
                 }
             }
-        }
+        }*/
 
+        // ZÁKLADNÍ FUNKCE PRO SKENOVÁNÍ
         async function openBarcodeScanner() {
-            // Bezpečnostní kontrola
-            if (!window.supabaseClient || !window.currentUser) {
-                window.showCustomNotification("Pro skenování se musíte přihlásit", 'info');
-                return;
-            }
+            console.log("🔍 Otevírám skenér čárových kódů");
 
-            const barcodeModal = document.getElementById('barcodeModal');
-            const barcodeStatus = document.getElementById('barcodeStatus');
+            const modal = document.getElementById('barcodeModal');
+            const container = document.getElementById('barcodeScannerContainer');
+            const status = document.getElementById('barcodeStatus');
 
-            barcodeModal.style.display = 'flex';
-            barcodeStatus.innerHTML = `
-                <div style="margin-bottom: 10px; font-weight: bold;">🔍 Skenování čárového kódu</div>
-                <div style="font-size: 14px; color: #666; line-height: 1.4;">
-                    • Namiřte kód do zeleného rámečku<br>
-                    • Zaostření proběhne automaticky<br>
-                    • Pro ukončení klikněte mimo okno
-                </div>
-            `;
-
-            if (!quaggaInitialized) {
-                initQuagga();
-            }
-
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                barcodeStatus.textContent = 'Kamera není v tomto prohlížeči dostupná';
-                barcodeStatus.style.color = 'red';
-                return;
-            }
+            modal.style.display = 'flex';
+            status.textContent = 'Inicializuji kameru...';
 
             try {
-                await startCamera();
-                barcodeStatus.textContent = 'Namiřte na čárový kód';
-                await new Promise(resolve => setTimeout(resolve, 500));
-                startBarcodeScanning();
+                // Vytvoříme video element
+                const video = document.createElement('video');
+                video.id = 'barcodeVideo';
+                video.playsInline = true;
+                video.muted = true;
+
+                // Vytvoříme overlay
+                const overlay = document.createElement('div');
+                overlay.className = 'barcode-overlay';
+                overlay.innerHTML = '📷 Namiřte na čárový kód';
+
+                // Vyčistíme a naplníme container
+                container.innerHTML = '';
+                container.appendChild(video);
+                container.appendChild(overlay);
+
+                // Spustíme kameru
+                await startCamera(video);
+                status.textContent = '✅ Kamera připravena - namiřte na čárový kód';
+
+                // Pro iPhone: přidáme tlačítko pro spuštění skenování
+                addBarcodeActionButton();
+
             } catch (error) {
-                console.error('Chyba při inicializaci kamery:', error);
-                barcodeStatus.textContent = 'Chyba: ' + error.message;
-                barcodeStatus.style.color = 'red';
+                console.error("❌ Chyba při inicializaci:", error);
+                status.textContent = '❌ ' + error.message;
+                showBarcodeFallback();
             }
         }
 
-        async function startCamera() {
-            if (barcodeStream) {
-                barcodeStream.getTracks().forEach(track => track.stop());
-            }
-
-            const constraints = {
-                video: {
-                    width: { ideal: 1920, min: 1280 },
-                    height: { ideal: 1080, min: 720 },
-                    frameRate: { ideal: 60 },
-                    facingMode: barcodeFacingMode,
+        // SPUŠTĚNÍ KAMERY
+        async function startCamera(videoElement) {
+            try {
+                // Zastavíme předchozí stream
+                if (barcodeStream) {
+                    barcodeStream.getTracks().forEach(track => track.stop());
                 }
-            };
 
-            try {
+                // Získání přístupu ke kameře
+                const constraints = {
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                };
+
                 barcodeStream = await navigator.mediaDevices.getUserMedia(constraints);
-                const barcodeVideo = document.getElementById('barcodeVideo');
-                barcodeVideo.srcObject = barcodeStream;
-                barcodeVideo.style.display = 'block';
-                document.getElementById('barcodeUnsupportedMessage').style.display = 'none';
-                document.getElementById('toggleCameraButton').style.display = 'inline-block';
-                document.getElementById('toggleFlashButton').style.display = 'inline-block';
-                document.getElementById('barcodeOverlay').style.display = 'block';
+                videoElement.srcObject = barcodeStream;
 
-                barcodeVideo.width = 640;
-                barcodeVideo.height = 480;
-
-                return new Promise((resolve) => {
-                    barcodeVideo.onloadedmetadata = () => {
-                        barcodeVideo.play().then(resolve).catch(() => resolve());
+                // Čekání na načtení videa
+                await new Promise((resolve, reject) => {
+                    videoElement.onloadedmetadata = () => {
+                        videoElement.play().then(resolve).catch(reject);
                     };
-                    setTimeout(() => resolve(), 1000);
+                    setTimeout(resolve, 1000); // Fallback timeout
                 });
+
+                barcodeScanningActive = true;
+                console.log("✅ Kamera úspěšně spuštěna");
+
             } catch (error) {
-                console.error('Chyba při přístupu ke kameře:', error);
-                document.getElementById('barcodeUnsupportedMessage').style.display = 'block';
-                document.getElementById('barcodeVideo').style.display = 'none';
-                document.getElementById('toggleCameraButton').style.display = 'none';
-                document.getElementById('toggleFlashButton').style.display = 'none';
-                document.getElementById('barcodeOverlay').style.display = 'none';
-                barcodeStatus.textContent = 'Použijte ruční zadání kódu';
-                throw error;
+                console.error("❌ Chyba při spouštění kamery:", error);
+                throw new Error(getCameraErrorMessage(error));
             }
         }
 
-        function startBarcodeScanning() {
+        /*function startBarcodeScanning() {
             if (barcodeScanInterval) {
                 clearInterval(barcodeScanInterval);
                 barcodeScanInterval = null;
@@ -4538,7 +4562,7 @@
                     resolve([]);
                 }
             });
-        }
+        }*/
 
         function detectSimpleBarcodes(imageData) {
             return []; // Zjednodušená implementace
@@ -4586,34 +4610,40 @@
             return true; // Zjednodušená validace
         }
 
+        // VYHLEDÁNÍ PODLE KÓDU
         function searchByBarcode(barcode) {
-            const searchInput = document.getElementById('query');
-            if (searchInput) searchInput.value = barcode;
+            console.log("🔍 Vyhledávám kód:", barcode);
 
-            const searchForm = document.getElementById('searchForm');
-            if (searchForm) {
-                const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
-                searchForm.dispatchEvent(submitEvent);
+            // Zavřeme skenovací modal
+            closeBarcodeScanner();
+
+            // Použijeme vyhledávací funkci
+            const searchInput = document.getElementById('searchModalQuery');
+            if (searchInput) {
+                searchInput.value = barcode;
+                // Spustíme vyhledávání
+                setTimeout(() => {
+                    const searchForm = document.getElementById('searchModalForm');
+                    if (searchForm) {
+                        searchForm.dispatchEvent(new Event('submit'));
+                    }
+                }, 500);
             }
         }
 
+        // PŘEPÍNÁNÍ KAMERY
         async function toggleCamera() {
-            barcodeFacingMode = barcodeFacingMode === 'environment' ? 'user' : 'environment';
-            document.getElementById('barcodeStatus').textContent = 'Přepínám kameru...';
+            if (!barcodeScanningActive) return;
 
-            try {
-                await startCamera();
-                document.getElementById('barcodeStatus').textContent = 'Namiřte na čárový kód';
+            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
 
-                if (quaggaInitialized) {
-                    Quagga.stop();
-                    initQuagga();
-                    startBarcodeScanning();
-                }
-            } catch (error) {
-                console.error('Chyba při přepínání kamery:', error);
-                document.getElementById('barcodeStatus').textContent = 'Chyba: ' + error.message;
-                document.getElementById('barcodeStatus').style.color = 'red';
+            const status = document.getElementById('barcodeStatus');
+            status.textContent = '🔄 Přepínám kameru...';
+
+            const video = document.getElementById('barcodeVideo');
+            if (video) {
+                await startCamera(video);
+                status.textContent = '✅ Kamera připravena - namiřte na čárový kód';
             }
         }
 
@@ -4636,20 +4666,19 @@
             }
         }
 
+        // RUČNÍ ZADÁNÍ KÓDU
         function submitManualBarcode() {
-            const manualBarcodeInput = document.getElementById('manualBarcodeInput');
-            const barcode = manualBarcodeInput.value.trim();
+            const input = document.getElementById('manualBarcodeInput');
+            const barcode = input.value.trim();
 
             if (barcode) {
                 closeBarcodeScanner();
                 searchByBarcode(barcode);
-            } else {
-                document.getElementById('barcodeStatus').textContent = 'Prosím, zadejte čárový kód';
-                document.getElementById('barcodeStatus').style.color = 'red';
+                input.value = '';
             }
         }
 
-        function restartQuagga() {
+        /*function restartQuagga() {
             if (typeof Quagga !== 'undefined') {
                 try {
                     if (quaggaInitialized) {
@@ -4668,33 +4697,22 @@
                     console.error('Chyba při restartu Quaggy:', error);
                 }
             }
-        }
+        }*/
 
+        // ZAVŘENÍ SKENÉRU
         function closeBarcodeScanner() {
-            if (barcodeDetectionTimeout) {
-                clearTimeout(barcodeDetectionTimeout);
-                barcodeDetectionTimeout = null;
-            }
+            console.log("🔴 Zavírám skenér");
 
+            barcodeScanningActive = false;
+
+            // Zastavíme kameru
             if (barcodeStream) {
-                try {
-                    barcodeStream.getTracks().forEach(track => track.stop());
-                    barcodeStream = null;
-                } catch (error) {
-                    console.error('Chyba při zastavování streamu:', error);
-                }
+                barcodeStream.getTracks().forEach(track => track.stop());
+                barcodeStream = null;
             }
 
-            const barcodeVideo = document.getElementById('barcodeVideo');
-            if (barcodeVideo) barcodeVideo.srcObject = null;
-
-            restartQuagga();
-            document.getElementById('barcodeModal').style.display = 'none';
-            document.getElementById('barcodeUnsupportedMessage').style.display = 'block';
-            document.getElementById('barcodeVideo').style.display = 'none';
-            document.getElementById('toggleCameraButton').style.display = 'none';
-            document.getElementById('toggleFlashButton').style.display = 'none';
-            document.getElementById('barcodeOverlay').style.display = 'none';
+            const modal = document.getElementById('barcodeModal');
+            modal.style.display = 'none';
         }
 
         document.getElementById('confirmCreateRecipeButton').addEventListener('click', async function () {
@@ -4948,7 +4966,7 @@
                 }
             });
 
-            initBarcodeScanner();
+            setTimeout(initBarcodeScanner, 1000);
 
             await initializeApplication();
 
