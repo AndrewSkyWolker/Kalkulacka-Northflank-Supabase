@@ -4735,21 +4735,201 @@
             const status = document.getElementById('barcodeStatus');
             const video = document.getElementById('barcodeVideo');
 
-            status.innerHTML = '📱 <strong>iPhone skenování</strong><br><small>Přizpůsobeno pro Safari</small>';
+            status.innerHTML = '📱 <strong>iPhone skenování</strong><br><small>Vysoká přesnost - počkejte na potvrzení</small>';
 
-            // 1. ZKUSÍME NATIVNÍ API (iOS 16+)
+            // Resetujeme stav detekce
+            window.barcodeDetectionState = {
+                detectedCodes: new Map(),
+                lastValidCode: null,
+                confidenceThreshold: 0.7,
+                minDetectionCount: 2
+            };
+
             if ('BarcodeDetector' in window) {
                 try {
                     const barcodeDetector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a'] });
-                    startIPhoneNativeDetection(barcodeDetector, video, status);
+                    startHighAccuracyDetection(barcodeDetector, video, status);
                     return;
                 } catch (error) {
-                    console.log('Native API na iPhonu selhalo:', error);
+                    console.log('Native API selhalo:', error);
                 }
             }
 
-            // 2. POUŽIJEME JAVASCRIPT DETEKCI PRO iPHONE
-            startIPhoneJavascriptDetection(video, status);
+            loadQuaggaForIPhone(video, status);
+        }
+
+        // VYSOCE PŘESNÁ DETEKCE
+        function startHighAccuracyDetection(barcodeDetector, video, status) {
+            let detectionCount = 0;
+            let lastStableCode = null;
+            let sameCodeCount = 0;
+
+            const detectFrame = async () => {
+                if (!barcodeScanningActive) return;
+
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    const barcodes = await barcodeDetector.detect(canvas);
+
+                    if (barcodes.length > 0) {
+                        const barcode = barcodes[0];
+
+                        // FILTRACE 1: Pouze validní EAN/UPC kódy
+                        if (isValidBarcodeFormat(barcode.rawValue)) {
+
+                            // FILTRACE 2: Stejný kód musí být detekován vícekrát
+                            if (barcode.rawValue === lastStableCode) {
+                                sameCodeCount++;
+
+                                // VIZUÁLNÍ INDIKÁTOR SPOLEHLIVOSTI
+                                updateConfidenceIndicator(status, sameCodeCount);
+
+                                // FILTRACE 3: Alespoň 3x stejný kód
+                                if (sameCodeCount >= 3) {
+                                    handleHighConfidenceBarcode(barcode.rawValue, status);
+                                    return;
+                                }
+                            } else {
+                                // Nový kód - reset counteru
+                                lastStableCode = barcode.rawValue;
+                                sameCodeCount = 1;
+                                status.innerHTML = `🔍 <strong>Detekován: ${barcode.rawValue}</strong><br><small>Udržte kód stabilní...</small>`;
+                            }
+                        }
+                    }
+
+                    detectionCount++;
+
+                    // Pravidelné čištění paměti
+                    if (detectionCount % 50 === 0) {
+                        lastStableCode = null;
+                        sameCodeCount = 0;
+                    }
+
+                    if (barcodeScanningActive) {
+                        setTimeout(() => detectFrame(), 200);
+                    }
+
+                } catch (error) {
+                    if (barcodeScanningActive) {
+                        setTimeout(() => detectFrame(), 300);
+                    }
+                }
+            };
+
+            detectFrame();
+        }
+
+        // VALIDACE FORMÁTU ČÁROVÉHO KÓDU
+        function isValidBarcodeFormat(code) {
+            if (!code || typeof code !== 'string') return false;
+
+            const cleanCode = code.replace(/\D/g, '');
+
+            // EAN-13: 13 číslic
+            if (/^\d{13}$/.test(cleanCode)) {
+                return validateEAN13(cleanCode);
+            }
+
+            // EAN-8: 8 číslic
+            if (/^\d{8}$/.test(cleanCode)) {
+                return validateEAN8(cleanCode);
+            }
+
+            // UPC-A: 12 číslic
+            if (/^\d{12}$/.test(cleanCode)) {
+                return validateUPCA(cleanCode);
+            }
+
+            return false;
+        }
+
+        // VALIDACE EAN-13 KONTROLNÍ ČÍSLICE
+        function validateEAN13(code) {
+            if (code.length !== 13) return false;
+
+            let sum = 0;
+            for (let i = 0; i < 12; i++) {
+                sum += parseInt(code[i]) * (i % 2 === 0 ? 1 : 3);
+            }
+            const checksum = (10 - (sum % 10)) % 10;
+
+            return checksum === parseInt(code[12]);
+        }
+
+        // VALIDACE EAN-8
+        function validateEAN8(code) {
+            if (code.length !== 8) return false;
+
+            let sum = 0;
+            for (let i = 0; i < 7; i++) {
+                sum += parseInt(code[i]) * (i % 2 === 0 ? 3 : 1);
+            }
+            const checksum = (10 - (sum % 10)) % 10;
+
+            return checksum === parseInt(code[7]);
+        }
+
+        // VALIDACE UPC-A
+        function validateUPCA(code) {
+            if (code.length !== 12) return false;
+
+            let sum = 0;
+            for (let i = 0; i < 11; i++) {
+                sum += parseInt(code[i]) * (i % 2 === 0 ? 3 : 1);
+            }
+            const checksum = (10 - (sum % 10)) % 10;
+
+            return checksum === parseInt(code[11]);
+        }
+
+        // VIZUÁLNÍ INDIKÁTOR SPOLEHLIVOSTI
+        function updateConfidenceIndicator(status, count) {
+            const confidenceLevel = Math.min(count / 3, 1);
+            const percentage = Math.round(confidenceLevel * 100);
+
+            let color, emoji;
+            if (confidenceLevel < 0.33) {
+                color = '#dc3545';
+                emoji = '🔴';
+            } else if (confidenceLevel < 0.66) {
+                color = '#ffc107';
+                emoji = '🟡';
+            } else {
+                color = '#28a745';
+                emoji = '🟢';
+            }
+
+            status.innerHTML = `
+                ${emoji} <strong style="color: ${color};">Spolehlivost: ${percentage}%</strong><br>
+                <small>Udržte kód stabilní pro automatické zpracování</small>
+            `;
+        }
+
+        // ZPRACOVÁNÍ VYSOCE SPOLEHLIVÉHO KÓDU
+        function handleHighConfidenceBarcode(barcode, status) {
+            console.log('🎯 Vysoká spolehlivost kódu:', barcode);
+
+            status.innerHTML = `
+                ✅ <strong style="color: #28a745; font-size: 1.1em;">KÓD POTVRZEN!</strong><br>
+                <small>${barcode} - otevírám vyhledávání...</small>
+            `;
+
+            playIPhoneDetectionSound();
+            barcodeScanningActive = false;
+
+            // Vizuální potvrzení před přechodem
+            flashOverlaySuccess();
+
+            setTimeout(() => {
+                closeBarcodeScanner();
+                openSearchWithBarcode(barcode);
+            }, 1000);
         }
 
         // NATIVNÍ DETEKCE PRO iPHONE
@@ -4825,8 +5005,9 @@
         }
 
         // INICIALIZACE QUAGGA PRO iPHONE
+        // VYLEPŠENÁ QUAGGA PRO VYŠŠÍ PŘESNOST
         function initializeQuaggaForIPhone(video, status) {
-            status.innerHTML = '🔍 <strong>iPhone skenování aktivní</strong><br><small>Namířejte na čárový kód</small>';
+            status.innerHTML = '🔍 <strong>Vysokopřesné skenování</strong><br><small>Namířte na čárový kód</small>';
 
             try {
                 Quagga.init({
@@ -4837,7 +5018,14 @@
                         constraints: {
                             facingMode: "environment",
                             width: { min: 640, ideal: 1280, max: 1920 },
-                            height: { min: 480, ideal: 720, max: 1080 }
+                            height: { min: 480, ideal: 720, max: 1080 },
+                            aspectRatio: { min: 1, max: 2 }
+                        },
+                        area: {
+                            top: "25%",
+                            right: "10%",
+                            left: "10%",
+                            bottom: "25%"
                         }
                     },
                     decoder: {
@@ -4846,31 +5034,81 @@
                             "ean_8_reader",
                             "upc_reader",
                             "upc_e_reader"
-                        ]
+                        ],
+                        multiple: false
+                    },
+                    locator: {
+                        patchSize: "medium",
+                        halfSample: true
                     },
                     locate: true,
-                    frequency: 10 // Pomalejší pro lepší výkon na iPhone
+                    frequency: 5, // Pomalejší = přesnější
+                    numOfWorkers: 1, // Méně workerů = stabilnější
+                    debug: {
+                        drawBoundingBox: false,
+                        showFrequency: false,
+                        drawScanline: false,
+                        showPattern: false
+                    }
                 }, function (err) {
                     if (err) {
-                        console.error('Quagga chyba na iPhone:', err);
-                        status.innerHTML = '❌ <strong>Skenování selhalo</strong><br><small>Použijte ruční zadání</small>';
+                        console.error('Quagga chyba:', err);
+                        status.innerHTML = '❌ <strong>Skenování selhalo</strong>';
                         return;
                     }
 
-                    console.log('Quagga úspěšně inicializována pro iPhone');
+                    console.log('Quagga úspěšně inicializována - vysoká přesnost');
                     Quagga.start();
 
-                    // Detekce nalezených kódů
+                    // VYLEPŠENÁ DETEKCE S FILTRACÍ
+                    let lastCode = '';
+                    let codeCount = 0;
+
                     Quagga.onDetected(function (result) {
-                        if (result && result.codeResult) {
-                            handleIPhoneDetectedBarcode(result.codeResult.code, status);
+                        if (result && result.codeResult && result.codeResult.code) {
+                            const currentCode = result.codeResult.code;
+
+                            // FILTRACE: Stejný kód musí být detekován 2x
+                            if (currentCode === lastCode) {
+                                codeCount++;
+
+                                if (codeCount >= 2 && isValidBarcodeFormat(currentCode)) {
+                                    Quagga.offDetected();
+                                    handleHighConfidenceBarcode(currentCode, status);
+                                }
+                            } else {
+                                lastCode = currentCode;
+                                codeCount = 1;
+                            }
                         }
                     });
                 });
 
             } catch (error) {
                 console.error('Chyba inicializace Quagga:', error);
-                status.innerHTML = '❌ <strong>Skenování nelze spustit</strong><br><small>Použijte ruční zadání</small>';
+                status.innerHTML = '❌ <strong>Skenování nelze spustit</strong>';
+            }
+        }
+
+        // VIZUÁLNÍ POTVRZENÍ ÚSPĚCHU
+        function flashOverlaySuccess() {
+            const overlay = document.querySelector('.barcode-overlay');
+            if (overlay) {
+                overlay.style.background = '#28a745';
+                overlay.style.transition = 'all 0.5s ease';
+                overlay.innerHTML = `
+                    <div style="text-align: center; color: white;">
+                        <div style="font-size: 32px; margin-bottom: 10px;">✅</div>
+                        <div><strong>ÚSPĚCH!</strong></div>
+                        <div style="font-size: 12px; margin-top: 5px;">Kód potvrzen</div>
+                    </div>
+                `;
+
+                setTimeout(() => {
+                    if (overlay) {
+                        overlay.style.background = 'rgba(0, 0, 0, 0.3)';
+                    }
+                }, 800);
             }
         }
 
