@@ -4198,3 +4198,30 @@ select.form-input {
     background: #4CAF50;
     animation: scan-line 2s ease-in-out infinite;
 }
+
+/* ANIMACE PRO SKENOVÁNÍ */
+@keyframes pulse {
+    0% { border-color: #4CAF50; box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
+    50% { border-color: #FFEB3B; box-shadow: 0 0 20px rgba(255, 235, 59, 0.8); }
+    100% { border-color: #4CAF50; box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
+}
+
+@keyframes scan-line {
+    0% { top: 20%; opacity: 1; }
+    50% { top: 80%; opacity: 0.8; }
+    100% { top: 20%; opacity: 1; }
+}
+
+.barcode-overlay {
+    animation: pulse 3s infinite;
+}
+
+.scan-line {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #4CAF50, transparent);
+    animation: scan-line 2s ease-in-out infinite;
+    pointer-events: none;
+}

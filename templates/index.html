@@ -4358,22 +4358,50 @@
         }
 
         // ZPRACOVÁNÍ NALEZENÉHO KÓDU
-        function handleDetectedBarcode(code) {
-            if (!isValidBarcode(code)) return;
+        function handleDetectedBarcode(barcode, status) {
+            console.log('🎯 Nalezen kód:', barcode);
 
-            console.log('Nalezen čárový kód:', code);
+            status.innerHTML = `
+                ✅ <strong>Kód nalezen: ${barcode}</strong><br>
+                <small>Zpracovávám...</small>
+            `;
+            status.style.color = '#28a745';
 
-            // Vizualní feedback
-            showBarcodeSuccess(code);
+            // Vizualní potvrzení
+            flashOverlay();
 
-            // Zastavení skenování
-            stopBarcodeScanner();
-
-            // Vyhledání kódu
+            // Zpracování po krátké době
             setTimeout(() => {
-                searchByBarcode(code);
+                barcodeScanningActive = false;
                 closeBarcodeScanner();
-            }, 1000);
+                searchByBarcode(barcode);
+            }, 1500);
+        }
+
+        // VIZUÁLNÍ EFEKTY PRO LEPŠÍ UX
+        function addScanningEffects() {
+            const overlay = document.querySelector('.barcode-overlay');
+            if (overlay) {
+                // Přidáme animovanou čáru
+                const scanLine = document.createElement('div');
+                scanLine.className = 'scan-line';
+                overlay.appendChild(scanLine);
+
+                // Pulzující efekt
+                overlay.style.animation = 'pulse 2s infinite';
+            }
+        }
+
+        function flashOverlay() {
+            const overlay = document.querySelector('.barcode-overlay');
+            if (overlay) {
+                overlay.style.background = '#4CAF50';
+                overlay.style.transition = 'background 0.3s';
+
+                setTimeout(() => {
+                    overlay.style.background = 'rgba(0, 0, 0, 0.3)';
+                }, 300);
+            }
         }
 
         // ZASTAVENÍ SKENÉRU
@@ -4427,7 +4455,7 @@
                 scanButton.id = 'startScanButton';
                 scanButton.className = 'btn-primary';
                 scanButton.textContent = '🎯 Spustit skenování';
-                scanButton.onclick = startBarcodeDetection; // ← OKAMŽITĚ SPUSTÍ DETEKCI
+                scanButton.onclick = startUniversalBarcodeDetection; // ← UNIVERZÁLNÍ DETEKCE
                 controls.appendChild(scanButton);
             }
         }
@@ -4539,6 +4567,92 @@
             }
         }*/
 
+        // UNIVERZÁLNÍ DETEKCE ČÁROVÝCH KÓDŮ PRO VŠECHNA ZAŘÍZENÍ
+        function startUniversalBarcodeDetection() {
+            const status = document.getElementById('barcodeStatus');
+            const video = document.getElementById('barcodeVideo');
+
+            status.textContent = '🔍 Skenuji... Namiřte na čárový kód';
+
+            // 1. NEJPRVE ZKUSÍME MODERNÍ API (pro Android/nový Safari)
+            if ('BarcodeDetector' in window) {
+                try {
+                    const barcodeDetector = new BarcodeDetector({
+                        formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39']
+                    });
+                    startModernDetection(barcodeDetector, video, status);
+                    return;
+                } catch (error) {
+                    console.log('Moderní API selhalo, používáme fallback');
+                }
+            }
+
+            // 2. POKUD MODERNÍ API NEFUNGUJE, POUŽIJEME ZRCADLOVÝ NÁHLED
+            status.innerHTML = `
+        📱 <strong>Automatické skenování</strong><br>
+        <small>Namířejte kód do zeleného rámečku. Kód se zobrazí v náhledu.</small>
+    `;
+            startMirrorPreviewDetection(video, status);
+        }
+
+        // MODERNÍ DETEKCE PRO ANDROID/NOVÁ ZAŘÍZENÍ
+        function startModernDetection(barcodeDetector, video, status) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            let lastDetectedCode = '';
+
+            const detectFrame = async () => {
+                if (!barcodeScanningActive || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+
+                try {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    const barcodes = await barcodeDetector.detect(canvas);
+
+                    if (barcodes.length > 0) {
+                        const barcode = barcodes[0];
+                        if (barcode.rawValue !== lastDetectedCode) {
+                            lastDetectedCode = barcode.rawValue;
+                            handleDetectedBarcode(barcode.rawValue, status);
+                            return;
+                        }
+                    }
+
+                    if (barcodeScanningActive) requestAnimationFrame(detectFrame);
+                } catch (error) {
+                    if (barcodeScanningActive) requestAnimationFrame(detectFrame);
+                }
+            };
+
+            detectFrame();
+        }
+
+        // ZRCADLOVÝ NÁHLED PRO iPHONE/STARŠÍ ZAŘÍZENÍ
+        function startMirrorPreviewDetection(video, status) {
+            // Přidáme instrukce přímo do overlay
+            const overlay = document.querySelector('.barcode-overlay');
+            if (overlay) {
+                overlay.innerHTML = `
+            <div style="text-align: center; color: white;">
+                <div style="font-size: 24px; margin-bottom: 10px;">📷</div>
+                <div><strong>Namířejte kód sem</strong></div>
+                <div style="font-size: 12px; margin-top: 5px;">Kód se zobrazí v náhledu</div>
+            </div>
+        `;
+            }
+
+            // Uživatel uvidí kód přímo v náhledu a může ho opsat
+            status.innerHTML = `
+        👁️ <strong>Zrcadlový náhled aktivní</strong><br>
+        <small>Přečtěte čárový kód z obrazovky a zadejte jej ručně</small>
+    `;
+
+            // Můžeme přidat zvýraznění oblasti
+            addScanningEffects();
+        }
+
         // ZÁKLADNÍ FUNKCE PRO SKENOVÁNÍ
         async function openBarcodeScanner() {
             console.log("🔍 Otevírám skenér čárových kódů");
@@ -4548,9 +4662,7 @@
             const status = document.getElementById('barcodeStatus');
 
             modal.style.display = 'flex';
-
-            // Kontrola podpory prohlížeče
-            const isSupported = checkBarcodeSupport();
+            status.textContent = 'Inicializuji kameru...';
 
             try {
                 const video = document.createElement('video');
@@ -4560,7 +4672,7 @@
 
                 const overlay = document.createElement('div');
                 overlay.className = 'barcode-overlay';
-                overlay.innerHTML = '📷 Namiřte na čárový kód';
+                overlay.innerHTML = '📷 Připravuji skenování...';
 
                 container.innerHTML = '';
                 container.appendChild(video);
@@ -4568,10 +4680,12 @@
 
                 await startCamera(video);
 
-                if (isSupported) {
-                    status.textContent = '✅ Kamera připravena - klikněte na "Spustit skenování"';
-                    addBarcodeActionButton();
-                }
+                // UNIVERZÁLNÍ ŘEŠENÍ - FUNGUJE VŽDY
+                status.innerHTML = `
+                    ✅ <strong>Kamera připravena</strong><br>
+                    <small>Klikněte na "Spustit skenování"</small>
+                `;
+                addBarcodeActionButton();
 
             } catch (error) {
                 console.error("❌ Chyba:", error);
