@@ -4454,8 +4454,18 @@
                 const scanButton = document.createElement('button');
                 scanButton.id = 'startScanButton';
                 scanButton.className = 'btn-primary';
-                scanButton.textContent = '🎯 Spustit skenování';
-                scanButton.onclick = startUniversalBarcodeDetection; // ← UNIVERZÁLNÍ DETEKCE
+
+                // Detekce zařízení
+                const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
+
+                if (isIPhone) {
+                    scanButton.textContent = '📱 Skenovat (iPhone)';
+                    scanButton.onclick = startIPhoneBarcodeDetection;
+                } else {
+                    scanButton.textContent = '🎯 Skenovat';
+                    scanButton.onclick = startUniversalBarcodeDetection;
+                }
+
                 controls.appendChild(scanButton);
             }
         }
@@ -4662,7 +4672,15 @@
             const status = document.getElementById('barcodeStatus');
 
             modal.style.display = 'flex';
-            status.textContent = 'Inicializuji kameru...';
+
+            // Detekce zařízení
+            const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
+
+            if (isIPhone) {
+                status.innerHTML = '📱 <strong>Připravuji skenování pro iPhone</strong>';
+            } else {
+                status.textContent = 'Inicializuji kameru...';
+            }
 
             try {
                 const video = document.createElement('video');
@@ -4672,7 +4690,18 @@
 
                 const overlay = document.createElement('div');
                 overlay.className = 'barcode-overlay';
-                overlay.innerHTML = '📷 Připravuji skenování...';
+
+                if (isIPhone) {
+                    overlay.innerHTML = `
+                        <div style="text-align: center; color: white;">
+                            <div style="font-size: 24px; margin-bottom: 10px;">📱</div>
+                            <div><strong>iPhone Skenování</strong></div>
+                            <div style="font-size: 12px; margin-top: 5px;">Optimalizováno pro iOS</div>
+                        </div>
+                    `;
+                } else {
+                    overlay.innerHTML = '📷 Připravuji skenování...';
+                }
 
                 container.innerHTML = '';
                 container.appendChild(video);
@@ -4680,17 +4709,208 @@
 
                 await startCamera(video);
 
-                // UNIVERZÁLNÍ ŘEŠENÍ - FUNGUJE VŽDY
-                status.innerHTML = `
-                    ✅ <strong>Kamera připravena</strong><br>
-                    <small>Klikněte na "Spustit skenování"</small>
-                `;
+                if (isIPhone) {
+                    status.innerHTML = `
+                        ✅ <strong>iPhone kamera připravena</strong><br>
+                        <small>Klikněte na "Skenovat (iPhone)"</small>
+                    `;
+                } else {
+                    status.innerHTML = `
+                        ✅ <strong>Kamera připravena</strong><br>
+                        <small>Klikněte na "Skenovat"</small>
+                    `;
+                }
+
                 addBarcodeActionButton();
 
             } catch (error) {
                 console.error("❌ Chyba:", error);
                 status.textContent = '❌ ' + error.message;
                 showBarcodeFallback();
+            }
+        }
+
+        // SPECIALIZOVANÉ ŘEŠENÍ PRO iPHONE
+        function startIPhoneBarcodeDetection() {
+            const status = document.getElementById('barcodeStatus');
+            const video = document.getElementById('barcodeVideo');
+
+            status.innerHTML = '📱 <strong>iPhone skenování</strong><br><small>Přizpůsobeno pro Safari</small>';
+
+            // 1. ZKUSÍME NATIVNÍ API (iOS 16+)
+            if ('BarcodeDetector' in window) {
+                try {
+                    const barcodeDetector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a'] });
+                    startIPhoneNativeDetection(barcodeDetector, video, status);
+                    return;
+                } catch (error) {
+                    console.log('Native API na iPhonu selhalo:', error);
+                }
+            }
+
+            // 2. POUŽIJEME JAVASCRIPT DETEKCI PRO iPHONE
+            startIPhoneJavascriptDetection(video, status);
+        }
+
+        // NATIVNÍ DETEKCE PRO iPHONE
+        function startIPhoneNativeDetection(barcodeDetector, video, status) {
+            status.innerHTML = '🔍 <strong>Automatické skenování</strong><br><small>Namířejte na čárový kód</small>';
+
+            const detectFrame = async () => {
+                if (!barcodeScanningActive) return;
+
+                try {
+                    // Vytvoříme canvas z videa
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    // Detekce čárových kódů
+                    const barcodes = await barcodeDetector.detect(canvas);
+
+                    if (barcodes.length > 0) {
+                        const barcode = barcodes[0];
+                        handleIPhoneDetectedBarcode(barcode.rawValue, status);
+                        return;
+                    }
+
+                    // Pokračujeme v detekci
+                    if (barcodeScanningActive) {
+                        setTimeout(() => detectFrame(), 300); // Pomalejší pro iPhone
+                    }
+
+                } catch (error) {
+                    console.log('iPhone detekce chyba:', error);
+                    if (barcodeScanningActive) {
+                        setTimeout(() => detectFrame(), 500);
+                    }
+                }
+            };
+
+            detectFrame();
+        }
+
+        // JAVASCRIPT DETEKCE PRO STARŠÍ iPHONE
+        function startIPhoneJavascriptDetection(video, status) {
+            status.innerHTML = `
+                📱 <strong>Optimalizované pro iPhone</strong><br>
+                <small>Pomalejší, ale spolehlivé skenování</small>
+            `;
+
+            // Použijeme Quagga.js, která má lepší podporu pro iOS
+            loadQuaggaForIPhone(video, status);
+        }
+
+        // NAČTENÍ QUAGGA PRO iPHONE
+        function loadQuaggaForIPhone(video, status) {
+            // Kontrola, zda je Quagga již načtena
+            if (typeof Quagga === 'undefined') {
+                status.innerHTML = '📥 <strong>Načítám skenovací engine...</strong>';
+
+                // Dynamické načtení Quagga
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js';
+                script.onload = () => {
+                    initializeQuaggaForIPhone(video, status);
+                };
+                script.onerror = () => {
+                    status.innerHTML = '❌ <strong>Nelze načíst skenovací engine</strong><br><small>Použijte ruční zadání</small>';
+                };
+                document.head.appendChild(script);
+            } else {
+                initializeQuaggaForIPhone(video, status);
+            }
+        }
+
+        // INICIALIZACE QUAGGA PRO iPHONE
+        function initializeQuaggaForIPhone(video, status) {
+            status.innerHTML = '🔍 <strong>iPhone skenování aktivní</strong><br><small>Namířejte na čárový kód</small>';
+
+            try {
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: video,
+                        constraints: {
+                            facingMode: "environment",
+                            width: { min: 640, ideal: 1280, max: 1920 },
+                            height: { min: 480, ideal: 720, max: 1080 }
+                        }
+                    },
+                    decoder: {
+                        readers: [
+                            "ean_reader",
+                            "ean_8_reader",
+                            "upc_reader",
+                            "upc_e_reader"
+                        ]
+                    },
+                    locate: true,
+                    frequency: 10 // Pomalejší pro lepší výkon na iPhone
+                }, function (err) {
+                    if (err) {
+                        console.error('Quagga chyba na iPhone:', err);
+                        status.innerHTML = '❌ <strong>Skenování selhalo</strong><br><small>Použijte ruční zadání</small>';
+                        return;
+                    }
+
+                    console.log('Quagga úspěšně inicializována pro iPhone');
+                    Quagga.start();
+
+                    // Detekce nalezených kódů
+                    Quagga.onDetected(function (result) {
+                        if (result && result.codeResult) {
+                            handleIPhoneDetectedBarcode(result.codeResult.code, status);
+                        }
+                    });
+                });
+
+            } catch (error) {
+                console.error('Chyba inicializace Quagga:', error);
+                status.innerHTML = '❌ <strong>Skenování nelze spustit</strong><br><small>Použijte ruční zadání</small>';
+            }
+        }
+
+        // ZPRACOVÁNÍ NALEZENÉHO KÓDU NA iPHONE
+        function handleIPhoneDetectedBarcode(barcode, status) {
+            console.log('📱 iPhone nalezen kód:', barcode);
+
+            // Vizualní potvrzení
+            status.innerHTML = `
+        ✅ <strong style="color: #28a745;">Kód nalezen!</strong><br>
+        <small>${barcode} - zpracovávám...</small>
+    `;
+
+            // Zvukový feedback
+            playIPhoneDetectionSound();
+
+            // Zastavíme skenování
+            if (typeof Quagga !== 'undefined') {
+                Quagga.stop();
+            }
+            barcodeScanningActive = false;
+
+            // Zpracování
+            setTimeout(() => {
+                closeBarcodeScanner();
+                searchByBarcode(barcode);
+            }, 1500);
+        }
+
+        // ZVUK PRO iPHONE
+        function playIPhoneDetectionSound() {
+            // Jednodušší zvuková metoda pro iOS
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF5fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUgBjiO1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUgBjiO1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUgBjiO1/LMeSwFJHf');
+                audio.play();
+            } catch (e) {
+                // Fallback - vibrace (pokud je podporováno)
+                if (navigator.vibrate) {
+                    navigator.vibrate(200);
+                }
             }
         }
 
