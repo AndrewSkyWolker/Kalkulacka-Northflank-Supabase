@@ -119,171 +119,169 @@
 
     <div id="personalCardModal" class="modal-overlay">
         <div class="modal-content personal-card-modal">
-            <span class="close-button" id="closePersonalCardModal">&times;</span>
-
-            <!-- HLAVIČKA - BEZ MODRÉHO POZADÍ -->
-            <div class="personal-card-header" style="background: none; color: #000; padding: 20px 30px 0 30px;">
-                <h2 style="color: #000;">🧘 Osobní karta</h2>
-                <p class="personal-card-subtitle" style="color: #000; opacity: 0.8;">Nastavte si své cíle a získejte
-                    personalizovaná doporučení</p>
+            <!-- HLAVIČKA - STATICKÁ -->
+            <div class="personal-card-header">
+                <span class="close-button" id="closePersonalCardModal">&times;</span>
+                <h2 style="color: #000; margin: 0;">🧘 Osobní karta</h2>
+                <p class="personal-card-subtitle" style="color: #000; opacity: 0.8; margin: 5px 0 0 0;">Nastavte si své
+                    cíle a získejte personalizovaná doporučení</p>
             </div>
 
-            <!-- OBSAH -->
-            <div class="personal-card-content">
+            <!-- OBSAH - SCROLLOVATELNÝ S PATIČKOU -->
+            <div class="personal-card-content-scrollable">
 
-                <!-- LEVÝ SLOUPEC - ZÁKLADNÍ ÚDAJE A MAKROŽIVINY -->
-                <div class="personal-card-column">
-                    <!-- ZÁKLADNÍ ÚDAJE -->
-                    <div class="personal-card-section">
-                        <h3>📊 Základní údaje</h3>
+                <!-- ZÁKLADNÍ ÚDAJE -->
+                <div class="personal-card-section">
+                    <h3>📊 Základní údaje</h3>
 
-                        <div class="form-row">
-                            <div class="form-group gender-group">
-                                <label for="gender">Pohlaví</label>
-                                <select id="gender" class="form-input" required>
-                                    <option value="" disabled selected>♂/♀</option>
-                                    <option value="male">♂ Muž</option>
-                                    <option value="female">♀ Žena</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="age">Věk</label>
-                                <input type="number" id="age" class="form-input" placeholder="30" min="15" max="100">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="height">Výška (cm)</label>
-                                <input type="number" id="height" class="form-input" placeholder="175" min="100"
-                                    max="250">
-                            </div>
-                            <div class="form-group weight-group">
-                                <label for="weight">Aktuální hmotnost (kg)</label>
-                                <input type="number" id="weight" class="form-input" placeholder="75" min="30" max="300"
-                                    step="0.1">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group body-fat-group">
-                                <label for="bodyFat">Podkožní tuk (%)</label>
-                                <input type="number" id="bodyFat" class="form-input" placeholder="20" min="5" max="60"
-                                    step="0.1">
-                            </div>
-                            <div class="form-group activity-level-group">
-                                <label for="activityLevel">Denní pohybová aktivita</label>
-                                <select id="activityLevel" class="form-input">
-                                    <option value="" disabled selected>Vyberte aktivitu</option>
-                                    <option value="1.2">Sedavý (minimum pohybu)</option>
-                                    <option value="1.375">Lehce aktivní (1-3x týdně)</option>
-                                    <option value="1.55">Středně aktivní (3-5x týdně)</option>
-                                    <option value="1.725">Velmi aktivní (6-7x týdně)</option>
-                                    <option value="1.9">Extrémně aktivní (fyzická práce + trénink)</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SAMOSTATNÉ MAKROŽIVINY -->
-                    <div class="personal-card-section macros-section">
-                        <h3>💪 Makroživiny</h3>
-                        <div class="macros-subtitle">Doporučená denní dávka</div>
-                        <div class="macros-grid-2rows">
-                            <div class="macro-row">
-                                <div class="macro-item protein">
-                                    <div class="macro-icon">🥩</div>
-                                    <div class="macro-info">
-                                        <div class="macro-label">Bílkoviny</div>
-                                        <div class="macro-value" id="proteinResult">- g</div>
-                                    </div>
-                                </div>
-                                <div class="macro-item carbs">
-                                    <div class="macro-icon">🍚</div>
-                                    <div class="macro-info">
-                                        <div class="macro-label">Sacharidy</div>
-                                        <div class="macro-value" id="carbsResult">- g</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="macro-row">
-                                <div class="macro-item fats">
-                                    <div class="macro-icon">🥑</div>
-                                    <div class="macro-info">
-                                        <div class="macro-label">Tuky</div>
-                                        <div class="macro-value" id="fatsResult">- g</div>
-                                    </div>
-                                </div>
-                                <div class="macro-item fiber">
-                                    <div class="macro-icon">🌾</div>
-                                    <div class="macro-info">
-                                        <div class="macro-label">Vláknina</div>
-                                        <div class="macro-value" id="fiberResult">- g</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PRAVÝ SLOUPEC - CÍLE A VÝSLEDKY -->
-                <div class="personal-card-column">
-
-                    <!-- CÍL A INTENZITA S CÍLOVOU HMOTNOSTÍ -->
-                    <div class="personal-card-section">
-                        <h3>🎯 Cíl</h3>
-
-                        <div class="form-group">
-                            <label for="goal">Cíl</label>
-                            <select id="goal" class="form-input">
-                                <option value="" disabled selected>Vyberte cíl</option>
-                                <option value="loss">Redukce hmotnosti</option>
-                                <option value="maintain">Udržení hmotnosti</option>
-                                <option value="gain">Nabírání hmotnosti</option>
+                    <div class="form-row">
+                        <div class="form-group gender-group">
+                            <label for="gender">Pohlaví</label>
+                            <select id="gender" class="form-input" required>
+                                <option value="" disabled selected>♂/♀</option>
+                                <option value="male">♂ Muž</option>
+                                <option value="female">♀ Žena</option>
                             </select>
                         </div>
-
-                        <!-- SKRYTÁ INTENZITA - VŽDY "light" -->
-                        <input type="hidden" id="intensity" value="light">
-
-                        <!-- PŘESUNUTO: Cílová hmotnost S VĚTŠÍM ROZESTUPEM -->
-                        <div class="form-group" style="margin-top: 25px;">
-                            <label for="targetWeight">Cílová hmotnost (kg)</label>
-                            <input type="number" id="targetWeight" class="form-input" placeholder="70" min="30"
-                                max="300" step="0.1">
+                        <div class="form-group">
+                            <label for="age">Věk</label>
+                            <input type="number" id="age" class="form-input" placeholder="30" min="15" max="100">
                         </div>
                     </div>
 
-                    <!-- VÝSLEDKY -->
-                    <div class="personal-card-section results-section">
-                        <h3>📈 Výsledky</h3>
-                        <div class="results-grid-single-line">
-                            <div class="result-item-single">
-                                <div class="result-label">Bazální metabolismus</div>
-                                <div class="result-value" id="bmrResult">- kcal</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="height">Výška (cm)</label>
+                            <input type="number" id="height" class="form-input" placeholder="175" min="100" max="250">
+                        </div>
+                        <div class="form-group weight-group">
+                            <label for="weight">Aktuální hmotnost (kg)</label>
+                            <input type="number" id="weight" class="form-input" placeholder="75" min="30" max="300"
+                                step="0.1">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group body-fat-group">
+                            <label for="bodyFat">Podkožní tuk (%)</label>
+                            <input type="number" id="bodyFat" class="form-input" placeholder="20" min="5" max="60"
+                                step="0.1">
+                        </div>
+                        <div class="form-group activity-level-group">
+                            <label for="activityLevel">Denní pohybová aktivita</label>
+                            <select id="activityLevel" class="form-input">
+                                <option value="" disabled selected>Vyberte aktivitu</option>
+                                <option value="1.2">Sedavý (minimum pohybu)</option>
+                                <option value="1.375">Lehce aktivní (1-3x týdně)</option>
+                                <option value="1.55">Středně aktivní (3-5x týdně)</option>
+                                <option value="1.725">Velmi aktivní (6-7x týdně)</option>
+                                <option value="1.9">Extrémně aktivní (fyzická práce + trénink)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CÍL -->
+                <div class="personal-card-section">
+                    <h3>🎯 Cíl</h3>
+
+                    <div class="form-group">
+                        <label for="goal">Cíl</label>
+                        <select id="goal" class="form-input">
+                            <option value="" disabled selected>Vyberte cíl</option>
+                            <option value="loss">Redukce hmotnosti</option>
+                            <option value="maintain">Udržení hmotnosti</option>
+                            <option value="gain">Nabírání hmotnosti</option>
+                        </select>
+                    </div>
+
+                    <!-- SKRYTÁ INTENZITA - VŽDY "light" -->
+                    <input type="hidden" id="intensity" value="light">
+
+                    <!-- CÍLOVÁ HMOTNOST -->
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label for="targetWeight">Cílová hmotnost (kg)</label>
+                        <input type="number" id="targetWeight" class="form-input" placeholder="70" min="30" max="300"
+                            step="0.1">
+                    </div>
+                </div>
+
+                <!-- TLAČÍTKO PRO VÝPOČET -->
+                <div class="personal-card-footer">
+                    <button id="calculatePersonalCard" class="btn-primary">Vypočítat</button>
+                </div>
+
+                <!-- VÝSLEDKY -->
+                <div class="personal-card-section results-section">
+                    <h3>📈 Výsledky</h3>
+                    <div class="results-grid-single-line">
+                        <div class="result-item-single">
+                            <div class="result-label">Bazální metabolismus</div>
+                            <div class="result-value" id="bmrResult">- kcal</div>
+                        </div>
+                        <div class="result-item-single">
+                            <div class="result-label">Denní výdej (TDEE)</div>
+                            <div class="result-value" id="tdeeResult">- kcal</div>
+                        </div>
+                        <div class="result-item-single highlight">
+                            <div class="result-label">Doporučený příjem</div>
+                            <div class="result-value" id="targetCaloriesResult">- kcal</div>
+                        </div>
+                        <div class="result-item-single">
+                            <div class="result-label">Rozdíl hmotnosti</div>
+                            <div class="result-value" id="weightDiffResult">- kg</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MAKROŽIVINY -->
+                <div class="personal-card-section macros-section">
+                    <h3>💪 Makroživiny</h3>
+                    <div class="macros-subtitle">Doporučená denní dávka</div>
+                    <div class="macros-grid-2rows">
+                        <div class="macro-row">
+                            <div class="macro-item protein">
+                                <div class="macro-icon">🥩</div>
+                                <div class="macro-info">
+                                    <div class="macro-label">Bílkoviny</div>
+                                    <div class="macro-value" id="proteinResult">- g</div>
+                                </div>
                             </div>
-                            <div class="result-item-single">
-                                <div class="result-label">Denní výdej (TDEE)</div>
-                                <div class="result-value" id="tdeeResult">- kcal</div>
+                            <div class="macro-item carbs">
+                                <div class="macro-icon">🍚</div>
+                                <div class="macro-info">
+                                    <div class="macro-label">Sacharidy</div>
+                                    <div class="macro-value" id="carbsResult">- g</div>
+                                </div>
                             </div>
-                            <div class="result-item-single highlight">
-                                <div class="result-label">Doporučený příjem</div>
-                                <div class="result-value" id="targetCaloriesResult">- kcal</div>
+                        </div>
+                        <div class="macro-row">
+                            <div class="macro-item fats">
+                                <div class="macro-icon">🥑</div>
+                                <div class="macro-info">
+                                    <div class="macro-label">Tuky</div>
+                                    <div class="macro-value" id="fatsResult">- g</div>
+                                </div>
                             </div>
-                            <div class="result-item-single">
-                                <div class="result-label">Rozdíl hmotnosti</div>
-                                <div class="result-value" id="weightDiffResult">- kg</div>
+                            <div class="macro-item fiber">
+                                <div class="macro-icon">🌾</div>
+                                <div class="macro-info">
+                                    <div class="macro-label">Vláknina</div>
+                                    <div class="macro-value" id="fiberResult">- g</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- TLAČÍTKO PRO ULOŽENÍ -->
+                <div class="personal-card-footer">
+                    <!--<button id="calculatePersonalCard" class="btn-primary">Spočítat</button>-->
+                    <button id="savePersonalCard" class="btn-primary" disabled>Uložit data</button>
+                </div>
             </div>
 
-            <!-- PATIČKA S TLAČÍTKY -->
-            <div class="personal-card-footer">
-                <button id="calculatePersonalCard" class="btn-primary">Spočítat</button>
-                <button id="savePersonalCard" class="btn-primary" disabled>Uložit data</button>
-            </div>
+
         </div>
     </div>
 
@@ -694,6 +692,8 @@
         let personalCardData = null;
         let selectedMealDate = new Date();
         let currentFoodItemForMeal = null;
+        let personalCardOriginalData = null;
+        let personalCardHasChanges = false;
 
         // Nastavení uživatele
         let userSettings = {
@@ -761,7 +761,15 @@
         function showPersonalCardModal() {
             const modal = document.getElementById('personalCardModal');
             modal.style.display = 'flex';
+
+            // Resetujeme stav změn při otevření modalu
+            personalCardHasChanges = false;
             loadPersonalCardData();
+
+            // Přidáme event listenery pro změny
+            setTimeout(() => {
+                addPersonalCardChangeListeners();
+            }, 100);
         }
 
         function closePersonalCardModal() {
@@ -799,8 +807,8 @@
                 timestamp: new Date().toISOString()
             };
 
-            // Povolení tlačítka Uložit
-            document.getElementById('savePersonalCard').disabled = false;
+            // Povolení tlačítka Uložit pouze pokud jsou změny
+            checkPersonalCardChanges();
 
             console.log("📊 Vypočítaná data:", personalCardData);
         }
@@ -833,6 +841,44 @@
 
             await performSearch(query);
         });
+
+        // Funkce pro kontrolu změn ve formuláři
+        function checkPersonalCardChanges() {
+            if (!personalCardOriginalData) return false;
+
+            const currentData = getFormData();
+
+            // Porovnáme aktuální data s původními
+            const hasChanges =
+                currentData.gender !== personalCardOriginalData.gender ||
+                currentData.age !== personalCardOriginalData.age ||
+                currentData.height !== personalCardOriginalData.height ||
+                currentData.weight !== personalCardOriginalData.weight ||
+                currentData.bodyFat !== personalCardOriginalData.bodyFat ||
+                currentData.targetWeight !== personalCardOriginalData.targetWeight ||
+                currentData.activityLevel !== personalCardOriginalData.activityLevel ||
+                currentData.goal !== personalCardOriginalData.goal;
+
+            personalCardHasChanges = hasChanges;
+            updateSaveButtonState();
+            return hasChanges;
+        }
+
+        // Funkce pro aktualizaci stavu tlačítka Uložit
+        function updateSaveButtonState() {
+            const saveButton = document.getElementById('savePersonalCard');
+            if (!saveButton) return;
+
+            if (personalCardHasChanges && personalCardData) {
+                saveButton.disabled = false;
+                saveButton.textContent = 'Uložit data';
+                saveButton.style.backgroundColor = '#28a745';
+            } else {
+                saveButton.disabled = true;
+                saveButton.textContent = 'Uložit data';
+                saveButton.style.backgroundColor = '#6c757d';
+            }
+        }
 
         // Funkce pro zobrazení okna změny profilu
         function showProfileNameModal() {
@@ -1547,22 +1593,50 @@
 
                 if (loadedData && loadedData.formData) {
                     console.log("✅ Data načtena z DB");
-                    fillFormWithData(loadedData);
-                    saveButton.textContent = 'Data načtena';
 
-                    setTimeout(() => {
-                        saveButton.textContent = originalText;
-                    }, 2000);
+                    // Uložíme původní data pro sledování změn
+                    personalCardOriginalData = { ...loadedData.formData };
+                    personalCardHasChanges = false;
+
+                    fillFormWithData(loadedData);
+                    saveButton.textContent = 'Uložit data';
+
+                    // Aktualizujeme stav tlačítka
+                    updateSaveButtonState();
                 } else {
                     console.log("ℹ️ Žádná data k načtení");
-                    saveButton.textContent = originalText;
+                    personalCardOriginalData = null;
+                    personalCardHasChanges = false;
+                    saveButton.textContent = 'Uložit data';
                     saveButton.disabled = true;
                 }
             } catch (error) {
                 console.error("❌ Chyba při načítání dat:", error);
-                saveButton.textContent = originalText;
-                saveButton.disabled = false;
+                saveButton.textContent = 'Uložit data';
+                saveButton.disabled = true;
+                personalCardOriginalData = null;
+                personalCardHasChanges = false;
             }
+        }
+
+        // Funkce pro přidání event listenerů pro sledování změn
+        function addPersonalCardChangeListeners() {
+            const formElements = [
+                'gender', 'age', 'height', 'weight', 'bodyFat',
+                'targetWeight', 'activityLevel', 'goal'
+            ];
+
+            formElements.forEach(elementId => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.addEventListener('change', function () {
+                        checkPersonalCardChanges();
+                    });
+                    element.addEventListener('input', function () {
+                        checkPersonalCardChanges();
+                    });
+                }
+            });
         }
 
         async function loadFromSupabase() {
@@ -1627,7 +1701,9 @@
             if (formData.goal) {
                 document.getElementById('goal').value = formData.goal;
             }
-            // INTENZITA SE JIŽ NENAČÍTÁ - VŽDY "light"
+
+            // Přidáme event listenery pro změny
+            addPersonalCardChangeListeners();
 
             // Pokud máme vypočítané hodnoty, zobrazíme je
             if (calculations) {
@@ -1635,7 +1711,8 @@
                 displayResults(calculations);
 
                 personalCardData = loadedData;
-                document.getElementById('savePersonalCard').disabled = false;
+                // Tlačítko bude povoleno pouze při změnách
+                checkPersonalCardChanges();
             }
 
             console.log("✅ Formulář naplněn daty");
@@ -4577,7 +4654,7 @@
                 // Otevřeme osobní kartu
                 showPersonalCardModal();
             });
-            
+
             //document.getElementById('closePersonalCard').addEventListener('click', closePersonalCardModal);
             document.getElementById('calculatePersonalCard').addEventListener('click', calculatePersonalCard);
             document.getElementById('savePersonalCard').addEventListener('click', savePersonalCardData);

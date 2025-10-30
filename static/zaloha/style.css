@@ -2746,10 +2746,50 @@ button:hover {
     box-shadow: 0 10px 30px rgba(0, 0, 0, .15)
 }
 
+.personal-card-modal .modal-content {
+    max-width: 95vw !important; /* Místo 90% šířky viewportu */
+    width: 400px !important; /* Pevná šířka pro mobily */
+    margin: 20px auto;
+    height: 90vh;
+    max-height: 700px;
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+.personal-card-header-fixed {
+    background: #fff;
+    padding: 20px 30px 15px 30px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+}
+
+.personal-card-content-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.personal-card-footer-fixed {
+    background: #fff;
+    padding: 15px 20px;
+    border-top: 1px solid #e9ecef;
+    flex-shrink: 0;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
 .personal-card-header {
-    background: 0 0 !important;
-    color: #000 !important;
-    padding: 20px 30px 0 30px !important
+    background: #fff;
+    padding: 20px 20px 15px 20px !important;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    margin: 0 !important;
+    flex-shrink: 0;
 }
 
 .personal-card-header h2 {
@@ -2773,13 +2813,13 @@ button:hover {
 .macros-grid-2rows {
     display: flex;
     flex-direction: column;
-    gap: 10px
+    gap: 10px;
 }
 
 .macro-row {
     display: flex;
     gap: 10px;
-    justify-content: space-between
+    justify-content: space-between;
 }
 
 .macro-row .macro-item {
@@ -2787,11 +2827,12 @@ button:hover {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 10px;
+    padding: 12px 5px;
     background: #fff;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 2px solid transparent;
-    min-height: 50px
+    min-height: 60px; /* Stejná výška pro všechny */
+    min-width: 0; /* Zajistí stejnou šířku */
 }
 
 .macro-row .macro-item.protein {
@@ -2819,26 +2860,27 @@ button:hover {
     justify-content: center;
     background: #f8f9fa;
     border-radius: 5px;
-    flex-shrink: 0
+    flex-shrink: 0;
 }
 
 .macro-row .macro-info {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    flex: 1
+    flex: 1;
+    min-width: 0;
 }
 
 .macro-row .macro-label {
     font-weight: 600;
     color: #495057;
-    font-size: .75em
+    font-size: .75em;
 }
 
 .macro-row .macro-value {
     font-weight: 700;
     color: #333;
-    font-size: .9em
+    font-size: .9em;
 }
 
 .macros-subtitle {
@@ -2964,17 +3006,18 @@ button:hover {
 }
 
 .personal-card-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 120px 20px 80px 20px; /* Přidáme padding pro hlavičku a patičku */
     display: flex;
+    flex-direction: column;
     gap: 20px;
-    padding: 20px;
-    min-height: auto;
-    align-items: flex-start
+    margin-top: 0 !important;
 }
 
 .personal-card-column {
-    display: flex;
-    flex-direction: column;
-    gap: 15px
+    display: block;
+    width: 100%;
 }
 
 .personal-card-column:first-child {
@@ -2995,16 +3038,24 @@ button:hover {
     gap: 15px
 }
 
+/* STYLY PRO JEDNOSLOUPCVOU OSOBNÍ KARTU */
+.personal-card-content-single-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 0 10px;
+}
+
 .personal-card-section {
-    padding: 15px;
     background: #f8f9fa;
     border-radius: 12px;
     border: 1px solid #e9ecef;
-    margin-bottom: 15px
+    padding: 15px;
+    margin-bottom: 20px;
 }
 
 .personal-card-section:last-child {
-    margin-bottom: 0
+    margin-bottom: 0;
 }
 
 .personal-card-section h3 {
@@ -3012,8 +3063,10 @@ button:hover {
     margin-bottom: 15px;
     color: #333;
     border-bottom: 1px solid #dee2e6;
-    padding-bottom: 8px
+    padding-bottom: 8px;
 }
+
+
 
 .form-row {
     display: flex;
@@ -3131,6 +3184,14 @@ select.form-input {
     border-color: #f44336
 }
 
+.macro-item.protein,
+.macro-item.carbs,
+.macro-item.fats,
+.macro-item.fiber {
+    min-height: 60px;
+    align-items: center;
+}
+
 .macro-item.carbs {
     border-color: #007bff
 }
@@ -3171,33 +3232,147 @@ select.form-input {
     font-size: 1em
 }
 
-.personal-card-footer {
-    padding: 15px 20px;
-    flex-wrap: wrap
+/* Upravte pozici křížku */
+.personal-card-header .close-button {
+    position: absolute !important;
+    top: -3px !important;
+    right: -7px !important;    background: transparent !important;
+    border: none !important;
+    font-size: 24px !important;
+    color: #aaa !important;
+    cursor: pointer !important;
+    width: 30px !important;
+    height: 30px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.personal-card-header .close-button:hover {
+    color: #000 !important;
+    background: transparent !important;
 }
 
 .personal-card-footer button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
     flex: 1;
-    min-width: 120px;
-    margin: 5px
+    margin: 0; /* Žádné další okraje */
 }
 
-#calculatePersonalCard,
+.personal-card-footer {
+    background: #fff;
+    padding: 15px 15px !important;
+    border-top: none !important;
+    border-top-width: 0 !important;
+    border-top-style: none !important;
+    border-top-color: transparent !important;
+    margin-top: -15px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#calculatePersonalCard {
+    background-color: #007bff !important;
+    color: #fff !important;
+}
+
 #savePersonalCard {
-    background-color: #007bff;
-    color: #fff
+    background-color: #28a745 !important;
+    color: #fff !important;
 }
 
-#calculatePersonalCard:hover,
+#calculatePersonalCard:hover {
+    background-color: #0056b3 !important;
+}
+
 #savePersonalCard:hover {
-    background-color: #0056b3;
-    transform: translateY(-1px)
+    background-color: #218838 !important;
 }
 
 #savePersonalCard:disabled {
-    background-color: #6c757d;
+    background-color: #6c757d !important;
     cursor: not-allowed;
-    transform: none
+    opacity: 0.6;
+}
+
+.personal-card-section .form-row {
+    display: flex;
+    gap: 10px; /* Menší mezera mezi poli */
+    margin-bottom: 15px;
+    align-items: flex-start; /* Zarovnání na začátek */
+    min-height: 80px; /* Minimální výška řádku */
+}
+
+.personal-card-section .form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.personal-card-section .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #495057;
+    font-size: .9em;
+    min-height: 40px; /* Stejná výška pro všechny popisky */
+    display: flex;
+    align-items: flex-end; /* Text zarovnaný dolů */
+}
+
+.personal-card-section .form-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Dutch801 Rm BT', serif;
+    transition: all .3s ease;
+    background: #fff;
+    height: 44px; /* Pevná výška pro všechna vstupní pole */
+    box-sizing: border-box;
+}
+
+/* Speciální úpravy pro select elementy */
+.personal-card-section select.form-input {
+    height: 44px;
+    line-height: 44px;
+    padding: 0 15px !important;
+}
+
+/* Speciální úpravy pro číselná pole */
+.personal-card-section input[type="number"].form-input {
+    height: 44px;
+    text-align: center;
+}
+
+/* Upravíme specifické skupiny pro konzistentní šířku */
+.personal-card-section .gender-group {
+    flex: 0.8 !important;
+}
+
+.personal-card-section .body-fat-group {
+    flex: 0.8 !important;
+}
+
+.personal-card-section .weight-group,
+.personal-card-section .activity-level-group {
+    flex: 1.2 !important;
+}
+
+/* Zajistíme stejné zarovnání pro všechny formulářové skupiny */
+.personal-card-section .form-group:nth-child(1),
+.personal-card-section .form-group:nth-child(2) {
+    align-items: flex-start !important;
 }
 
 #closePersonalCard {
