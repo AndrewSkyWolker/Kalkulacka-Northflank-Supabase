@@ -4174,7 +4174,7 @@
         // =============================================
 
         // INICIALIZACE MODERNÍHO SKENÉRU
-        async function initModernBarcodeScanner() {
+        /*async function initModernBarcodeScanner() {
             // Kontrola podpory Barcode Detection API
             if (!('BarcodeDetector' in window)) {
                 showBarcodeFallbackMessage();
@@ -4192,7 +4192,7 @@
                 showBarcodeFallbackMessage();
                 return false;
             }
-        }
+        }*/
 
         // ZLEPŠENÁ FUNKCE PRO SPUŠTĚNÍ SKENÉRU
         async function startModernBarcodeScanner() {
@@ -4817,7 +4817,7 @@
             document.head.appendChild(style);
 
             // Inicializace skenéru
-            initModernBarcodeScanner();
+            //initModernBarcodeScanner();
 
             // Event listenery
             document.getElementById('barcodeButtonInModal').addEventListener('click', function () {
@@ -4966,7 +4966,14 @@
                 }
             });
 
-            setTimeout(initBarcodeScanner, 1000);
+            console.log("🏠 inicializuji nový skenér");
+
+            // POČKÁME, AŤ SE NAČTOU VŠECHNY ELEMENTY
+            setTimeout(() => {
+                // Inicializujeme NOVÝ skenér
+                initBarcodeScanner();
+                console.log("✅ Nový skenér čárových kódů inicializován");
+            }, 1000);
 
             await initializeApplication();
 
