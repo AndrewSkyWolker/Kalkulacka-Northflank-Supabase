@@ -4880,24 +4880,77 @@
 
             // Vizualní potvrzení
             status.innerHTML = `
-        ✅ <strong style="color: #28a745;">Kód nalezen!</strong><br>
-        <small>${barcode} - zpracovávám...</small>
-    `;
+                ✅ <strong style="color: #28a745;">Kód nalezen!</strong><br>
+                <small>${barcode} - otevírám vyhledávání...</small>
+            `;
 
             // Zvukový feedback
             playIPhoneDetectionSound();
 
             // Zastavíme skenování
-            if (typeof Quagga !== 'undefined') {
+            if (typeof Quagga !== 'undefined' && Quagga) {
                 Quagga.stop();
             }
             barcodeScanningActive = false;
 
-            // Zpracování
+            // OKAMŽITÉ ZAVŘENÍ SKENÉRU A OTEVRENÍ VYHLEDÁVÁNÍ
             setTimeout(() => {
                 closeBarcodeScanner();
-                searchByBarcode(barcode);
-            }, 1500);
+                openSearchWithBarcode(barcode); // ← NOVÁ FUNKCE
+            }, 800); // Krátká prodleva pro UX
+        }
+
+        // NOVÁ FUNKCE PRO OTEVRENÍ VYHLEDÁVÁNÍ S KÓDEM
+        function openSearchWithBarcode(barcode) {
+            console.log("🔍 Otevírám vyhledávání s kódem:", barcode);
+
+            // 1. Otevřeme vyhledávací modal
+            const searchModal = document.getElementById('searchModal');
+            if (searchModal) {
+                searchModal.style.display = 'flex';
+            }
+
+            // 2. Vyplníme kód do vyhledávacího pole
+            const searchInput = document.getElementById('searchModalQuery');
+            if (searchInput) {
+                searchInput.value = barcode;
+                searchInput.focus(); // Kurzor do pole
+
+                // 3. OKAMŽITĚ SPUSTÍME VYHLEDÁVÁNÍ
+                setTimeout(() => {
+                    performBarcodeSearch(barcode);
+                }, 300);
+            }
+        }
+
+        // FUNKCE PRO SPUŠTĚNÍ VYHLEDÁVÁNÍ
+        function performBarcodeSearch(barcode) {
+            console.log("🎯 Spouštím vyhledávání kódu:", barcode);
+
+            const searchInput = document.getElementById('searchModalQuery');
+            const resultsDiv = document.getElementById('searchModalResults');
+            const loadingDiv = document.getElementById('searchModalLoading');
+
+            if (!searchInput || !resultsDiv) return;
+
+            // Reset výsledků
+            resultsDiv.innerHTML = '';
+
+            // Zobrazíme loading
+            if (loadingDiv) {
+                loadingDiv.style.display = 'block';
+            }
+
+            // Simulace vyhledávání (nahraďte skutečným voláním)
+            setTimeout(() => {
+                if (loadingDiv) {
+                    loadingDiv.style.display = 'none';
+                }
+
+                // Zde bude skutečné vyhledávání
+                performSearch(barcode);
+
+            }, 500);
         }
 
         // ZVUK PRO iPHONE
@@ -5081,18 +5134,8 @@
             // Zavřeme skenovací modal
             closeBarcodeScanner();
 
-            // Použijeme vyhledávací funkci
-            const searchInput = document.getElementById('searchModalQuery');
-            if (searchInput) {
-                searchInput.value = barcode;
-                // Spustíme vyhledávání
-                setTimeout(() => {
-                    const searchForm = document.getElementById('searchModalForm');
-                    if (searchForm) {
-                        searchForm.dispatchEvent(new Event('submit'));
-                    }
-                }, 500);
-            }
+            // Otevřeme vyhledávací modal s kódem
+            openSearchWithBarcode(barcode);
         }
 
         // PŘEPÍNÁNÍ KAMERY
@@ -5137,7 +5180,7 @@
 
             if (barcode) {
                 closeBarcodeScanner();
-                searchByBarcode(barcode);
+                openSearchWithBarcode(barcode); // ← STEJNÉ JAKO U SKENOVÁNÍ
                 input.value = '';
             }
         }
@@ -5166,8 +5209,17 @@
         // ZAVŘENÍ SKENÉRU
         function closeBarcodeScanner() {
             console.log("🔴 Zavírám skenér");
-
             barcodeScanningActive = false;
+
+            // Důkladné zastavení Quaggy
+            if (typeof Quagga !== 'undefined' && Quagga) {
+                try {
+                    Quagga.stop();
+                    Quagga.offDetected();
+                } catch (error) {
+                    console.log('Chyba při zastavování Quaggy:', error);
+                }
+            }
 
             // Zastavíme kameru
             if (barcodeStream) {
@@ -5176,7 +5228,9 @@
             }
 
             const modal = document.getElementById('barcodeModal');
-            modal.style.display = 'none';
+            if (modal) {
+                modal.style.display = 'none';
+            }
         }
 
         document.getElementById('confirmCreateRecipeButton').addEventListener('click', async function () {
