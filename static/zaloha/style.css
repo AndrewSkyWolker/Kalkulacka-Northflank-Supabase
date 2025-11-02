@@ -4100,3 +4100,155 @@ select.form-input {
 .date-nav-btn:hover {
     background-color: #0056b3 !important;
 }
+
+/* STYLY PRO NOVÝ SKENÉR */
+.barcode-scanner-container {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 15px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#barcodeVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.barcode-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 40%;
+    border: 3px solid #4CAF50;
+    border-radius: 12px;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.barcode-placeholder {
+    text-align: center;
+    color: white;
+    padding: 20px;
+}
+
+.barcode-status {
+    text-align: center;
+    padding: 10px;
+    font-weight: 500;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.barcode-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+.barcode-fallback {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    text-align: center;
+}
+
+.manual-input-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.manual-input-group input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+/* Animace pro skenování */
+@keyframes scan-line {
+    0% { top: 20%; }
+    50% { top: 80%; }
+    100% { top: 20%; }
+}
+
+.scan-line {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: #4CAF50;
+    animation: scan-line 2s ease-in-out infinite;
+}
+
+/* ANIMACE PRO SKENOVÁNÍ */
+@keyframes pulse {
+    0% { border-color: #4CAF50; box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
+    50% { border-color: #FFEB3B; box-shadow: 0 0 20px rgba(255, 235, 59, 0.8); }
+    100% { border-color: #4CAF50; box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
+}
+
+@keyframes scan-line {
+    0% { top: 20%; opacity: 1; }
+    50% { top: 80%; opacity: 0.8; }
+    100% { top: 20%; opacity: 1; }
+}
+
+.barcode-overlay {
+    animation: pulse 3s infinite;
+}
+
+.scan-line {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #4CAF50, transparent);
+    animation: scan-line 2s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* INDIKÁTOR SPOLEHLIVOSTI */
+.confidence-bar {
+    height: 4px;
+    background: #e9ecef;
+    border-radius: 2px;
+    margin: 5px 0;
+    overflow: hidden;
+}
+
+.confidence-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #dc3545, #ffc107, #28a745);
+    transition: width 0.3s ease;
+    border-radius: 2px;
+}
+
+/* ANIMACE PRO STABILNÍ DETEKCI */
+@keyframes pulse-success {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.barcode-high-confidence {
+    animation: pulse-success 0.6s ease-in-out;
+}
