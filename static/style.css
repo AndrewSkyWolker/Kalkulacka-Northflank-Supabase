@@ -3859,3 +3859,89 @@ select.form-input {
     padding: 30px -5px 20px -5px;
     margin-top: 145px; /* 145 DŮLEŽITÉ - POSUN O VÝŠKU HLAVIČKY */
 }
+
+/* Styly pro custom recipe modal */
+/* KOMPAKTNNĚJŠÍ MODAL */
+#customRecipeModal .modal-content {
+    max-width: 480px !important;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+/* KOMPAKTNÍ FORMULÁŘOVÉ ŘÁDKY */
+#customRecipeModal .form-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: flex-end;
+}
+
+#customRecipeModal .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+#customRecipeModal .form-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    height: 36px;
+}
+
+#customRecipeModal .form-group label {
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 3px;
+    color: #495057;
+}
+
+#customRecipeModal label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: block;
+}
+
+#customRecipeModal .modal-action-buttons {
+    justify-content: center;
+}
+
+#customRecipeModal .modal-action-buttons button {
+    min-width: 200px; /* Širší tlačítko když je samo */
+}
+
+/* STYLY PRO SKUPINY ŽIVIN */
+.nutrient-section-group {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.nutrient-group-header {
+    font-weight: 700;
+    color: #2c5aa0;
+    margin-bottom: 8px;
+    font-size: 14px;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 4px;
+}
+
+/* MENŠÍ VSTUPNÍ POLE */
+.small-input {
+    width: 100% !important;
+    max-width: 120px !important;
+    padding: 6px 8px !important;
+    font-size: 13px !important;
+    height: 32px !important;
+}
+
+/* HLAVNÍ POLE ZŮSTÁVAJÍ VĚTŠÍ */
+#customRecipeName,
+#customRecipeCalories {
+    width: 100%;
+    max-width: 200px;
+}
