@@ -498,32 +498,36 @@
         </div>
     </div>
 
+    <!-- MODÁLNÍ OKNO PRO SKENOVÁNÍ - NOVÁ VERZE -->
     <div id="barcodeModal" class="modal-overlay">
         <div class="modal-content barcode-modal">
             <span class="close-button" id="closeBarcodeModal">&times;</span>
-            <h3>Skenovat čárový kód</h3>
+            <h3>📷 Skenovat čárový kód</h3>
+
+            <!-- KONTEJNER PRO KAMERU -->
             <div id="barcodeScannerContainer" class="barcode-scanner-container">
-                <div id="barcodeUnsupportedMessage" class="barcode-unsupported-message">
-                    <p>🔒 Skenování čárových kódů není v tomto prohlížeči dostupné</p>
-                    <p>Pro skenování kódů fotoaparátem:</p>
-                    <ul>
-                        <li>Použijte HTTPS připojení (zabezpečené)</li>
-                        <li>Povolte přístup ke kameře v prohlížeči</li>
-                        <li>Zkuste moderní prohlížeč (Chrome, Firefox, Edge)</li>
-                    </ul>
-                    <p>Můžete také zadat kód ručně:</p>
+                <div class="barcode-placeholder">
+                    <p>🔄 Připravuji kameru...</p>
+                </div>
+            </div>
+
+            <!-- OVLÁDACÍ TLAČÍTKA -->
+            <div class="barcode-controls">
+                <button id="toggleCameraButton" class="btn-small">🔄 Otočit kameru</button>
+                <button id="toggleFlashButton" class="btn-small" style="display:none;">⚡ Blesk</button>
+            </div>
+
+            <!-- STAV SKENOVÁNÍ -->
+            <div id="barcodeStatus" class="barcode-status">Klikněte pro spuštění kamery</div>
+
+            <!-- NÁHRADNÍ ŘEŠENÍ -->
+            <div class="barcode-fallback">
+                <p><strong>Nefunguje skenování?</strong></p>
+                <div class="manual-input-group">
                     <input type="text" id="manualBarcodeInput" placeholder="Zadejte čárový kód">
                     <button id="submitManualBarcode" class="btn-primary">Vyhledat</button>
                 </div>
-                <video id="barcodeVideo"></video>
-                <canvas id="barcodeCanvas"></canvas>
-                <div id="barcodeOverlay"></div>
             </div>
-            <div class="barcode-controls">
-                <button id="toggleCameraButton" class="btn-small">Přepnout kameru</button>
-                <button id="toggleFlashButton" class="btn-small">Blesk</button>
-            </div>
-            <div id="barcodeStatus"></div>
         </div>
     </div>
 
@@ -713,13 +717,19 @@
         const placeholderImage = "{{ url_for('static', filename='icon/potraviny.png') }}";
 
         // Proměnné pro skenování čárových kódů
-        let barcodeStream = null;
+        /*let barcodeStream = null;
         let barcodeFacingMode = 'environment';
         let barcodeFlashEnabled = false;
         let barcodeScanInterval = null;
         let quaggaInitialized = false;
         let lastDetectedBarcode = null;
         let barcodeDetectionTimeout = null;
+*/
+        let barcodeStream = null;
+        let barcodeScanningActive = false;
+        let currentFacingMode = 'environment';
+        let barcodeScannerActive = false;
+        let barcodeDetectionInterval = null;
 
         // =============================================
         // DENNÍ PŘÍJEM - PROMĚNNÉ A KONFIGURACE
@@ -1074,7 +1084,8 @@
             console.log("📦 addFoodItemToDailyMeal:", {
                 foodName: foodItem.foodName,
                 mealType,
-                date: date.toISOString().split('T')[0]
+                date: date.toISOString().split('T')[0],
+                isRecipe: foodItem.isRecipe
             });
 
             const dateString = formatDateForAPI(date);
@@ -1086,31 +1097,60 @@
                 // 2. Získáme/create meal pro daný typ
                 let mealId = await getOrCreateMeal(dailyIntakeId, mealType);
 
-                // 3. Přidáme potravinu jako položku jídla
-                console.log("💾 Ukládám potravinu do meal_items...");
-                const { error } = await window.supabaseClient
-                    .from('meal_items')
-                    .insert({
-                        daily_meal_id: mealId,
-                        food_name: foodItem.foodName || 'Neznámá potravina',
-                        amount: foodItem.amount || 100,
-                        unit: foodItem.unit || 'g',
-                        calories: parseFloat(foodItem.kcal) || 0,
-                        protein: parseFloat(foodItem.nutritionalDetails?.protein) || 0,
-                        carbs: parseFloat(foodItem.nutritionalDetails?.carbs) || 0,
-                        fat: parseFloat(foodItem.nutritionalDetails?.fat) || 0,
-                        fiber: parseFloat(foodItem.nutritionalDetails?.fiber) || 0,
-                        nutritional_data: foodItem.nutritionalDetails || null
-                    });
+                if (foodItem.isRecipe && foodItem.ingredients) {
+                    // PŘIDÁNÍ CELÉHO RECEPTU
+                    console.log("🥘 Přidávám celý recept do jídla:", foodItem.foodName);
 
-                if (error) {
-                    console.error("❌ Chyba při ukládání meal_items:", error);
-                    throw error;
+                    // Pro každou ingredienci receptu vytvoříme položku
+                    for (const ingredient of foodItem.ingredients) {
+                        const { error } = await window.supabaseClient
+                            .from('meal_items')
+                            .insert({
+                                daily_meal_id: mealId,
+                                food_name: ingredient.foodName,
+                                amount: ingredient.amount,
+                                unit: ingredient.unit,
+                                calories: parseFloat(ingredient.calories) || 0,
+                                protein: parseFloat(ingredient.protein) || 0,
+                                carbs: parseFloat(ingredient.carbs) || 0,
+                                fat: parseFloat(ingredient.fat) || 0,
+                                fiber: parseFloat(ingredient.fiber) || 0,
+                                nutritional_data: ingredient.nutritionalDetails || null,
+                                recipe_id: foodItem.recipeId // Uložíme ID receptu pro seskupení
+                            });
+
+                        if (error) {
+                            console.error("❌ Chyba při ukládání ingredience receptu:", error);
+                            throw error;
+                        }
+                    }
+                    console.log("✅ Celý recept úspěšně uložen");
+                } else {
+                    // PŘIDÁNÍ JEDNOTLIVÉ POTRAVINY (původní kód)
+                    console.log("💾 Ukládám potravinu do meal_items...");
+                    const { error } = await window.supabaseClient
+                        .from('meal_items')
+                        .insert({
+                            daily_meal_id: mealId,
+                            food_name: foodItem.foodName || 'Neznámá potravina',
+                            amount: foodItem.amount || 100,
+                            unit: foodItem.unit || 'g',
+                            calories: parseFloat(foodItem.kcal) || 0,
+                            protein: parseFloat(foodItem.nutritionalDetails?.protein) || 0,
+                            carbs: parseFloat(foodItem.nutritionalDetails?.carbs) || 0,
+                            fat: parseFloat(foodItem.nutritionalDetails?.fat) || 0,
+                            fiber: parseFloat(foodItem.nutritionalDetails?.fiber) || 0,
+                            nutritional_data: foodItem.nutritionalDetails || null
+                        });
+
+                    if (error) {
+                        console.error("❌ Chyba při ukládání meal_items:", error);
+                        throw error;
+                    }
+                    console.log("✅ Potravina úspěšně uložena");
                 }
 
-                console.log("✅ Potravina úspěšně uložena");
-
-                // 4. Aktualizujeme zobrazení pokud jsme na aktuálním dni
+                // 3. Aktualizujeme zobrazení pokud jsme na aktuálním dni
                 if (isSameDay(date, currentDailyIntakeDate)) {
                     console.log("🔄 Aktualizuji zobrazení denního příjmu...");
                     await loadDailyIntakeData(currentDailyIntakeDate);
@@ -3822,20 +3862,58 @@
                     formattedAggregatedNutrients[key] = formatNumberForDisplay(aggregatedNutrients[key], unit, key.includes('kcal') || key.includes('kj'));
                 }
 
+                // Vypočtěte celkovou hmotnost receptu
+                const totalWeight = ingredients.reduce((sum, ingredient) => {
+                    const amount = parseFloat(ingredient.amount) || 0;
+                    let baseAmount = amount;
+                    if (ingredient.unit === 'kg' || ingredient.unit === 'l') {
+                        baseAmount = amount * 1000;
+                    }
+                    return sum + baseAmount;
+                }, 0);
+
+                // Detail receptu
                 modalDetailsContent.innerHTML = `
-                    <div class="modal-recipe-header">
-                        <img id="modalHeaderImage" src="${imageUrl}" alt="${recipeName}" class="modal-header-image" onerror="this.onerror=null;this.src='{{ url_for('static', filename='icon/recepty.png') }}'" />
-                        <div class="modal-header-text">
-                            <div id="modalHeaderName" class="modal-header-name">${recipeName}</div>
-                            <div class="energy-display-group">
-                                <div id="totalKcalDisplay" class="energy-header">${formattedAggregatedNutrients.total_kcal}</div>
-                                <div id="totalKjDisplay" class="energy-sub-header">${formatNumberForDisplay(totalKj, 'kJ', true)}</div>
-                            </div>
+                    <!-- JEDEN STATICKÝ KONTEJNER NAHOŘE - S FIXED POZICÍ -->
+                    <div class="modal-recipe-fixed-header">
+
+                        <!-- VŠECHNY PRVKY UVNITŘ TOHOTO KONTEJNERU -->
+        
+                        <!-- NÁZEV RECEPTU -->
+                        <div class="header-name-container">
+                            <div id="modalHeaderName" class="recipe-name-pixel">${recipeName}</div>
+                        </div>
+        
+                        <!-- KALORIE A kJ -->
+                        <div class="header-energy-container">
+                            <div id="totalKcalDisplay" class="energy-main-pixel">${formattedAggregatedNutrients.total_kcal}</div>
+                            <div id="totalKjDisplay" class="energy-sub-pixel">${formatNumberForDisplay(totalKj, 'kJ', true)}</div>
+                        </div>
+        
+                        <!-- CELKOVÁ HMOTNOST -->
+                        <div class="header-weight-container">
+                            <div class="weight-value-pixel">${Math.round(totalWeight)} g</div>
+                            <div class="weight-label-pixel">Celková hmotnost</div>
+                        </div>
+        
+                        <!-- TLAČÍTKO PŘIDAT JAKO JÍDLO -->
+                        <div class="header-button-container">
+                            <button id="addRecipeAsMealButton" class="add-meal-btn-pixel">
+                                <span class="btn-icon">🍽️</span>
+                                Přidat jako jídlo
+                            </button>
+                        </div>
+        
+                        <!-- JEDEN KŘÍŽEK - UVNITŘ STATICKÉHO KONTEJNERU -->
+                        <div class="header-close-container">
+                            <span class="close-button-pixel" id="closeRecipeDetailModal">&times;</span>
                         </div>
                     </div>
-                    <div class="modal-scrollable-container">
+
+                    <!-- SCROLLOVATELNÝ OBSAH - ZAČÍNÁ POD STATICKÝM KONTEJNEREM -->
+                    <div class="modal-scrollable-container-with-header">
                         <div id="nutrientDetailsSection"></div>
-                        <h3 class="ingredients-title">Složení receptu:</h3>
+                            <h3 class="ingredients-title">Složení receptu:</h3>
                         <div id="recipeIngredientsList"></div>
                     </div>
                 `;
@@ -3856,27 +3934,29 @@
                         const { number: kcalNum, unit: kcalUnit } = parseValueAndUnit(ingredient.kcal);
                         const formattedIngredientKcal = formatNumberForDisplay(kcalNum, kcalUnit, true);
 
+                        // NAHRADTE staré HTML ingrediencí tímto:
                         ingredientItemDiv.innerHTML = `
-    <div class="ingredient-main-info">
-        <div class="ingredient-icon">🥘</div>
-        <div class="ingredient-details">
-            <div class="ingredient-name">${ingredient.foodName}</div>
-            <div class="ingredient-totals">
-                <span class="total-amount">${ingredient.amount} ${ingredient.unit}</span>
-                <span>${Math.round(ingredient.calories || kcalNum)} kcal</span>
-                ${ingredient.protein ? `<span>B: ${Math.round(ingredient.protein)}g</span>` : ''}
-                ${ingredient.carbs ? `<span>S: ${Math.round(ingredient.carbs)}g</span>` : ''}
-                ${ingredient.fat ? `<span>T: ${Math.round(ingredient.fat)}g</span>` : ''}
+                    <div class="ingredient-main-content">
+        <div class="ingredient-image-wrapper">
+            <img src="${displayImageUrl}" alt="${ingredient.foodName}" 
+                onerror="this.onerror=null;this.src='${ingPlaceholderImage}'"
+                class="ingredient-image">
+        </div>
+        <div class="ingredient-basic-info">
+            <div class="ingredient-name" title="${ingredient.foodName}">${ingredient.foodName}</div>
+            <div class="ingredient-nutrition-row">
+                <span class="calorie-badge">${Math.round(ingredient.calories || kcalNum)} kcal</span>
+                <span class="amount-badge">${ingredient.amount} ${ingredient.unit}</span>
             </div>
         </div>
     </div>
-    <div class="ingredient-actions">
-        <button class="edit-ingredient-btn" data-recipe-id="${recipeId}" 
-                data-ingredient-index="${index}" title="Upravit ingredienci">
+    <div class="ingredient-actions-vertical">
+        <button class="edit-ingredient-btn" data-recipe-id="${recipeId}"
+            data-ingredient-index="${index}" title="Upravit ingredienci">
             <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
         </button>
-        <button class="delete-ingredient-btn" data-recipe-id="${recipeId}" 
-                data-ingredient-index="${index}" title="Smazat ingredienci">
+        <button class="delete-ingredient-btn" data-recipe-id="${recipeId}"
+            data-ingredient-index="${index}" title="Smazat ingredienci">
             <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
         </button>
     </div>
@@ -3921,11 +4001,53 @@
                                 deleteFoodItemFromRecipe(currentRecipeId, ingredientIndex, ingredientName, recipeName);
                             });
                         }
+
+                        /* JEDINÝ EVENT LISTENER PRO KŘÍŽEK */
+                        const closeRecipeDetailModal = document.getElementById('closeRecipeDetailModal');
+                        if (closeRecipeDetailModal) {
+                            closeRecipeDetailModal.addEventListener('click', function (e) {
+                                e.stopPropagation();
+                                console.log("❌ Kliknuto na křížek detailu receptu");
+                                detailsModal.style.display = 'none';
+                                window.isOpeningDetailsModal = false;
+                            });
+                        }
+
+                        // EVENT LISTENER PRO TLAČÍTKO "PŘIDAT JAKO JÍDLO"
+                        const addRecipeAsMealButton = document.getElementById('addRecipeAsMealButton');
+                        if (addRecipeAsMealButton) {
+                            addRecipeAsMealButton.addEventListener('click', function (e) {
+                                e.stopPropagation();
+                                console.log("🍽️ Kliknuto na Přidat recept jako jídlo:", recipeName);
+
+                                if (!checkInitialization()) return;
+
+                                // Vytvoříme foodItem z celého receptu
+                                const recipeFoodItem = {
+                                    foodName: recipeName,
+                                    slug: '',
+                                    imageUrl: imageUrl,
+                                    foodType: 'recept',
+                                    amount: totalWeight,
+                                    unit: 'g',
+                                    kcal: formattedAggregatedNutrients.total_kcal,
+                                    nutritionalDetails: formattedAggregatedNutrients,
+                                    isRecipe: true,
+                                    recipeId: recipeId,
+                                    ingredients: ingredients
+                                };
+
+                                window.currentFoodItemForRecipe = recipeFoodItem;
+                                console.log("📦 Nastaven currentFoodItemForRecipe pro recept:", recipeFoodItem);
+
+                                openSelectMealModal();
+                            });
+                        }
                     });
                 }
             } catch (error) {
                 console.error("Error loading recipe details:", error);
-                modalDetailsContent.innerHTML = `<p class="error-details">Došlo k chybě při načítání detailů receptu: ${error.message}</p>`;
+                modalDetailsContent.innerHTML = `< p class="error-details" > Došlo k chybě při načítání detailů receptu: ${error.message}</p > `;
             }
         }
 
@@ -4084,13 +4206,6 @@
         }
 
         function setupModalCloseHandlers() {
-            //document.getElementById('profileModal').addEventListener('click', function (event) {
-            //    if (event.target === this) {
-            //        console.log("❌ Kliknuto mimo profil modal");
-            //        closeProfileModal();
-            //    }
-            //});
-
             document.getElementById('closeSettingsModal').addEventListener('click', function () {
                 collapseAllSettingsSections();
                 setTimeout(() => {
@@ -4162,235 +4277,1054 @@
         // =============================================
         // SKENOVÁNÍ ČÁROVÝCH KÓDŮ
         // =============================================
-        function initBarcodeScanner() {
-            document.getElementById('barcodeButtonInModal')?.addEventListener('click', openBarcodeScanner);
-            document.getElementById('closeBarcodeModal')?.addEventListener('click', closeBarcodeScanner);
-            document.getElementById('toggleCameraButton')?.addEventListener('click', toggleCamera);
-            document.getElementById('toggleFlashButton')?.addEventListener('click', toggleFlash);
-            document.getElementById('submitManualBarcode')?.addEventListener('click', submitManualBarcode);
-        }
 
-        function initQuagga() {
-            if (typeof Quagga !== 'undefined') {
-                try {
-                    Quagga.init({
-                        inputStream: {
-                            name: "Live",
-                            type: "LiveStream",
-                            target: document.getElementById('barcodeVideo'),
-                            constraints: {
-                                width: 1280,
-                                height: 720,
-                                facingMode: barcodeFacingMode,
-                                aspectRatio: { min: 1, max: 2 }
-                            },
-                        },
-                        decoder: {
-                            readers: ["ean_reader", "ean_8_reader"],
-                            multiple: false,
-                            resolution: 800,
-                            patchSize: "x-large",
-                        },
-                        locator: {
-                            patchSize: "large",
-                            halfSample: true,
-                            debug: {
-                                showCanvas: false,
-                                showPatches: false,
-                                showFoundPatches: false,
-                                showSkeleton: false
-                            }
-                        },
-                        preprocessor: {
-                            contrast: { min: 32, max: 220 },
-                            sharpen: { flat: 1.0, jagged: 2.0 }
-                        },
-                        frequency: 5,
-                        numOfWorkers: 2,
-                        debug: false
-                    }, function (err) {
-                        if (err) {
-                            console.error("Chyba při inicializaci Quagga:", err);
-                            document.getElementById('barcodeStatus').textContent = 'Nepodařilo se inicializovat skener';
-                            document.getElementById('barcodeStatus').style.color = 'red';
-                            return;
-                        }
-
-                        quaggaInitialized = true;
-                        Quagga.onDetected(function (result) {
-                            if (result && result.codeResult && result.codeResult.code) {
-                                if (result.codeResult.confidence !== undefined && result.codeResult.confidence < 0.3) return;
-                                handleBarcodeDetected(result.codeResult.code, result);
-                            }
-                        });
-                    });
-                } catch (error) {
-                    console.error('Výjimka při inicializaci Quaggy:', error);
-                }
-            }
-        }
-
-        async function openBarcodeScanner() {
-            // Bezpečnostní kontrola
-            if (!window.supabaseClient || !window.currentUser) {
-                window.showCustomNotification("Pro skenování se musíte přihlásit", 'info');
-                return;
-            }
-
-            const barcodeModal = document.getElementById('barcodeModal');
-            const barcodeStatus = document.getElementById('barcodeStatus');
-
-            barcodeModal.style.display = 'flex';
-            barcodeStatus.innerHTML = `
-                <div style="margin-bottom: 10px; font-weight: bold;">🔍 Skenování čárového kódu</div>
-                <div style="font-size: 14px; color: #666; line-height: 1.4;">
-                    • Namiřte kód do zeleného rámečku<br>
-                    • Zaostření proběhne automaticky<br>
-                    • Pro ukončení klikněte mimo okno
-                </div>
-            `;
-
-            if (!quaggaInitialized) {
-                initQuagga();
-            }
-
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                barcodeStatus.textContent = 'Kamera není v tomto prohlížeči dostupná';
-                barcodeStatus.style.color = 'red';
-                return;
+        // ZLEPŠENÁ FUNKCE PRO SPUŠTĚNÍ SKENÉRU
+        async function startModernBarcodeScanner() {
+            if (!window.barcodeDetector) {
+                const supported = await initModernBarcodeScanner();
+                if (!supported) return;
             }
 
             try {
-                await startCamera();
-                barcodeStatus.textContent = 'Namiřte na čárový kód';
-                await new Promise(resolve => setTimeout(resolve, 500));
-                startBarcodeScanning();
-            } catch (error) {
-                console.error('Chyba při inicializaci kamery:', error);
-                barcodeStatus.textContent = 'Chyba: ' + error.message;
-                barcodeStatus.style.color = 'red';
-            }
-        }
-
-        async function startCamera() {
-            if (barcodeStream) {
-                barcodeStream.getTracks().forEach(track => track.stop());
-            }
-
-            const constraints = {
-                video: {
-                    width: { ideal: 1920, min: 1280 },
-                    height: { ideal: 1080, min: 720 },
-                    frameRate: { ideal: 60 },
-                    facingMode: barcodeFacingMode,
-                }
-            };
-
-            try {
-                barcodeStream = await navigator.mediaDevices.getUserMedia(constraints);
-                const barcodeVideo = document.getElementById('barcodeVideo');
-                barcodeVideo.srcObject = barcodeStream;
-                barcodeVideo.style.display = 'block';
-                document.getElementById('barcodeUnsupportedMessage').style.display = 'none';
-                document.getElementById('toggleCameraButton').style.display = 'inline-block';
-                document.getElementById('toggleFlashButton').style.display = 'inline-block';
-                document.getElementById('barcodeOverlay').style.display = 'block';
-
-                barcodeVideo.width = 640;
-                barcodeVideo.height = 480;
-
-                return new Promise((resolve) => {
-                    barcodeVideo.onloadedmetadata = () => {
-                        barcodeVideo.play().then(resolve).catch(() => resolve());
-                    };
-                    setTimeout(() => resolve(), 1000);
+                // Získání přístupu ke kameře
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    }
                 });
+
+                const video = document.getElementById('barcodeVideo');
+                video.srcObject = stream;
+                video.style.display = 'block';
+
+                // Čekání na načtení videa
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        video.play().then(resolve).catch(resolve);
+                    };
+                });
+
+                barcodeScannerActive = true;
+                startBarcodeDetection();
+
             } catch (error) {
                 console.error('Chyba při přístupu ke kameře:', error);
-                document.getElementById('barcodeUnsupportedMessage').style.display = 'block';
-                document.getElementById('barcodeVideo').style.display = 'none';
-                document.getElementById('toggleCameraButton').style.display = 'none';
-                document.getElementById('toggleFlashButton').style.display = 'none';
-                document.getElementById('barcodeOverlay').style.display = 'none';
-                barcodeStatus.textContent = 'Použijte ruční zadání kódu';
-                throw error;
+                showBarcodeError('Nelze získat přístup ke kameře: ' + error.message);
             }
         }
 
-        function startBarcodeScanning() {
-            if (barcodeScanInterval) {
-                clearInterval(barcodeScanInterval);
-                barcodeScanInterval = null;
+        // ZAČÁTEK DETEKCE (zatím placeholder)
+        function startBarcodeDetection() {
+            const status = document.getElementById('barcodeStatus');
+            const video = document.getElementById('barcodeVideo');
+
+            status.textContent = '🔍 Skenuji... Namiřte na čárový kód';
+
+            // Kontrola podpory Barcode Detection API
+            if (!('BarcodeDetector' in window)) {
+                status.textContent = '📱 Váš prohlížeč nepodporuje automatické skenování. Použijte ruční zadání.';
+                return;
             }
 
-            if (barcodeDetectionTimeout) {
-                clearTimeout(barcodeDetectionTimeout);
-            }
-            barcodeDetectionTimeout = setTimeout(() => {
-                document.getElementById('barcodeStatus').textContent = 'Časový limit vypršel - zkuste to znovu';
-                document.getElementById('barcodeStatus').style.color = 'orange';
-                restartQuagga();
-            }, 20000);
+            try {
+                // Vytvoření detektoru
+                const barcodeDetector = new BarcodeDetector({
+                    formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39']
+                });
 
-            if (quaggaInitialized && document.getElementById('barcodeVideo').srcObject) {
-                try {
-                    Quagga.start();
-                    document.getElementById('barcodeStatus').textContent = 'Skenování spuštěno - namiřte na čárový kód';
-                } catch (error) {
-                    console.error('Chyba při startu Quaggy:', error);
-                    startCanvasFallback();
-                }
-            } else {
-                startCanvasFallback();
+                startBarcodeDetectionLoop(barcodeDetector, video, status);
+
+            } catch (error) {
+                console.error('Chyba při vytváření BarcodeDetector:', error);
+                status.textContent = '❌ Chyba skenování. Použijte ruční zadání.';
             }
         }
 
-        function startCanvasFallback() {
-            document.getElementById('barcodeStatus').textContent = 'Používám základní detekci...';
-            document.getElementById('barcodeStatus').style.color = 'orange';
+        // SKUTEČNÁ DETEKCE V REÁLNÉM ČASE
+        function startBarcodeDetectionLoop(barcodeDetector, video, status) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            let lastDetectedCode = '';
+            let detectionCount = 0;
 
-            barcodeScanInterval = setInterval(async () => {
-                const barcodeVideo = document.getElementById('barcodeVideo');
-                if (barcodeVideo.readyState === barcodeVideo.HAVE_ENOUGH_DATA) {
-                    try {
-                        const barcodes = await detectBarcodesWithCanvas();
-                        if (barcodes.length > 0) {
-                            handleBarcodeDetected(barcodes[0]);
-                        }
-                    } catch (error) {
-                        console.error('Chyba při detekci čárového kódu:', error);
-                    }
-                }
-            }, 1000);
-        }
-
-        function detectBarcodesWithCanvas() {
-            return new Promise((resolve) => {
-                const barcodeVideo = document.getElementById('barcodeVideo');
-                const barcodeCanvas = document.getElementById('barcodeCanvas');
-
-                if (!barcodeVideo.videoWidth || !barcodeVideo.videoHeight) {
-                    resolve([]);
+            const detectFrame = async () => {
+                if (!barcodeScanningActive || video.readyState !== video.HAVE_ENOUGH_DATA) {
                     return;
                 }
 
-                const context = barcodeCanvas.getContext('2d');
-                const width = barcodeVideo.videoWidth;
-                const height = barcodeVideo.videoHeight;
-
-                barcodeCanvas.width = width;
-                barcodeCanvas.height = height;
-                context.drawImage(barcodeVideo, 0, 0, width, height);
-
                 try {
-                    const imageData = context.getImageData(0, 0, width, height);
-                    const detectedBarcodes = detectSimpleBarcodes(imageData);
-                    resolve(detectedBarcodes);
+                    // Nastavení canvasu podle videa
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    // Detekce čárových kódů
+                    const barcodes = await barcodeDetector.detect(canvas);
+
+                    if (barcodes.length > 0) {
+                        const barcode = barcodes[0];
+
+                        // Kontrola, zda je to nový kód (aby se neopakovalo)
+                        if (barcode.rawValue !== lastDetectedCode) {
+                            lastDetectedCode = barcode.rawValue;
+                            detectionCount++;
+
+                            // Vizualní potvrzení
+                            status.textContent = `✅ Nalezen kód: ${barcode.rawValue} `;
+                            status.style.color = '#28a745';
+
+                            // Zvukový feedback (volitelné)
+                            playDetectionSound();
+
+                            // Po 2 sekundách zpracujeme kód
+                            setTimeout(() => {
+                                processDetectedBarcode(barcode.rawValue);
+                            }, 2000);
+
+                            return; // Přestaneme skenovat po nalezení kódu
+                        }
+                    }
+
+                    // Pokračujeme v detekci
+                    if (barcodeScanningActive) {
+                        requestAnimationFrame(detectFrame);
+                    }
+
                 } catch (error) {
                     console.error('Chyba při detekci:', error);
-                    resolve([]);
+                    if (barcodeScanningActive) {
+                        requestAnimationFrame(detectFrame);
+                    }
+                }
+            };
+
+            // Spuštění detekce
+            detectFrame();
+        }
+
+        // ZPRACOVÁNÍ NALEZENÉHO KÓDU
+        function processDetectedBarcode(barcode) {
+            console.log('🎯 Zpracovávám nalezený kód:', barcode);
+
+            // Zastavíme skenování
+            barcodeScanningActive = false;
+
+            // Zavřeme modal a vyhledáme
+            closeBarcodeScanner();
+            searchByBarcode(barcode);
+        }
+
+        // ZVUKOVÝ FEEDBACK (volitelné)
+        function playDetectionSound() {
+            try {
+                // Jednoduchý beep sound
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+
+            } catch (error) {
+                console.log('Zvuk nelze přehrát');
+            }
+        }
+
+        // ZPRACOVÁNÍ NALEZENÉHO KÓDU
+        function handleDetectedBarcode(barcode, status) {
+            console.log('🎯 Nalezen kód:', barcode);
+
+            status.innerHTML = `
+                ✅ <strong>Kód nalezen: ${barcode}</strong><br>
+                <small>Zpracovávám...</small>
+            `;
+            status.style.color = '#28a745';
+
+            // Vizualní potvrzení
+            flashOverlay();
+
+            // Zpracování po krátké době
+            setTimeout(() => {
+                barcodeScanningActive = false;
+                closeBarcodeScanner();
+                searchByBarcode(barcode);
+            }, 1500);
+        }
+
+        // VIZUÁLNÍ EFEKTY PRO LEPŠÍ UX
+        function addScanningEffects() {
+            const overlay = document.querySelector('.barcode-overlay');
+            if (overlay) {
+                // Přidáme animovanou čáru
+                const scanLine = document.createElement('div');
+                scanLine.className = 'scan-line';
+                overlay.appendChild(scanLine);
+
+                // Pulzující efekt
+                overlay.style.animation = 'pulse 2s infinite';
+            }
+        }
+
+        function flashOverlay() {
+            const overlay = document.querySelector('.barcode-overlay');
+            if (overlay) {
+                overlay.style.background = '#4CAF50';
+                overlay.style.transition = 'background 0.3s';
+
+                setTimeout(() => {
+                    overlay.style.background = 'rgba(0, 0, 0, 0.3)';
+                }, 300);
+            }
+        }
+
+        // ZASTAVENÍ SKENÉRU
+        function stopBarcodeScanner() {
+            barcodeScannerActive = false;
+
+            if (barcodeDetectionInterval) {
+                clearInterval(barcodeDetectionInterval);
+                barcodeDetectionInterval = null;
+            }
+
+            const video = document.getElementById('barcodeVideo');
+            if (video && video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+        }
+
+        // FALLBACK PRO RUČNÍ ZADÁNÍ
+        function showBarcodeFallback() {
+            const container = document.getElementById('barcodeScannerContainer');
+            container.innerHTML = `
+                <div class="barcode-placeholder">
+                    <p>🔒 Skenování není dostupné</p>
+                    <p>Použijte prosím ruční zadání kódu níže</p>
+                </div>
+            `;
+        }
+
+        // ZPRACOVÁNÍ CHYB KAMERY
+        function getCameraErrorMessage(error) {
+            switch (error.name) {
+                case 'NotAllowedError':
+                    return 'Přístup ke kameře byl odepřen. Povolte kameru v nastavení prohlížeče.';
+                case 'NotFoundError':
+                    return 'Nebyla nalezena žádná kamera.';
+                case 'NotSupportedError':
+                    return 'Váš prohlížeč nepodporuje přístup ke kameře.';
+                case 'NotReadableError':
+                    return 'Kamera je již používaná jinou aplikací.';
+                default:
+                    return 'Nelze spustit kameru: ' + error.message;
+            }
+        }
+
+        // TLAČÍTKO PRO AKCI (pro iPhone)
+        function addBarcodeActionButton() {
+            const controls = document.querySelector('.barcode-controls');
+            if (!document.getElementById('startScanButton')) {
+                const scanButton = document.createElement('button');
+                scanButton.id = 'startScanButton';
+                scanButton.className = 'btn-primary';
+
+                // Detekce zařízení
+                const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
+
+                if (isIPhone) {
+                    scanButton.textContent = '📱 Skenovat (iPhone)';
+                    scanButton.onclick = startIPhoneBarcodeDetection;
+                } else {
+                    scanButton.textContent = '🎯 Skenovat';
+                    scanButton.onclick = startUniversalBarcodeDetection;
+                }
+
+                controls.appendChild(scanButton);
+            }
+        }
+
+        // FUNKCE PRO KONTROLU PODPORY PROHLÍŽEČE
+        function checkBarcodeSupport() {
+            const status = document.getElementById('barcodeStatus');
+
+            if (!('BarcodeDetector' in window)) {
+                status.innerHTML = `
+            📱 <strong>Automatické skenování není podporováno</strong><br>
+            <small>Použijte ruční zadání kódu níže</small>
+        `;
+                return false;
+            }
+
+            status.textContent = '✅ Automatické skenování je připraveno';
+            return true;
+        }
+
+        // INICIALIZACE EVENT LISTENERŮ
+        function initBarcodeScanner() {
+            console.log("🔄 Inicializuji nový skenér čárových kódů");
+
+            // Tlačítko pro otevření skenéru
+            document.getElementById('barcodeButtonInModal').addEventListener('click', openBarcodeScanner);
+
+            // Zavírací tlačítko
+            document.getElementById('closeBarcodeModal').addEventListener('click', closeBarcodeScanner);
+
+            // Přepínání kamery
+            document.getElementById('toggleCameraButton').addEventListener('click', toggleCamera);
+
+            // Ruční zadání
+            document.getElementById('submitManualBarcode').addEventListener('click', submitManualBarcode);
+
+            // Enter v ručním zadání
+            document.getElementById('manualBarcodeInput').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    submitManualBarcode();
                 }
             });
+
+            // Kliknutí mimo modal
+            document.getElementById('barcodeModal').addEventListener('click', function (event) {
+                if (event.target === this) {
+                    closeBarcodeScanner();
+                }
+            });
+        }
+
+        /*function initQuagga() {
+            if (typeof Quagga !== 'undefined') {
+                try {
+                        Quagga.init({
+                            inputStream: {
+                                name: "Live",
+                                type: "LiveStream",
+                                target: document.getElementById('barcodeVideo'),
+                                constraints: {
+                                    width: 1280,
+                                    height: 720,
+                                    facingMode: barcodeFacingMode,
+                                    aspectRatio: { min: 1, max: 2 }
+                                },
+                            },
+                            decoder: {
+                                readers: ["ean_reader", "ean_8_reader"],
+                                multiple: false,
+                                resolution: 800,
+                                patchSize: "x-large",
+                            },
+                            locator: {
+                                patchSize: "large",
+                                halfSample: true,
+                                debug: {
+                                    showCanvas: false,
+                                    showPatches: false,
+                                    showFoundPatches: false,
+                                    showSkeleton: false
+                                }
+                            },
+                            preprocessor: {
+                                contrast: { min: 32, max: 220 },
+                                sharpen: { flat: 1.0, jagged: 2.0 }
+                            },
+                            frequency: 5,
+                            numOfWorkers: 2,
+                            debug: false
+                        }, function (err) {
+                            if (err) {
+                                console.error("Chyba při inicializaci Quagga:", err);
+                                document.getElementById('barcodeStatus').textContent = 'Nepodařilo se inicializovat skener';
+                                document.getElementById('barcodeStatus').style.color = 'red';
+                                return;
+                            }
+
+                            quaggaInitialized = true;
+                            Quagga.onDetected(function (result) {
+                                if (result && result.codeResult && result.codeResult.code) {
+                                    if (result.codeResult.confidence !== undefined && result.codeResult.confidence < 0.3) return;
+                                    handleBarcodeDetected(result.codeResult.code, result);
+                                }
+                            });
+                        });
+                } catch (error) {
+                        console.error('Výjimka při inicializaci Quaggy:', error);
+                }
+            }
+        }*/
+
+        // UNIVERZÁLNÍ DETEKCE ČÁROVÝCH KÓDŮ PRO VŠECHNA ZAŘÍZENÍ
+        function startUniversalBarcodeDetection() {
+            const status = document.getElementById('barcodeStatus');
+            const video = document.getElementById('barcodeVideo');
+
+            status.textContent = '🔍 Skenuji... Namiřte na čárový kód';
+
+            // 1. NEJPRVE ZKUSÍME MODERNÍ API (pro Android/nový Safari)
+            if ('BarcodeDetector' in window) {
+                try {
+                    const barcodeDetector = new BarcodeDetector({
+                        formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39']
+                    });
+                    startModernDetection(barcodeDetector, video, status);
+                    return;
+                } catch (error) {
+                    console.log('Moderní API selhalo, používáme fallback');
+                }
+            }
+
+            // 2. POKUD MODERNÍ API NEFUNGUJE, POUŽIJEME ZRCADLOVÝ NÁHLED
+            status.innerHTML = `
+                    📱 <strong>Automatické skenování</strong><br>
+                        <small>Namířejte kód do zeleného rámečku. Kód se zobrazí v náhledu.</small>
+                        `;
+            startMirrorPreviewDetection(video, status);
+        }
+
+        // MODERNÍ DETEKCE PRO ANDROID/NOVÁ ZAŘÍZENÍ
+        function startModernDetection(barcodeDetector, video, status) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            let lastDetectedCode = '';
+
+            const detectFrame = async () => {
+                if (!barcodeScanningActive || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+
+                try {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    const barcodes = await barcodeDetector.detect(canvas);
+
+                    if (barcodes.length > 0) {
+                        const barcode = barcodes[0];
+                        if (barcode.rawValue !== lastDetectedCode) {
+                            lastDetectedCode = barcode.rawValue;
+                            handleDetectedBarcode(barcode.rawValue, status);
+                            return;
+                        }
+                    }
+
+                    if (barcodeScanningActive) requestAnimationFrame(detectFrame);
+                } catch (error) {
+                    if (barcodeScanningActive) requestAnimationFrame(detectFrame);
+                }
+            };
+
+            detectFrame();
+        }
+
+        // ZRCADLOVÝ NÁHLED PRO iPHONE/STARŠÍ ZAŘÍZENÍ
+        function startMirrorPreviewDetection(video, status) {
+            // Přidáme instrukce přímo do overlay
+            const overlay = document.querySelector('.barcode-overlay');
+            if (overlay) {
+                overlay.innerHTML = `
+            <div style="text-align: center; color: white;">
+                <div style="font-size: 24px; margin-bottom: 10px;">📷</div>
+                <div><strong>Namířejte kód sem</strong></div>
+                <div style="font-size: 12px; margin-top: 5px;">Kód se zobrazí v náhledu</div>
+            </div>
+        `;
+            }
+
+            // Uživatel uvidí kód přímo v náhledu a může ho opsat
+            status.innerHTML = `
+                        👁️ <strong>Zrcadlový náhled aktivní</strong><br>
+                            <small>Přečtěte čárový kód z obrazovky a zadejte jej ručně</small>
+                            `;
+
+            // Můžeme přidat zvýraznění oblasti
+            addScanningEffects();
+        }
+
+        // ZÁKLADNÍ FUNKCE PRO SKENOVÁNÍ
+        async function openBarcodeScanner() {
+            console.log("🔍 Otevírám skenér čárových kódů");
+
+            const modal = document.getElementById('barcodeModal');
+            const container = document.getElementById('barcodeScannerContainer');
+            const status = document.getElementById('barcodeStatus');
+
+            modal.style.display = 'flex';
+
+            // Detekce zařízení
+            const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
+
+            if (isIPhone) {
+                status.innerHTML = '📱 <strong>Připravuji skenování pro iPhone</strong>';
+            } else {
+                status.textContent = 'Inicializuji kameru...';
+            }
+
+            try {
+                const video = document.createElement('video');
+                video.id = 'barcodeVideo';
+                video.playsInline = true;
+                video.muted = true;
+
+                const overlay = document.createElement('div');
+                overlay.className = 'barcode-overlay';
+
+                if (isIPhone) {
+                    /*   overlay.innerHTML = `
+                           <div style="text-align: center; color: white;">
+                               <div style="font-size: 24px; margin-bottom: 10px;">📱</div>
+                               <div><strong>iPhone Skenování</strong></div>
+                               <div style="font-size: 12px; margin-top: 5px;">Optimalizováno pro iOS</div>
+                           </div>
+                       `;*/
+                } else {
+                    overlay.innerHTML = '📷 Připravuji skenování...';
+                }
+
+                container.innerHTML = '';
+                container.appendChild(video);
+                container.appendChild(overlay);
+
+                await startCamera(video);
+
+                if (isIPhone) {
+                    status.innerHTML = `
+                        ✅ <strong>iPhone kamera připravena</strong><br>
+                        <small>Klikněte na "Skenovat (iPhone)"</small>
+                    `;
+                } else {
+                    status.innerHTML = `
+                        ✅ <strong>Kamera připravena</strong><br>
+                        <small>Klikněte na "Skenovat"</small>
+                    `;
+                }
+
+                addBarcodeActionButton();
+
+            } catch (error) {
+                console.error("❌ Chyba:", error);
+                status.textContent = '❌ ' + error.message;
+                showBarcodeFallback();
+            }
+        }
+
+        // SPECIALIZOVANÉ ŘEŠENÍ PRO iPHONE
+        function startIPhoneBarcodeDetection() {
+            const status = document.getElementById('barcodeStatus');
+            const video = document.getElementById('barcodeVideo');
+
+            status.innerHTML = '📱 <strong>iPhone skenování</strong><br><small>Vysoká přesnost - počkejte na potvrzení</small>';
+
+            // Resetujeme stav detekce
+            window.barcodeDetectionState = {
+                detectedCodes: new Map(),
+                lastValidCode: null,
+                confidenceThreshold: 0.7,
+                minDetectionCount: 2
+            };
+
+            if ('BarcodeDetector' in window) {
+                try {
+                    const barcodeDetector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a'] });
+                    startHighAccuracyDetection(barcodeDetector, video, status);
+                    return;
+                } catch (error) {
+                    console.log('Native API selhalo:', error);
+                }
+            }
+
+            loadQuaggaForIPhone(video, status);
+        }
+
+        // VYSOCE PŘESNÁ DETEKCE
+        function startHighAccuracyDetection(barcodeDetector, video, status) {
+            let detectionCount = 0;
+            let lastStableCode = null;
+            let sameCodeCount = 0;
+
+            const detectFrame = async () => {
+                if (!barcodeScanningActive) return;
+
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    const barcodes = await barcodeDetector.detect(canvas);
+
+                    if (barcodes.length > 0) {
+                        const barcode = barcodes[0];
+
+                        // FILTRACE 1: Pouze validní EAN/UPC kódy
+                        if (isValidBarcodeFormat(barcode.rawValue)) {
+
+                            // FILTRACE 2: Stejný kód musí být detekován vícekrát
+                            if (barcode.rawValue === lastStableCode) {
+                                sameCodeCount++;
+
+                                // VIZUÁLNÍ INDIKÁTOR SPOLEHLIVOSTI
+                                updateConfidenceIndicator(status, sameCodeCount);
+
+                                // FILTRACE 3: Alespoň 3x stejný kód
+                                if (sameCodeCount >= 3) {
+                                    handleHighConfidenceBarcode(barcode.rawValue, status);
+                                    return;
+                                }
+                            } else {
+                                // Nový kód - reset counteru
+                                lastStableCode = barcode.rawValue;
+                                sameCodeCount = 1;
+                                status.innerHTML = `🔍 <strong>Detekován: ${barcode.rawValue}</strong><br><small>Udržte kód stabilní...</small>`;
+                            }
+                        }
+                    }
+
+                    detectionCount++;
+
+                    // Pravidelné čištění paměti
+                    if (detectionCount % 50 === 0) {
+                        lastStableCode = null;
+                        sameCodeCount = 0;
+                    }
+
+                    if (barcodeScanningActive) {
+                        setTimeout(() => detectFrame(), 200);
+                    }
+
+                } catch (error) {
+                    if (barcodeScanningActive) {
+                        setTimeout(() => detectFrame(), 300);
+                    }
+                }
+            };
+
+            detectFrame();
+        }
+
+        // VALIDACE FORMÁTU ČÁROVÉHO KÓDU
+        function isValidBarcodeFormat(code) {
+            if (!code || typeof code !== 'string') return false;
+
+            const cleanCode = code.replace(/\D/g, '');
+
+            // EAN-13: 13 číslic
+            if (/^\d{13}$/.test(cleanCode)) {
+                return validateEAN13(cleanCode);
+            }
+
+            // EAN-8: 8 číslic
+            if (/^\d{8}$/.test(cleanCode)) {
+                return validateEAN8(cleanCode);
+            }
+
+            // UPC-A: 12 číslic
+            if (/^\d{12}$/.test(cleanCode)) {
+                return validateUPCA(cleanCode);
+            }
+
+            return false;
+        }
+
+        // VALIDACE EAN-13 KONTROLNÍ ČÍSLICE
+        function validateEAN13(code) {
+            if (code.length !== 13) return false;
+
+            let sum = 0;
+            for (let i = 0; i < 12; i++) {
+                sum += parseInt(code[i]) * (i % 2 === 0 ? 1 : 3);
+            }
+            const checksum = (10 - (sum % 10)) % 10;
+
+            return checksum === parseInt(code[12]);
+        }
+
+        // VALIDACE EAN-8
+        function validateEAN8(code) {
+            if (code.length !== 8) return false;
+
+            let sum = 0;
+            for (let i = 0; i < 7; i++) {
+                sum += parseInt(code[i]) * (i % 2 === 0 ? 3 : 1);
+            }
+            const checksum = (10 - (sum % 10)) % 10;
+
+            return checksum === parseInt(code[7]);
+        }
+
+        // VALIDACE UPC-A
+        function validateUPCA(code) {
+            if (code.length !== 12) return false;
+
+            let sum = 0;
+            for (let i = 0; i < 11; i++) {
+                sum += parseInt(code[i]) * (i % 2 === 0 ? 3 : 1);
+            }
+            const checksum = (10 - (sum % 10)) % 10;
+
+            return checksum === parseInt(code[11]);
+        }
+
+        // VIZUÁLNÍ INDIKÁTOR SPOLEHLIVOSTI
+        function updateConfidenceIndicator(status, count) {
+            const confidenceLevel = Math.min(count / 3, 1);
+            const percentage = Math.round(confidenceLevel * 100);
+
+            let color, emoji;
+            if (confidenceLevel < 0.33) {
+                color = '#dc3545';
+                emoji = '🔴';
+            } else if (confidenceLevel < 0.66) {
+                color = '#ffc107';
+                emoji = '🟡';
+            } else {
+                color = '#28a745';
+                emoji = '🟢';
+            }
+
+            status.innerHTML = `
+                                    ${emoji} <strong style="color: ${color};">Spolehlivost: ${percentage}%</strong><br>
+                                        <small>Udržte kód stabilní pro automatické zpracování</small>
+                                        `;
+        }
+
+        // ZPRACOVÁNÍ VYSOCE SPOLEHLIVÉHO KÓDU
+        function handleHighConfidenceBarcode(barcode, status) {
+            console.log('🎯 Vysoká spolehlivost kódu:', barcode);
+
+            status.innerHTML = `
+                                        ✅ <strong style="color: #28a745; font-size: 1.1em;">KÓD POTVRZEN!</strong><br>
+                                            <small>${barcode} - otevírám vyhledávání...</small>
+                                            `;
+
+            playIPhoneDetectionSound();
+            barcodeScanningActive = false;
+
+            // Vizuální potvrzení před přechodem
+            flashOverlaySuccess();
+
+            setTimeout(() => {
+                closeBarcodeScanner();
+                openSearchWithBarcode(barcode);
+            }, 1000);
+        }
+
+        // NATIVNÍ DETEKCE PRO iPHONE
+        function startIPhoneNativeDetection(barcodeDetector, video, status) {
+            status.innerHTML = '🔍 <strong>Automatické skenování</strong><br><small>Namířejte na čárový kód</small>';
+
+            const detectFrame = async () => {
+                if (!barcodeScanningActive) return;
+
+                try {
+                    // Vytvoříme canvas z videa
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    // Detekce čárových kódů
+                    const barcodes = await barcodeDetector.detect(canvas);
+
+                    if (barcodes.length > 0) {
+                        const barcode = barcodes[0];
+                        handleIPhoneDetectedBarcode(barcode.rawValue, status);
+                        return;
+                    }
+
+                    // Pokračujeme v detekci
+                    if (barcodeScanningActive) {
+                        setTimeout(() => detectFrame(), 300); // Pomalejší pro iPhone
+                    }
+
+                } catch (error) {
+                    console.log('iPhone detekce chyba:', error);
+                    if (barcodeScanningActive) {
+                        setTimeout(() => detectFrame(), 500);
+                    }
+                }
+            };
+
+            detectFrame();
+        }
+
+        // JAVASCRIPT DETEKCE PRO STARŠÍ iPHONE
+        function startIPhoneJavascriptDetection(video, status) {
+            status.innerHTML = `
+                📱 <strong>Optimalizované pro iPhone</strong><br>
+                <small>Pomalejší, ale spolehlivé skenování</small>
+            `;
+
+            // Použijeme Quagga.js, která má lepší podporu pro iOS
+            loadQuaggaForIPhone(video, status);
+        }
+
+        // NAČTENÍ QUAGGA PRO iPHONE
+        function loadQuaggaForIPhone(video, status) {
+            // Kontrola, zda je Quagga již načtena
+            if (typeof Quagga === 'undefined') {
+                status.innerHTML = '📥 <strong>Načítám skenovací engine...</strong>';
+
+                // Dynamické načtení Quagga
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js';
+                script.onload = () => {
+                    initializeQuaggaForIPhone(video, status);
+                };
+                script.onerror = () => {
+                    status.innerHTML = '❌ <strong>Nelze načíst skenovací engine</strong><br><small>Použijte ruční zadání</small>';
+                };
+                document.head.appendChild(script);
+            } else {
+                initializeQuaggaForIPhone(video, status);
+            }
+        }
+
+        // INICIALIZACE QUAGGA PRO iPHONE
+        // VYLEPŠENÁ QUAGGA PRO VYŠŠÍ PŘESNOST
+        function initializeQuaggaForIPhone(video, status) {
+            status.innerHTML = '🔍 <strong>Vysokopřesné skenování</strong><br><small>Namířte na čárový kód</small>';
+
+            try {
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: video,
+                        constraints: {
+                            facingMode: "environment",
+                            width: { min: 640, ideal: 1280, max: 1920 },
+                            height: { min: 480, ideal: 720, max: 1080 },
+                            aspectRatio: { min: 1, max: 2 }
+                        },
+                        area: {
+                            top: "25%",
+                            right: "10%",
+                            left: "10%",
+                            bottom: "25%"
+                        }
+                    },
+                    decoder: {
+                        readers: [
+                            "ean_reader",
+                            "ean_8_reader",
+                            "upc_reader",
+                            "upc_e_reader"
+                        ],
+                        multiple: false
+                    },
+                    locator: {
+                        patchSize: "medium",
+                        halfSample: true
+                    },
+                    locate: true,
+                    frequency: 5, // Pomalejší = přesnější
+                    numOfWorkers: 1, // Méně workerů = stabilnější
+                    debug: {
+                        drawBoundingBox: false,
+                        showFrequency: false,
+                        drawScanline: false,
+                        showPattern: false
+                    }
+                }, function (err) {
+                    if (err) {
+                        console.error('Quagga chyba:', err);
+                        status.innerHTML = '❌ <strong>Skenování selhalo</strong>';
+                        return;
+                    }
+
+                    console.log('Quagga úspěšně inicializována - vysoká přesnost');
+                    Quagga.start();
+
+                    // VYLEPŠENÁ DETEKCE S FILTRACÍ
+                    let lastCode = '';
+                    let codeCount = 0;
+
+                    Quagga.onDetected(function (result) {
+                        if (result && result.codeResult && result.codeResult.code) {
+                            const currentCode = result.codeResult.code;
+
+                            // FILTRACE: Stejný kód musí být detekován 2x
+                            if (currentCode === lastCode) {
+                                codeCount++;
+
+                                if (codeCount >= 2 && isValidBarcodeFormat(currentCode)) {
+                                    Quagga.offDetected();
+                                    handleHighConfidenceBarcode(currentCode, status);
+                                }
+                            } else {
+                                lastCode = currentCode;
+                                codeCount = 1;
+                            }
+                        }
+                    });
+                });
+
+            } catch (error) {
+                console.error('Chyba inicializace Quagga:', error);
+                status.innerHTML = '❌ <strong>Skenování nelze spustit</strong>';
+            }
+        }
+
+        // VIZUÁLNÍ POTVRZENÍ ÚSPĚCHU
+        function flashOverlaySuccess() {
+            const overlay = document.querySelector('.barcode-overlay');
+            if (overlay) {
+                overlay.style.background = '#28a745';
+                overlay.style.transition = 'all 0.5s ease';
+                overlay.innerHTML = `
+                                            <div style="text-align: center; color: white;">
+                                                <div style="font-size: 32px; margin-bottom: 10px;">✅</div>
+                                                <div><strong>ÚSPĚCH!</strong></div>
+                                                <div style="font-size: 12px; margin-top: 5px;">Kód potvrzen</div>
+                                            </div>
+                                            `;
+
+                setTimeout(() => {
+                    if (overlay) {
+                        overlay.style.background = 'rgba(0, 0, 0, 0.3)';
+                    }
+                }, 800);
+            }
+        }
+
+        // ZPRACOVÁNÍ NALEZENÉHO KÓDU NA iPHONE
+        function handleIPhoneDetectedBarcode(barcode, status) {
+            console.log('📱 iPhone nalezen kód:', barcode);
+
+            // Vizualní potvrzení
+            status.innerHTML = `
+                                            ✅ <strong style="color: #28a745;">Kód nalezen!</strong><br>
+                                                <small>${barcode} - otevírám vyhledávání...</small>
+                                                `;
+
+            // Zvukový feedback
+            playIPhoneDetectionSound();
+
+            // Zastavíme skenování
+            if (typeof Quagga !== 'undefined' && Quagga) {
+                Quagga.stop();
+            }
+            barcodeScanningActive = false;
+
+            // OKAMŽITÉ ZAVŘENÍ SKENÉRU A OTEVRENÍ VYHLEDÁVÁNÍ
+            setTimeout(() => {
+                closeBarcodeScanner();
+                openSearchWithBarcode(barcode); // ← NOVÁ FUNKCE
+            }, 800); // Krátká prodleva pro UX
+        }
+
+        // NOVÁ FUNKCE PRO OTEVRENÍ VYHLEDÁVÁNÍ S KÓDEM
+        function openSearchWithBarcode(barcode) {
+            console.log("🔍 Otevírám vyhledávání s kódem:", barcode);
+
+            // 1. Otevřeme vyhledávací modal
+            const searchModal = document.getElementById('searchModal');
+            if (searchModal) {
+                searchModal.style.display = 'flex';
+            }
+
+            // 2. Vyplníme kód do vyhledávacího pole
+            const searchInput = document.getElementById('searchModalQuery');
+            if (searchInput) {
+                searchInput.value = barcode;
+                searchInput.focus(); // Kurzor do pole
+
+                // 3. OKAMŽITĚ SPUSTÍME VYHLEDÁVÁNÍ
+                setTimeout(() => {
+                    performBarcodeSearch(barcode);
+                }, 300);
+            }
+        }
+
+        // FUNKCE PRO SPUŠTĚNÍ VYHLEDÁVÁNÍ
+        function performBarcodeSearch(barcode) {
+            console.log("🎯 Spouštím vyhledávání kódu:", barcode);
+
+            const searchInput = document.getElementById('searchModalQuery');
+            const resultsDiv = document.getElementById('searchModalResults');
+            const loadingDiv = document.getElementById('searchModalLoading');
+
+            if (!searchInput || !resultsDiv) return;
+
+            // Reset výsledků
+            resultsDiv.innerHTML = '';
+
+            // Zobrazíme loading
+            if (loadingDiv) {
+                loadingDiv.style.display = 'block';
+            }
+
+            // Simulace vyhledávání (nahraďte skutečným voláním)
+            setTimeout(() => {
+                if (loadingDiv) {
+                    loadingDiv.style.display = 'none';
+                }
+
+                // Zde bude skutečné vyhledávání
+                performSearch(barcode);
+
+            }, 500);
+        }
+
+        // ZVUK PRO iPHONE
+        function playIPhoneDetectionSound() {
+            // Jednodušší zvuková metoda pro iOS
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF5fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUgBjiO1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUgBjiO1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUgBjiO1/LMeSwFJHf');
+                audio.play();
+            } catch (e) {
+                // Fallback - vibrace (pokud je podporováno)
+                if (navigator.vibrate) {
+                    navigator.vibrate(200);
+                }
+            }
+        }
+
+        // SPUŠTĚNÍ KAMERY
+        async function startCamera(videoElement) {
+            try {
+                // Zastavíme předchozí stream
+                if (barcodeStream) {
+                    barcodeStream.getTracks().forEach(track => track.stop());
+                }
+
+                // Získání přístupu ke kameře
+                const constraints = {
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                };
+
+                barcodeStream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = barcodeStream;
+
+                // Čekání na načtení videa
+                await new Promise((resolve, reject) => {
+                    videoElement.onloadedmetadata = () => {
+                        videoElement.play().then(resolve).catch(reject);
+                    };
+                    setTimeout(resolve, 1000); // Fallback timeout
+                });
+
+                barcodeScanningActive = true;
+                console.log("✅ Kamera úspěšně spuštěna");
+
+            } catch (error) {
+                console.error("❌ Chyba při spouštění kamery:", error);
+                throw new Error(getCameraErrorMessage(error));
+            }
         }
 
         function detectSimpleBarcodes(imageData) {
@@ -4439,34 +5373,30 @@
             return true; // Zjednodušená validace
         }
 
+        // VYHLEDÁNÍ PODLE KÓDU
         function searchByBarcode(barcode) {
-            const searchInput = document.getElementById('query');
-            if (searchInput) searchInput.value = barcode;
+            console.log("🔍 Vyhledávám kód:", barcode);
 
-            const searchForm = document.getElementById('searchForm');
-            if (searchForm) {
-                const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
-                searchForm.dispatchEvent(submitEvent);
-            }
+            // Zavřeme skenovací modal
+            closeBarcodeScanner();
+
+            // Otevřeme vyhledávací modal s kódem
+            openSearchWithBarcode(barcode);
         }
 
+        // PŘEPÍNÁNÍ KAMERY
         async function toggleCamera() {
-            barcodeFacingMode = barcodeFacingMode === 'environment' ? 'user' : 'environment';
-            document.getElementById('barcodeStatus').textContent = 'Přepínám kameru...';
+            if (!barcodeScanningActive) return;
 
-            try {
-                await startCamera();
-                document.getElementById('barcodeStatus').textContent = 'Namiřte na čárový kód';
+            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
 
-                if (quaggaInitialized) {
-                    Quagga.stop();
-                    initQuagga();
-                    startBarcodeScanning();
-                }
-            } catch (error) {
-                console.error('Chyba při přepínání kamery:', error);
-                document.getElementById('barcodeStatus').textContent = 'Chyba: ' + error.message;
-                document.getElementById('barcodeStatus').style.color = 'red';
+            const status = document.getElementById('barcodeStatus');
+            status.textContent = '🔄 Přepínám kameru...';
+
+            const video = document.getElementById('barcodeVideo');
+            if (video) {
+                await startCamera(video);
+                status.textContent = '✅ Kamera připravena - namiřte na čárový kód';
             }
         }
 
@@ -4489,65 +5419,43 @@
             }
         }
 
+        // RUČNÍ ZADÁNÍ KÓDU
         function submitManualBarcode() {
-            const manualBarcodeInput = document.getElementById('manualBarcodeInput');
-            const barcode = manualBarcodeInput.value.trim();
+            const input = document.getElementById('manualBarcodeInput');
+            const barcode = input.value.trim();
 
             if (barcode) {
                 closeBarcodeScanner();
-                searchByBarcode(barcode);
-            } else {
-                document.getElementById('barcodeStatus').textContent = 'Prosím, zadejte čárový kód';
-                document.getElementById('barcodeStatus').style.color = 'red';
+                openSearchWithBarcode(barcode); // ← STEJNÉ JAKO U SKENOVÁNÍ
+                input.value = '';
             }
         }
 
-        function restartQuagga() {
-            if (typeof Quagga !== 'undefined') {
-                try {
-                    if (quaggaInitialized) {
-                        Quagga.stop();
-                        Quagga.offDetected();
-                        Quagga.offProcessed();
-                    }
-
-                    quaggaInitialized = false;
-                    lastDetectedBarcode = null;
-
-                    setTimeout(() => {
-                        initQuagga();
-                    }, 500);
-                } catch (error) {
-                    console.error('Chyba při restartu Quaggy:', error);
-                }
-            }
-        }
-
+        // ZAVŘENÍ SKENÉRU
         function closeBarcodeScanner() {
-            if (barcodeDetectionTimeout) {
-                clearTimeout(barcodeDetectionTimeout);
-                barcodeDetectionTimeout = null;
-            }
+            console.log("🔴 Zavírám skenér");
+            barcodeScanningActive = false;
 
-            if (barcodeStream) {
+            // Důkladné zastavení Quaggy
+            if (typeof Quagga !== 'undefined' && Quagga) {
                 try {
-                    barcodeStream.getTracks().forEach(track => track.stop());
-                    barcodeStream = null;
+                    Quagga.stop();
+                    Quagga.offDetected();
                 } catch (error) {
-                    console.error('Chyba při zastavování streamu:', error);
+                    console.log('Chyba při zastavování Quaggy:', error);
                 }
             }
 
-            const barcodeVideo = document.getElementById('barcodeVideo');
-            if (barcodeVideo) barcodeVideo.srcObject = null;
+            // Zastavíme kameru
+            if (barcodeStream) {
+                barcodeStream.getTracks().forEach(track => track.stop());
+                barcodeStream = null;
+            }
 
-            restartQuagga();
-            document.getElementById('barcodeModal').style.display = 'none';
-            document.getElementById('barcodeUnsupportedMessage').style.display = 'block';
-            document.getElementById('barcodeVideo').style.display = 'none';
-            document.getElementById('toggleCameraButton').style.display = 'none';
-            document.getElementById('toggleFlashButton').style.display = 'none';
-            document.getElementById('barcodeOverlay').style.display = 'none';
+            const modal = document.getElementById('barcodeModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
         }
 
         document.getElementById('confirmCreateRecipeButton').addEventListener('click', async function () {
@@ -4585,11 +5493,76 @@
             }
         }
 
+        // UPRAVENÉ CSS PRO LEPŠÍ UX
+        const improvedBarcodeCSS = `
+                                                .barcode-scanner-container {
+                                                    position: relative;
+                                                width: 100%;
+                                                max-width: 400px;
+                                                margin: 0 auto;
+        }
+
+                                                #barcodeVideo {
+                                                    width: 100%;
+                                                height: 300px;
+                                                border-radius: 12px;
+                                                object-fit: cover;
+        }
+
+                                                .barcode-overlay {
+                                                    position: absolute;
+                                                top: 50%;
+                                                left: 50%;
+                                                transform: translate(-50%, -50%);
+                                                width: 80%;
+                                                height: 40%;
+                                                border: 3px solid #4CAF50;
+                                                border-radius: 12px;
+                                                pointer-events: none;
+                                                animation: pulse 2s infinite;
+        }
+
+                                                .barcode-fallback {
+                                                    text - align: center;
+                                                padding: 20px;
+        }
+
+                                                .manual-input {
+                                                    display: flex;
+                                                gap: 10px;
+                                                margin-top: 15px;
+        }
+
+                                                .manual-input input {
+                                                    flex: 1;
+                                                padding: 10px;
+                                                border: 1px solid #ddd;
+                                                border-radius: 8px;
+        }
+
+                                                @keyframes pulse {
+                                                    0 % { border- color: #4CAF50; }
+                                                50% {border - color: #FFEB3B; }
+                                                100% {border - color: #4CAF50; }
+        }
+                                                `;
+
+
         // =============================================
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
             console.log("🏠 DOM načten, hledám elementy...");
+
+            // Přidání CSS
+            const style = document.createElement('style');
+            style.textContent = improvedBarcodeCSS;
+            document.head.appendChild(style);
+
+            // Event listenery
+            document.getElementById('barcodeButtonInModal').addEventListener('click', function () {
+                openBarcodeScanner();
+            });
 
             // Debug - které elementy existují
             console.log("addAsMealButton:", document.getElementById('addAsMealButton'));
@@ -4733,7 +5706,14 @@
                 }
             });
 
-            initBarcodeScanner();
+            console.log("🏠 inicializuji nový skenér");
+
+            // POČKÁME, AŤ SE NAČTOU VŠECHNY ELEMENTY
+            setTimeout(() => {
+                // Inicializujeme NOVÝ skenér
+                initBarcodeScanner();
+                console.log("✅ Nový skenér čárových kódů inicializován");
+            }, 1000);
 
             await initializeApplication();
 
@@ -4818,11 +5798,6 @@
                 }
             });
 
-            //document.getElementById('createNewProfileBtn').addEventListener('click', () => {
-            //    document.getElementById('profileModal').style.display = 'none';
-            //    window.showCreateProfileModal();
-            //});
-
             // Event listenery pro recepty
             document.getElementById('recipesButton').addEventListener('click', async () => {
                 if (!checkInitialization()) return;
@@ -4869,12 +5844,8 @@
             // Event listenery pro přepínače nastavení
             const toggleIds = [
                 'confirmRecipeCreationToggle',
-
-
-
                 'confirmFoodAdditionToggle',
                 'confirmDeleteRecipeToggle',
-
                 'confirmDeleteRecipeItemToggle',
                 'confirmSaveChangesToggle',
                 'confirmRecipeSaveSuccessToggle',
@@ -5157,15 +6128,15 @@
             if (!mainContent) return;
 
             const warningHtml = `
-                <div class="goals-warning">
-                    <div class="warning-icon">⚠️</div>
-                    <div class="warning-content">
-                        <h3>Chybí cíle pro denní příjem</h3>
-                        <p>Pro správné zobrazení denního příjmu je potřeba vyplnit osobní kartu.</p>
-                        <button id="openPersonalCardBtn" class="btn-primary">Otevřít osobní kartu</button>
-                    </div>
-                </div>
-            `;
+                                                <div class="goals-warning">
+                                                    <div class="warning-icon">⚠️</div>
+                                                    <div class="warning-content">
+                                                        <h3>Chybí cíle pro denní příjem</h3>
+                                                        <p>Pro správné zobrazení denního příjmu je potřeba vyplnit osobní kartu.</p>
+                                                        <button id="openPersonalCardBtn" class="btn-primary">Otevřít osobní kartu</button>
+                                                    </div>
+                                                </div>
+                                                `;
 
             // Najdeme nebo vytvoříme warning element
             let warningElement = document.querySelector('.goals-warning');
@@ -5498,35 +6469,35 @@
             const isExpanded = false;
 
             groupDiv.innerHTML = `
-                <div class="recipe-header ${isExpanded ? 'expanded' : ''}">
-                    <div class="recipe-main-info">
-                        <div class="recipe-icon">📋</div>
-                            <div class="recipe-details">
-                                <div class="recipe-name">${group.recipeName}</div>
-    
-                                <div class="recipe-totals-row main-highlight-row">
-                                    <span class="calorie-highlight">${Math.round(group.totalCalories)} kcal</span>
-                                    <span class="total-amount-display">${Math.round(totalAmount)} ${mainUnit}</span>
-                                </div>
+                                                <div class="recipe-header ${isExpanded ? 'expanded' : ''}">
+                                                    <div class="recipe-main-info">
+                                                        <div class="recipe-icon">📋</div>
+                                                        <div class="recipe-details">
+                                                            <div class="recipe-name">${group.recipeName}</div>
 
-                                <div class="recipe-totals-row macro-stats-row">
-                                    <span>B: ${Math.round(group.totalProtein)}g</span>
-                                    <span>S: ${Math.round(group.totalCarbs)}g</span>
-                                    <span>T: ${Math.round(group.totalFat)}g</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="recipe-actions">
-                            <button class="toggle-recipe-btn" title="Rozbalit ingredience">
-                                <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Rozbalit" class="toggle-icon ${isExpanded ? 'expanded' : ''}">
-                            </button>
-                            <button class="delete-recipe-group-btn" title="Smazat recept">
-                                <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat recept">
-                            </button>
-                        </div>
-                    </div>
-                <div class="recipe-ingredients ${isExpanded ? 'expanded' : ''}">
-                    ${group.items.map(item => `
+                                                            <div class="recipe-totals-row main-highlight-row">
+                                                                <span class="calorie-highlight">${Math.round(group.totalCalories)} kcal</span>
+                                                                <span class="total-amount-display">${Math.round(totalAmount)} ${mainUnit}</span>
+                                                            </div>
+
+                                                            <div class="recipe-totals-row macro-stats-row">
+                                                                <span>B: ${Math.round(group.totalProtein)}g</span>
+                                                                <span>S: ${Math.round(group.totalCarbs)}g</span>
+                                                                <span>T: ${Math.round(group.totalFat)}g</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="recipe-actions">
+                                                        <button class="toggle-recipe-btn" title="Rozbalit ingredience">
+                                                            <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Rozbalit" class="toggle-icon ${isExpanded ? 'expanded' : ''}">
+                                                        </button>
+                                                        <button class="delete-recipe-group-btn" title="Smazat recept">
+                                                            <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat recept">
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="recipe-ingredients ${isExpanded ? 'expanded' : ''}">
+                                                    ${group.items.map(item => `
                         <div class="recipe-ingredient-item">
                             <div class="ingredient-info">
                                 <div class="ingredient-name">${item.food_name}</div>
@@ -5548,8 +6519,8 @@
                             </div>
                         </div>
                     `).join('')}
-                </div>
-            `;
+                                                </div>
+                                                `;
 
             // Event listener pro rozbalení/sbalení - OPRAVENÉ
             const toggleBtn = groupDiv.querySelector('.toggle-recipe-btn');
@@ -5594,7 +6565,6 @@
                 }
             });
 
-            // Zbytek event listenerů zůstává stejný...
             const deleteBtn = groupDiv.querySelector('.delete-recipe-group-btn');
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -5626,25 +6596,25 @@
             const div = document.createElement('div');
             div.className = 'food-item';
             div.innerHTML = `
-                <div class="food-item-info">
-                    <div class="food-item-name">${item.food_name}</div>
-                    <div class="food-item-details">
-                        <span class="amount-badge">${item.amount} ${item.unit}</span>
-                        <span>${Math.round(item.calories)} kcal</span>
-                        ${item.protein ? `<span>B: ${Math.round(item.protein)}g</span>` : ''}
-                        ${item.carbs ? `<span>S: ${Math.round(item.carbs)}g</span>` : ''}
-                        ${item.fat ? `<span>T: ${Math.round(item.fat)}g</span>` : ''}
-                    </div>
-                </div>
-                <div class="food-item-actions">
-                    <button class="edit-food-item" data-item-id="${item.id}" title="Upravit potravinu">
-                        <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
-                    </button>
-                    <button class="delete-food-item" data-item-id="${item.id}" data-meal-id="${mealId}" title="Smazat potravinu">
-                        <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
-                    </button>
-                </div>
-            `;
+                                                <div class="food-item-info">
+                                                    <div class="food-item-name">${item.food_name}</div>
+                                                    <div class="food-item-details">
+                                                        <span class="amount-badge">${item.amount} ${item.unit}</span>
+                                                        <span>${Math.round(item.calories)} kcal</span>
+                                                        ${item.protein ? `<span>B: ${Math.round(item.protein)}g</span>` : ''}
+                                                        ${item.carbs ? `<span>S: ${Math.round(item.carbs)}g</span>` : ''}
+                                                        ${item.fat ? `<span>T: ${Math.round(item.fat)}g</span>` : ''}
+                                                    </div>
+                                                </div>
+                                                <div class="food-item-actions">
+                                                    <button class="edit-food-item" data-item-id="${item.id}" title="Upravit potravinu">
+                                                        <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
+                                                    </button>
+                                                    <button class="delete-food-item" data-item-id="${item.id}" data-meal-id="${mealId}" title="Smazat potravinu">
+                                                        <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
+                                                    </button>
+                                                </div>
+                                                `;
 
             // Event listenery zůstávají stejné...
             div.querySelector('.edit-food-item').addEventListener('click', (e) => {
@@ -5706,24 +6676,24 @@
             const div = document.createElement('div');
             div.className = 'meal-item';
             div.innerHTML = `
-        <div class="meal-item-info">
-            <div class="meal-item-name">${item.food_name}</div>
-            <div class="meal-item-details">
-                ${item.amount} ${item.unit} • ${Math.round(item.calories)} kcal
-                ${item.protein ? ` • B: ${Math.round(item.protein)}g` : ''}
-                ${item.carbs ? ` • S: ${Math.round(item.carbs)}g` : ''}
-                ${item.fat ? ` • T: ${Math.round(item.fat)}g` : ''}
-            </div>
-        </div>
-        <div class="meal-item-actions">
-            <button class="meal-item-action edit-meal-item" data-item-id="${item.id}">
-                <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
-            </button>
-            <button class="meal-item-action delete-meal-item" data-item-id="${item.id}" data-meal-id="${mealId}">
-                <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
-            </button>
-        </div>
-    `;
+                                                <div class="meal-item-info">
+                                                    <div class="meal-item-name">${item.food_name}</div>
+                                                    <div class="meal-item-details">
+                                                        ${item.amount} ${item.unit} • ${Math.round(item.calories)} kcal
+                                                        ${item.protein ? ` • B: ${Math.round(item.protein)}g` : ''}
+                                                        ${item.carbs ? ` • S: ${Math.round(item.carbs)}g` : ''}
+                                                        ${item.fat ? ` • T: ${Math.round(item.fat)}g` : ''}
+                                                    </div>
+                                                </div>
+                                                <div class="meal-item-actions">
+                                                    <button class="meal-item-action edit-meal-item" data-item-id="${item.id}">
+                                                        <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
+                                                    </button>
+                                                    <button class="meal-item-action delete-meal-item" data-item-id="${item.id}" data-meal-id="${mealId}">
+                                                        <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
+                                                    </button>
+                                                </div>
+                                                `;
 
             return div;
         }
@@ -5836,10 +6806,10 @@
 
                 // POUZE základní rozložení - bez ikonky
                 recipeItem.innerHTML = `
-            <div class="recipe-number">${index + 1}.</div>
-            <div class="recipe-name">${recipe.name}</div>
-            <div class="recipe-calories">${formattedCalories}</div>
-        `;
+                                                <div class="recipe-number">${index + 1}.</div>
+                                                <div class="recipe-name">${recipe.name}</div>
+                                                <div class="recipe-calories">${formattedCalories}</div>
+                                                `;
 
                 recipeItem.addEventListener('click', () => {
                     addRecipeToMeal(recipe);

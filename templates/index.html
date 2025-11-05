@@ -1084,7 +1084,8 @@
             console.log("📦 addFoodItemToDailyMeal:", {
                 foodName: foodItem.foodName,
                 mealType,
-                date: date.toISOString().split('T')[0]
+                date: date.toISOString().split('T')[0],
+                isRecipe: foodItem.isRecipe
             });
 
             const dateString = formatDateForAPI(date);
@@ -1096,31 +1097,60 @@
                 // 2. Získáme/create meal pro daný typ
                 let mealId = await getOrCreateMeal(dailyIntakeId, mealType);
 
-                // 3. Přidáme potravinu jako položku jídla
-                console.log("💾 Ukládám potravinu do meal_items...");
-                const { error } = await window.supabaseClient
-                    .from('meal_items')
-                    .insert({
-                        daily_meal_id: mealId,
-                        food_name: foodItem.foodName || 'Neznámá potravina',
-                        amount: foodItem.amount || 100,
-                        unit: foodItem.unit || 'g',
-                        calories: parseFloat(foodItem.kcal) || 0,
-                        protein: parseFloat(foodItem.nutritionalDetails?.protein) || 0,
-                        carbs: parseFloat(foodItem.nutritionalDetails?.carbs) || 0,
-                        fat: parseFloat(foodItem.nutritionalDetails?.fat) || 0,
-                        fiber: parseFloat(foodItem.nutritionalDetails?.fiber) || 0,
-                        nutritional_data: foodItem.nutritionalDetails || null
-                    });
+                if (foodItem.isRecipe && foodItem.ingredients) {
+                    // PŘIDÁNÍ CELÉHO RECEPTU
+                    console.log("🥘 Přidávám celý recept do jídla:", foodItem.foodName);
 
-                if (error) {
-                    console.error("❌ Chyba při ukládání meal_items:", error);
-                    throw error;
+                    // Pro každou ingredienci receptu vytvoříme položku
+                    for (const ingredient of foodItem.ingredients) {
+                        const { error } = await window.supabaseClient
+                            .from('meal_items')
+                            .insert({
+                                daily_meal_id: mealId,
+                                food_name: ingredient.foodName,
+                                amount: ingredient.amount,
+                                unit: ingredient.unit,
+                                calories: parseFloat(ingredient.calories) || 0,
+                                protein: parseFloat(ingredient.protein) || 0,
+                                carbs: parseFloat(ingredient.carbs) || 0,
+                                fat: parseFloat(ingredient.fat) || 0,
+                                fiber: parseFloat(ingredient.fiber) || 0,
+                                nutritional_data: ingredient.nutritionalDetails || null,
+                                recipe_id: foodItem.recipeId // Uložíme ID receptu pro seskupení
+                            });
+
+                        if (error) {
+                            console.error("❌ Chyba při ukládání ingredience receptu:", error);
+                            throw error;
+                        }
+                    }
+                    console.log("✅ Celý recept úspěšně uložen");
+                } else {
+                    // PŘIDÁNÍ JEDNOTLIVÉ POTRAVINY (původní kód)
+                    console.log("💾 Ukládám potravinu do meal_items...");
+                    const { error } = await window.supabaseClient
+                        .from('meal_items')
+                        .insert({
+                            daily_meal_id: mealId,
+                            food_name: foodItem.foodName || 'Neznámá potravina',
+                            amount: foodItem.amount || 100,
+                            unit: foodItem.unit || 'g',
+                            calories: parseFloat(foodItem.kcal) || 0,
+                            protein: parseFloat(foodItem.nutritionalDetails?.protein) || 0,
+                            carbs: parseFloat(foodItem.nutritionalDetails?.carbs) || 0,
+                            fat: parseFloat(foodItem.nutritionalDetails?.fat) || 0,
+                            fiber: parseFloat(foodItem.nutritionalDetails?.fiber) || 0,
+                            nutritional_data: foodItem.nutritionalDetails || null
+                        });
+
+                    if (error) {
+                        console.error("❌ Chyba při ukládání meal_items:", error);
+                        throw error;
+                    }
+                    console.log("✅ Potravina úspěšně uložena");
                 }
 
-                console.log("✅ Potravina úspěšně uložena");
-
-                // 4. Aktualizujeme zobrazení pokud jsme na aktuálním dni
+                // 3. Aktualizujeme zobrazení pokud jsme na aktuálním dni
                 if (isSameDay(date, currentDailyIntakeDate)) {
                     console.log("🔄 Aktualizuji zobrazení denního příjmu...");
                     await loadDailyIntakeData(currentDailyIntakeDate);
@@ -3832,20 +3862,58 @@
                     formattedAggregatedNutrients[key] = formatNumberForDisplay(aggregatedNutrients[key], unit, key.includes('kcal') || key.includes('kj'));
                 }
 
+                // Vypočtěte celkovou hmotnost receptu
+                const totalWeight = ingredients.reduce((sum, ingredient) => {
+                    const amount = parseFloat(ingredient.amount) || 0;
+                    let baseAmount = amount;
+                    if (ingredient.unit === 'kg' || ingredient.unit === 'l') {
+                        baseAmount = amount * 1000;
+                    }
+                    return sum + baseAmount;
+                }, 0);
+
+                // Detail receptu
                 modalDetailsContent.innerHTML = `
-                    <div class="modal-recipe-header">
-                        <img id="modalHeaderImage" src="${imageUrl}" alt="${recipeName}" class="modal-header-image" onerror="this.onerror=null;this.src='{{ url_for('static', filename='icon/recepty.png') }}'" />
-                        <div class="modal-header-text">
-                            <div id="modalHeaderName" class="modal-header-name">${recipeName}</div>
-                            <div class="energy-display-group">
-                                <div id="totalKcalDisplay" class="energy-header">${formattedAggregatedNutrients.total_kcal}</div>
-                                <div id="totalKjDisplay" class="energy-sub-header">${formatNumberForDisplay(totalKj, 'kJ', true)}</div>
-                            </div>
+                    <!-- JEDEN STATICKÝ KONTEJNER NAHOŘE - S FIXED POZICÍ -->
+                    <div class="modal-recipe-fixed-header">
+
+                        <!-- VŠECHNY PRVKY UVNITŘ TOHOTO KONTEJNERU -->
+        
+                        <!-- NÁZEV RECEPTU -->
+                        <div class="header-name-container">
+                            <div id="modalHeaderName" class="recipe-name-pixel">${recipeName}</div>
+                        </div>
+        
+                        <!-- KALORIE A kJ -->
+                        <div class="header-energy-container">
+                            <div id="totalKcalDisplay" class="energy-main-pixel">${formattedAggregatedNutrients.total_kcal}</div>
+                            <div id="totalKjDisplay" class="energy-sub-pixel">${formatNumberForDisplay(totalKj, 'kJ', true)}</div>
+                        </div>
+        
+                        <!-- CELKOVÁ HMOTNOST -->
+                        <div class="header-weight-container">
+                            <div class="weight-value-pixel">${Math.round(totalWeight)} g</div>
+                            <div class="weight-label-pixel">Celková hmotnost</div>
+                        </div>
+        
+                        <!-- TLAČÍTKO PŘIDAT JAKO JÍDLO -->
+                        <div class="header-button-container">
+                            <button id="addRecipeAsMealButton" class="add-meal-btn-pixel">
+                                <span class="btn-icon">🍽️</span>
+                                Přidat jako jídlo
+                            </button>
+                        </div>
+        
+                        <!-- JEDEN KŘÍŽEK - UVNITŘ STATICKÉHO KONTEJNERU -->
+                        <div class="header-close-container">
+                            <span class="close-button-pixel" id="closeRecipeDetailModal">&times;</span>
                         </div>
                     </div>
-                    <div class="modal-scrollable-container">
+
+                    <!-- SCROLLOVATELNÝ OBSAH - ZAČÍNÁ POD STATICKÝM KONTEJNEREM -->
+                    <div class="modal-scrollable-container-with-header">
                         <div id="nutrientDetailsSection"></div>
-                        <h3 class="ingredients-title">Složení receptu:</h3>
+                            <h3 class="ingredients-title">Složení receptu:</h3>
                         <div id="recipeIngredientsList"></div>
                     </div>
                 `;
@@ -3866,27 +3934,29 @@
                         const { number: kcalNum, unit: kcalUnit } = parseValueAndUnit(ingredient.kcal);
                         const formattedIngredientKcal = formatNumberForDisplay(kcalNum, kcalUnit, true);
 
+                        // NAHRADTE staré HTML ingrediencí tímto:
                         ingredientItemDiv.innerHTML = `
-    <div class="ingredient-main-info">
-        <div class="ingredient-icon">🥘</div>
-        <div class="ingredient-details">
-            <div class="ingredient-name">${ingredient.foodName}</div>
-            <div class="ingredient-totals">
-                <span class="total-amount">${ingredient.amount} ${ingredient.unit}</span>
-                <span>${Math.round(ingredient.calories || kcalNum)} kcal</span>
-                ${ingredient.protein ? `<span>B: ${Math.round(ingredient.protein)}g</span>` : ''}
-                ${ingredient.carbs ? `<span>S: ${Math.round(ingredient.carbs)}g</span>` : ''}
-                ${ingredient.fat ? `<span>T: ${Math.round(ingredient.fat)}g</span>` : ''}
+                    <div class="ingredient-main-content">
+        <div class="ingredient-image-wrapper">
+            <img src="${displayImageUrl}" alt="${ingredient.foodName}" 
+                onerror="this.onerror=null;this.src='${ingPlaceholderImage}'"
+                class="ingredient-image">
+        </div>
+        <div class="ingredient-basic-info">
+            <div class="ingredient-name" title="${ingredient.foodName}">${ingredient.foodName}</div>
+            <div class="ingredient-nutrition-row">
+                <span class="calorie-badge">${Math.round(ingredient.calories || kcalNum)} kcal</span>
+                <span class="amount-badge">${ingredient.amount} ${ingredient.unit}</span>
             </div>
         </div>
     </div>
-    <div class="ingredient-actions">
-        <button class="edit-ingredient-btn" data-recipe-id="${recipeId}" 
-                data-ingredient-index="${index}" title="Upravit ingredienci">
+    <div class="ingredient-actions-vertical">
+        <button class="edit-ingredient-btn" data-recipe-id="${recipeId}"
+            data-ingredient-index="${index}" title="Upravit ingredienci">
             <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
         </button>
-        <button class="delete-ingredient-btn" data-recipe-id="${recipeId}" 
-                data-ingredient-index="${index}" title="Smazat ingredienci">
+        <button class="delete-ingredient-btn" data-recipe-id="${recipeId}"
+            data-ingredient-index="${index}" title="Smazat ingredienci">
             <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
         </button>
     </div>
@@ -3931,11 +4001,53 @@
                                 deleteFoodItemFromRecipe(currentRecipeId, ingredientIndex, ingredientName, recipeName);
                             });
                         }
+
+                        /* JEDINÝ EVENT LISTENER PRO KŘÍŽEK */
+                        const closeRecipeDetailModal = document.getElementById('closeRecipeDetailModal');
+                        if (closeRecipeDetailModal) {
+                            closeRecipeDetailModal.addEventListener('click', function (e) {
+                                e.stopPropagation();
+                                console.log("❌ Kliknuto na křížek detailu receptu");
+                                detailsModal.style.display = 'none';
+                                window.isOpeningDetailsModal = false;
+                            });
+                        }
+
+                        // EVENT LISTENER PRO TLAČÍTKO "PŘIDAT JAKO JÍDLO"
+                        const addRecipeAsMealButton = document.getElementById('addRecipeAsMealButton');
+                        if (addRecipeAsMealButton) {
+                            addRecipeAsMealButton.addEventListener('click', function (e) {
+                                e.stopPropagation();
+                                console.log("🍽️ Kliknuto na Přidat recept jako jídlo:", recipeName);
+
+                                if (!checkInitialization()) return;
+
+                                // Vytvoříme foodItem z celého receptu
+                                const recipeFoodItem = {
+                                    foodName: recipeName,
+                                    slug: '',
+                                    imageUrl: imageUrl,
+                                    foodType: 'recept',
+                                    amount: totalWeight,
+                                    unit: 'g',
+                                    kcal: formattedAggregatedNutrients.total_kcal,
+                                    nutritionalDetails: formattedAggregatedNutrients,
+                                    isRecipe: true,
+                                    recipeId: recipeId,
+                                    ingredients: ingredients
+                                };
+
+                                window.currentFoodItemForRecipe = recipeFoodItem;
+                                console.log("📦 Nastaven currentFoodItemForRecipe pro recept:", recipeFoodItem);
+
+                                openSelectMealModal();
+                            });
+                        }
                     });
                 }
             } catch (error) {
                 console.error("Error loading recipe details:", error);
-                modalDetailsContent.innerHTML = `<p class="error-details">Došlo k chybě při načítání detailů receptu: ${error.message}</p>`;
+                modalDetailsContent.innerHTML = `< p class="error-details" > Došlo k chybě při načítání detailů receptu: ${error.message}</p > `;
             }
         }
 
@@ -4094,13 +4206,6 @@
         }
 
         function setupModalCloseHandlers() {
-            //document.getElementById('profileModal').addEventListener('click', function (event) {
-            //    if (event.target === this) {
-            //        console.log("❌ Kliknuto mimo profil modal");
-            //        closeProfileModal();
-            //    }
-            //});
-
             document.getElementById('closeSettingsModal').addEventListener('click', function () {
                 collapseAllSettingsSections();
                 setTimeout(() => {
@@ -4172,27 +4277,6 @@
         // =============================================
         // SKENOVÁNÍ ČÁROVÝCH KÓDŮ
         // =============================================
-
-        // INICIALIZACE MODERNÍHO SKENÉRU
-        /*async function initModernBarcodeScanner() {
-            // Kontrola podpory Barcode Detection API
-            if (!('BarcodeDetector' in window)) {
-                showBarcodeFallbackMessage();
-                return false;
-            }
-
-            try {
-                // Vytvoření BarcodeDetector
-                window.barcodeDetector = new BarcodeDetector({
-                    formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e']
-                });
-                return true;
-            } catch (error) {
-                console.error('BarcodeDetector není podporován:', error);
-                showBarcodeFallbackMessage();
-                return false;
-            }
-        }*/
 
         // ZLEPŠENÁ FUNKCE PRO SPUŠTĚNÍ SKENÉRU
         async function startModernBarcodeScanner() {
@@ -4288,7 +4372,7 @@
                             detectionCount++;
 
                             // Vizualní potvrzení
-                            status.textContent = `✅ Nalezen kód: ${barcode.rawValue}`;
+                            status.textContent = `✅ Nalezen kód: ${barcode.rawValue} `;
                             status.style.color = '#28a745';
 
                             // Zvukový feedback (volitelné)
@@ -4520,59 +4604,59 @@
         /*function initQuagga() {
             if (typeof Quagga !== 'undefined') {
                 try {
-                    Quagga.init({
-                        inputStream: {
-                            name: "Live",
-                            type: "LiveStream",
-                            target: document.getElementById('barcodeVideo'),
-                            constraints: {
-                                width: 1280,
-                                height: 720,
-                                facingMode: barcodeFacingMode,
-                                aspectRatio: { min: 1, max: 2 }
+                        Quagga.init({
+                            inputStream: {
+                                name: "Live",
+                                type: "LiveStream",
+                                target: document.getElementById('barcodeVideo'),
+                                constraints: {
+                                    width: 1280,
+                                    height: 720,
+                                    facingMode: barcodeFacingMode,
+                                    aspectRatio: { min: 1, max: 2 }
+                                },
                             },
-                        },
-                        decoder: {
-                            readers: ["ean_reader", "ean_8_reader"],
-                            multiple: false,
-                            resolution: 800,
-                            patchSize: "x-large",
-                        },
-                        locator: {
-                            patchSize: "large",
-                            halfSample: true,
-                            debug: {
-                                showCanvas: false,
-                                showPatches: false,
-                                showFoundPatches: false,
-                                showSkeleton: false
+                            decoder: {
+                                readers: ["ean_reader", "ean_8_reader"],
+                                multiple: false,
+                                resolution: 800,
+                                patchSize: "x-large",
+                            },
+                            locator: {
+                                patchSize: "large",
+                                halfSample: true,
+                                debug: {
+                                    showCanvas: false,
+                                    showPatches: false,
+                                    showFoundPatches: false,
+                                    showSkeleton: false
+                                }
+                            },
+                            preprocessor: {
+                                contrast: { min: 32, max: 220 },
+                                sharpen: { flat: 1.0, jagged: 2.0 }
+                            },
+                            frequency: 5,
+                            numOfWorkers: 2,
+                            debug: false
+                        }, function (err) {
+                            if (err) {
+                                console.error("Chyba při inicializaci Quagga:", err);
+                                document.getElementById('barcodeStatus').textContent = 'Nepodařilo se inicializovat skener';
+                                document.getElementById('barcodeStatus').style.color = 'red';
+                                return;
                             }
-                        },
-                        preprocessor: {
-                            contrast: { min: 32, max: 220 },
-                            sharpen: { flat: 1.0, jagged: 2.0 }
-                        },
-                        frequency: 5,
-                        numOfWorkers: 2,
-                        debug: false
-                    }, function (err) {
-                        if (err) {
-                            console.error("Chyba při inicializaci Quagga:", err);
-                            document.getElementById('barcodeStatus').textContent = 'Nepodařilo se inicializovat skener';
-                            document.getElementById('barcodeStatus').style.color = 'red';
-                            return;
-                        }
 
-                        quaggaInitialized = true;
-                        Quagga.onDetected(function (result) {
-                            if (result && result.codeResult && result.codeResult.code) {
-                                if (result.codeResult.confidence !== undefined && result.codeResult.confidence < 0.3) return;
-                                handleBarcodeDetected(result.codeResult.code, result);
-                            }
+                            quaggaInitialized = true;
+                            Quagga.onDetected(function (result) {
+                                if (result && result.codeResult && result.codeResult.code) {
+                                    if (result.codeResult.confidence !== undefined && result.codeResult.confidence < 0.3) return;
+                                    handleBarcodeDetected(result.codeResult.code, result);
+                                }
+                            });
                         });
-                    });
                 } catch (error) {
-                    console.error('Výjimka při inicializaci Quaggy:', error);
+                        console.error('Výjimka při inicializaci Quaggy:', error);
                 }
             }
         }*/
@@ -4599,9 +4683,9 @@
 
             // 2. POKUD MODERNÍ API NEFUNGUJE, POUŽIJEME ZRCADLOVÝ NÁHLED
             status.innerHTML = `
-        📱 <strong>Automatické skenování</strong><br>
-        <small>Namířejte kód do zeleného rámečku. Kód se zobrazí v náhledu.</small>
-    `;
+                    📱 <strong>Automatické skenování</strong><br>
+                        <small>Namířejte kód do zeleného rámečku. Kód se zobrazí v náhledu.</small>
+                        `;
             startMirrorPreviewDetection(video, status);
         }
 
@@ -4655,9 +4739,9 @@
 
             // Uživatel uvidí kód přímo v náhledu a může ho opsat
             status.innerHTML = `
-        👁️ <strong>Zrcadlový náhled aktivní</strong><br>
-        <small>Přečtěte čárový kód z obrazovky a zadejte jej ručně</small>
-    `;
+                        👁️ <strong>Zrcadlový náhled aktivní</strong><br>
+                            <small>Přečtěte čárový kód z obrazovky a zadejte jej ručně</small>
+                            `;
 
             // Můžeme přidat zvýraznění oblasti
             addScanningEffects();
@@ -4692,13 +4776,13 @@
                 overlay.className = 'barcode-overlay';
 
                 if (isIPhone) {
-                 /*   overlay.innerHTML = `
-                        <div style="text-align: center; color: white;">
-                            <div style="font-size: 24px; margin-bottom: 10px;">📱</div>
-                            <div><strong>iPhone Skenování</strong></div>
-                            <div style="font-size: 12px; margin-top: 5px;">Optimalizováno pro iOS</div>
-                        </div>
-                    `;*/
+                    /*   overlay.innerHTML = `
+                           <div style="text-align: center; color: white;">
+                               <div style="font-size: 24px; margin-bottom: 10px;">📱</div>
+                               <div><strong>iPhone Skenování</strong></div>
+                               <div style="font-size: 12px; margin-top: 5px;">Optimalizováno pro iOS</div>
+                           </div>
+                       `;*/
                 } else {
                     overlay.innerHTML = '📷 Připravuji skenování...';
                 }
@@ -4906,9 +4990,9 @@
             }
 
             status.innerHTML = `
-                ${emoji} <strong style="color: ${color};">Spolehlivost: ${percentage}%</strong><br>
-                <small>Udržte kód stabilní pro automatické zpracování</small>
-            `;
+                                    ${emoji} <strong style="color: ${color};">Spolehlivost: ${percentage}%</strong><br>
+                                        <small>Udržte kód stabilní pro automatické zpracování</small>
+                                        `;
         }
 
         // ZPRACOVÁNÍ VYSOCE SPOLEHLIVÉHO KÓDU
@@ -4916,9 +5000,9 @@
             console.log('🎯 Vysoká spolehlivost kódu:', barcode);
 
             status.innerHTML = `
-                ✅ <strong style="color: #28a745; font-size: 1.1em;">KÓD POTVRZEN!</strong><br>
-                <small>${barcode} - otevírám vyhledávání...</small>
-            `;
+                                        ✅ <strong style="color: #28a745; font-size: 1.1em;">KÓD POTVRZEN!</strong><br>
+                                            <small>${barcode} - otevírám vyhledávání...</small>
+                                            `;
 
             playIPhoneDetectionSound();
             barcodeScanningActive = false;
@@ -5097,12 +5181,12 @@
                 overlay.style.background = '#28a745';
                 overlay.style.transition = 'all 0.5s ease';
                 overlay.innerHTML = `
-                    <div style="text-align: center; color: white;">
-                        <div style="font-size: 32px; margin-bottom: 10px;">✅</div>
-                        <div><strong>ÚSPĚCH!</strong></div>
-                        <div style="font-size: 12px; margin-top: 5px;">Kód potvrzen</div>
-                    </div>
-                `;
+                                            <div style="text-align: center; color: white;">
+                                                <div style="font-size: 32px; margin-bottom: 10px;">✅</div>
+                                                <div><strong>ÚSPĚCH!</strong></div>
+                                                <div style="font-size: 12px; margin-top: 5px;">Kód potvrzen</div>
+                                            </div>
+                                            `;
 
                 setTimeout(() => {
                     if (overlay) {
@@ -5118,9 +5202,9 @@
 
             // Vizualní potvrzení
             status.innerHTML = `
-                ✅ <strong style="color: #28a745;">Kód nalezen!</strong><br>
-                <small>${barcode} - otevírám vyhledávání...</small>
-            `;
+                                            ✅ <strong style="color: #28a745;">Kód nalezen!</strong><br>
+                                                <small>${barcode} - otevírám vyhledávání...</small>
+                                                `;
 
             // Zvukový feedback
             playIPhoneDetectionSound();
@@ -5243,82 +5327,6 @@
             }
         }
 
-        /*function startBarcodeScanning() {
-            if (barcodeScanInterval) {
-                clearInterval(barcodeScanInterval);
-                barcodeScanInterval = null;
-            }
-
-            if (barcodeDetectionTimeout) {
-                clearTimeout(barcodeDetectionTimeout);
-            }
-            barcodeDetectionTimeout = setTimeout(() => {
-                document.getElementById('barcodeStatus').textContent = 'Časový limit vypršel - zkuste to znovu';
-                document.getElementById('barcodeStatus').style.color = 'orange';
-                restartQuagga();
-            }, 20000);
-
-            if (quaggaInitialized && document.getElementById('barcodeVideo').srcObject) {
-                try {
-                    Quagga.start();
-                    document.getElementById('barcodeStatus').textContent = 'Skenování spuštěno - namiřte na čárový kód';
-                } catch (error) {
-                    console.error('Chyba při startu Quaggy:', error);
-                    startCanvasFallback();
-                }
-            } else {
-                startCanvasFallback();
-            }
-        }
-
-        function startCanvasFallback() {
-            document.getElementById('barcodeStatus').textContent = 'Používám základní detekci...';
-            document.getElementById('barcodeStatus').style.color = 'orange';
-
-            barcodeScanInterval = setInterval(async () => {
-                const barcodeVideo = document.getElementById('barcodeVideo');
-                if (barcodeVideo.readyState === barcodeVideo.HAVE_ENOUGH_DATA) {
-                    try {
-                        const barcodes = await detectBarcodesWithCanvas();
-                        if (barcodes.length > 0) {
-                            handleBarcodeDetected(barcodes[0]);
-                        }
-                    } catch (error) {
-                        console.error('Chyba při detekci čárového kódu:', error);
-                    }
-                }
-            }, 1000);
-        }
-
-        function detectBarcodesWithCanvas() {
-            return new Promise((resolve) => {
-                const barcodeVideo = document.getElementById('barcodeVideo');
-                const barcodeCanvas = document.getElementById('barcodeCanvas');
-
-                if (!barcodeVideo.videoWidth || !barcodeVideo.videoHeight) {
-                    resolve([]);
-                    return;
-                }
-
-                const context = barcodeCanvas.getContext('2d');
-                const width = barcodeVideo.videoWidth;
-                const height = barcodeVideo.videoHeight;
-
-                barcodeCanvas.width = width;
-                barcodeCanvas.height = height;
-                context.drawImage(barcodeVideo, 0, 0, width, height);
-
-                try {
-                    const imageData = context.getImageData(0, 0, width, height);
-                    const detectedBarcodes = detectSimpleBarcodes(imageData);
-                    resolve(detectedBarcodes);
-                } catch (error) {
-                    console.error('Chyba při detekci:', error);
-                    resolve([]);
-                }
-            });
-        }*/
-
         function detectSimpleBarcodes(imageData) {
             return []; // Zjednodušená implementace
         }
@@ -5423,27 +5431,6 @@
             }
         }
 
-        /*function restartQuagga() {
-            if (typeof Quagga !== 'undefined') {
-                try {
-                    if (quaggaInitialized) {
-                        Quagga.stop();
-                        Quagga.offDetected();
-                        Quagga.offProcessed();
-                    }
-
-                    quaggaInitialized = false;
-                    lastDetectedBarcode = null;
-
-                    setTimeout(() => {
-                        initQuagga();
-                    }, 500);
-                } catch (error) {
-                    console.error('Chyba při restartu Quaggy:', error);
-                }
-            }
-        }*/
-
         // ZAVŘENÍ SKENÉRU
         function closeBarcodeScanner() {
             console.log("🔴 Zavírám skenér");
@@ -5508,57 +5495,57 @@
 
         // UPRAVENÉ CSS PRO LEPŠÍ UX
         const improvedBarcodeCSS = `
-        .barcode-scanner-container {
-            position: relative;
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
+                                                .barcode-scanner-container {
+                                                    position: relative;
+                                                width: 100%;
+                                                max-width: 400px;
+                                                margin: 0 auto;
         }
 
-        #barcodeVideo {
-            width: 100%;
-            height: 300px;
-            border-radius: 12px;
-            object-fit: cover;
+                                                #barcodeVideo {
+                                                    width: 100%;
+                                                height: 300px;
+                                                border-radius: 12px;
+                                                object-fit: cover;
         }
 
-        .barcode-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%;
-            height: 40%;
-            border: 3px solid #4CAF50;
-            border-radius: 12px;
-            pointer-events: none;
-            animation: pulse 2s infinite;
+                                                .barcode-overlay {
+                                                    position: absolute;
+                                                top: 50%;
+                                                left: 50%;
+                                                transform: translate(-50%, -50%);
+                                                width: 80%;
+                                                height: 40%;
+                                                border: 3px solid #4CAF50;
+                                                border-radius: 12px;
+                                                pointer-events: none;
+                                                animation: pulse 2s infinite;
         }
 
-        .barcode-fallback {
-            text-align: center;
-            padding: 20px;
+                                                .barcode-fallback {
+                                                    text - align: center;
+                                                padding: 20px;
         }
 
-        .manual-input {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
+                                                .manual-input {
+                                                    display: flex;
+                                                gap: 10px;
+                                                margin-top: 15px;
         }
 
-        .manual-input input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+                                                .manual-input input {
+                                                    flex: 1;
+                                                padding: 10px;
+                                                border: 1px solid #ddd;
+                                                border-radius: 8px;
         }
 
-        @keyframes pulse {
-            0% { border-color: #4CAF50; }
-            50% { border-color: #FFEB3B; }
-            100% { border-color: #4CAF50; }
+                                                @keyframes pulse {
+                                                    0 % { border- color: #4CAF50; }
+                                                50% {border - color: #FFEB3B; }
+                                                100% {border - color: #4CAF50; }
         }
-        `;
+                                                `;
 
 
         // =============================================
@@ -5571,9 +5558,6 @@
             const style = document.createElement('style');
             style.textContent = improvedBarcodeCSS;
             document.head.appendChild(style);
-
-            // Inicializace skenéru
-            //initModernBarcodeScanner();
 
             // Event listenery
             document.getElementById('barcodeButtonInModal').addEventListener('click', function () {
@@ -5814,11 +5798,6 @@
                 }
             });
 
-            //document.getElementById('createNewProfileBtn').addEventListener('click', () => {
-            //    document.getElementById('profileModal').style.display = 'none';
-            //    window.showCreateProfileModal();
-            //});
-
             // Event listenery pro recepty
             document.getElementById('recipesButton').addEventListener('click', async () => {
                 if (!checkInitialization()) return;
@@ -5865,12 +5844,8 @@
             // Event listenery pro přepínače nastavení
             const toggleIds = [
                 'confirmRecipeCreationToggle',
-
-
-
                 'confirmFoodAdditionToggle',
                 'confirmDeleteRecipeToggle',
-
                 'confirmDeleteRecipeItemToggle',
                 'confirmSaveChangesToggle',
                 'confirmRecipeSaveSuccessToggle',
@@ -6153,15 +6128,15 @@
             if (!mainContent) return;
 
             const warningHtml = `
-                <div class="goals-warning">
-                    <div class="warning-icon">⚠️</div>
-                    <div class="warning-content">
-                        <h3>Chybí cíle pro denní příjem</h3>
-                        <p>Pro správné zobrazení denního příjmu je potřeba vyplnit osobní kartu.</p>
-                        <button id="openPersonalCardBtn" class="btn-primary">Otevřít osobní kartu</button>
-                    </div>
-                </div>
-            `;
+                                                <div class="goals-warning">
+                                                    <div class="warning-icon">⚠️</div>
+                                                    <div class="warning-content">
+                                                        <h3>Chybí cíle pro denní příjem</h3>
+                                                        <p>Pro správné zobrazení denního příjmu je potřeba vyplnit osobní kartu.</p>
+                                                        <button id="openPersonalCardBtn" class="btn-primary">Otevřít osobní kartu</button>
+                                                    </div>
+                                                </div>
+                                                `;
 
             // Najdeme nebo vytvoříme warning element
             let warningElement = document.querySelector('.goals-warning');
@@ -6494,35 +6469,35 @@
             const isExpanded = false;
 
             groupDiv.innerHTML = `
-                <div class="recipe-header ${isExpanded ? 'expanded' : ''}">
-                    <div class="recipe-main-info">
-                        <div class="recipe-icon">📋</div>
-                            <div class="recipe-details">
-                                <div class="recipe-name">${group.recipeName}</div>
-    
-                                <div class="recipe-totals-row main-highlight-row">
-                                    <span class="calorie-highlight">${Math.round(group.totalCalories)} kcal</span>
-                                    <span class="total-amount-display">${Math.round(totalAmount)} ${mainUnit}</span>
-                                </div>
+                                                <div class="recipe-header ${isExpanded ? 'expanded' : ''}">
+                                                    <div class="recipe-main-info">
+                                                        <div class="recipe-icon">📋</div>
+                                                        <div class="recipe-details">
+                                                            <div class="recipe-name">${group.recipeName}</div>
 
-                                <div class="recipe-totals-row macro-stats-row">
-                                    <span>B: ${Math.round(group.totalProtein)}g</span>
-                                    <span>S: ${Math.round(group.totalCarbs)}g</span>
-                                    <span>T: ${Math.round(group.totalFat)}g</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="recipe-actions">
-                            <button class="toggle-recipe-btn" title="Rozbalit ingredience">
-                                <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Rozbalit" class="toggle-icon ${isExpanded ? 'expanded' : ''}">
-                            </button>
-                            <button class="delete-recipe-group-btn" title="Smazat recept">
-                                <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat recept">
-                            </button>
-                        </div>
-                    </div>
-                <div class="recipe-ingredients ${isExpanded ? 'expanded' : ''}">
-                    ${group.items.map(item => `
+                                                            <div class="recipe-totals-row main-highlight-row">
+                                                                <span class="calorie-highlight">${Math.round(group.totalCalories)} kcal</span>
+                                                                <span class="total-amount-display">${Math.round(totalAmount)} ${mainUnit}</span>
+                                                            </div>
+
+                                                            <div class="recipe-totals-row macro-stats-row">
+                                                                <span>B: ${Math.round(group.totalProtein)}g</span>
+                                                                <span>S: ${Math.round(group.totalCarbs)}g</span>
+                                                                <span>T: ${Math.round(group.totalFat)}g</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="recipe-actions">
+                                                        <button class="toggle-recipe-btn" title="Rozbalit ingredience">
+                                                            <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Rozbalit" class="toggle-icon ${isExpanded ? 'expanded' : ''}">
+                                                        </button>
+                                                        <button class="delete-recipe-group-btn" title="Smazat recept">
+                                                            <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat recept">
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="recipe-ingredients ${isExpanded ? 'expanded' : ''}">
+                                                    ${group.items.map(item => `
                         <div class="recipe-ingredient-item">
                             <div class="ingredient-info">
                                 <div class="ingredient-name">${item.food_name}</div>
@@ -6544,8 +6519,8 @@
                             </div>
                         </div>
                     `).join('')}
-                </div>
-            `;
+                                                </div>
+                                                `;
 
             // Event listener pro rozbalení/sbalení - OPRAVENÉ
             const toggleBtn = groupDiv.querySelector('.toggle-recipe-btn');
@@ -6590,7 +6565,6 @@
                 }
             });
 
-            // Zbytek event listenerů zůstává stejný...
             const deleteBtn = groupDiv.querySelector('.delete-recipe-group-btn');
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -6622,25 +6596,25 @@
             const div = document.createElement('div');
             div.className = 'food-item';
             div.innerHTML = `
-                <div class="food-item-info">
-                    <div class="food-item-name">${item.food_name}</div>
-                    <div class="food-item-details">
-                        <span class="amount-badge">${item.amount} ${item.unit}</span>
-                        <span>${Math.round(item.calories)} kcal</span>
-                        ${item.protein ? `<span>B: ${Math.round(item.protein)}g</span>` : ''}
-                        ${item.carbs ? `<span>S: ${Math.round(item.carbs)}g</span>` : ''}
-                        ${item.fat ? `<span>T: ${Math.round(item.fat)}g</span>` : ''}
-                    </div>
-                </div>
-                <div class="food-item-actions">
-                    <button class="edit-food-item" data-item-id="${item.id}" title="Upravit potravinu">
-                        <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
-                    </button>
-                    <button class="delete-food-item" data-item-id="${item.id}" data-meal-id="${mealId}" title="Smazat potravinu">
-                        <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
-                    </button>
-                </div>
-            `;
+                                                <div class="food-item-info">
+                                                    <div class="food-item-name">${item.food_name}</div>
+                                                    <div class="food-item-details">
+                                                        <span class="amount-badge">${item.amount} ${item.unit}</span>
+                                                        <span>${Math.round(item.calories)} kcal</span>
+                                                        ${item.protein ? `<span>B: ${Math.round(item.protein)}g</span>` : ''}
+                                                        ${item.carbs ? `<span>S: ${Math.round(item.carbs)}g</span>` : ''}
+                                                        ${item.fat ? `<span>T: ${Math.round(item.fat)}g</span>` : ''}
+                                                    </div>
+                                                </div>
+                                                <div class="food-item-actions">
+                                                    <button class="edit-food-item" data-item-id="${item.id}" title="Upravit potravinu">
+                                                        <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
+                                                    </button>
+                                                    <button class="delete-food-item" data-item-id="${item.id}" data-meal-id="${mealId}" title="Smazat potravinu">
+                                                        <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
+                                                    </button>
+                                                </div>
+                                                `;
 
             // Event listenery zůstávají stejné...
             div.querySelector('.edit-food-item').addEventListener('click', (e) => {
@@ -6702,24 +6676,24 @@
             const div = document.createElement('div');
             div.className = 'meal-item';
             div.innerHTML = `
-        <div class="meal-item-info">
-            <div class="meal-item-name">${item.food_name}</div>
-            <div class="meal-item-details">
-                ${item.amount} ${item.unit} • ${Math.round(item.calories)} kcal
-                ${item.protein ? ` • B: ${Math.round(item.protein)}g` : ''}
-                ${item.carbs ? ` • S: ${Math.round(item.carbs)}g` : ''}
-                ${item.fat ? ` • T: ${Math.round(item.fat)}g` : ''}
-            </div>
-        </div>
-        <div class="meal-item-actions">
-            <button class="meal-item-action edit-meal-item" data-item-id="${item.id}">
-                <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
-            </button>
-            <button class="meal-item-action delete-meal-item" data-item-id="${item.id}" data-meal-id="${mealId}">
-                <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
-            </button>
-        </div>
-    `;
+                                                <div class="meal-item-info">
+                                                    <div class="meal-item-name">${item.food_name}</div>
+                                                    <div class="meal-item-details">
+                                                        ${item.amount} ${item.unit} • ${Math.round(item.calories)} kcal
+                                                        ${item.protein ? ` • B: ${Math.round(item.protein)}g` : ''}
+                                                        ${item.carbs ? ` • S: ${Math.round(item.carbs)}g` : ''}
+                                                        ${item.fat ? ` • T: ${Math.round(item.fat)}g` : ''}
+                                                    </div>
+                                                </div>
+                                                <div class="meal-item-actions">
+                                                    <button class="meal-item-action edit-meal-item" data-item-id="${item.id}">
+                                                        <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
+                                                    </button>
+                                                    <button class="meal-item-action delete-meal-item" data-item-id="${item.id}" data-meal-id="${mealId}">
+                                                        <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
+                                                    </button>
+                                                </div>
+                                                `;
 
             return div;
         }
@@ -6832,10 +6806,10 @@
 
                 // POUZE základní rozložení - bez ikonky
                 recipeItem.innerHTML = `
-            <div class="recipe-number">${index + 1}.</div>
-            <div class="recipe-name">${recipe.name}</div>
-            <div class="recipe-calories">${formattedCalories}</div>
-        `;
+                                                <div class="recipe-number">${index + 1}.</div>
+                                                <div class="recipe-name">${recipe.name}</div>
+                                                <div class="recipe-calories">${formattedCalories}</div>
+                                                `;
 
                 recipeItem.addEventListener('click', () => {
                     addRecipeToMeal(recipe);
