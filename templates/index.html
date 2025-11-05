@@ -3936,31 +3936,31 @@
 
                         // NAHRADTE staré HTML ingrediencí tímto:
                         ingredientItemDiv.innerHTML = `
-                    <div class="ingredient-main-content">
-        <div class="ingredient-image-wrapper">
-            <img src="${displayImageUrl}" alt="${ingredient.foodName}" 
-                onerror="this.onerror=null;this.src='${ingPlaceholderImage}'"
-                class="ingredient-image">
-        </div>
-        <div class="ingredient-basic-info">
-            <div class="ingredient-name" title="${ingredient.foodName}">${ingredient.foodName}</div>
-            <div class="ingredient-nutrition-row">
-                <span class="calorie-badge">${Math.round(ingredient.calories || kcalNum)} kcal</span>
-                <span class="amount-badge">${ingredient.amount} ${ingredient.unit}</span>
-            </div>
-        </div>
-    </div>
-    <div class="ingredient-actions-vertical">
-        <button class="edit-ingredient-btn" data-recipe-id="${recipeId}"
-            data-ingredient-index="${index}" title="Upravit ingredienci">
-            <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
-        </button>
-        <button class="delete-ingredient-btn" data-recipe-id="${recipeId}"
-            data-ingredient-index="${index}" title="Smazat ingredienci">
-            <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
-        </button>
-    </div>
-`;
+                            <div class="ingredient-main-content">
+                                <div class="ingredient-image-wrapper">
+                                    <img src="${displayImageUrl}" alt="${ingredient.foodName}" 
+                                        onerror="this.onerror=null;this.src='${ingPlaceholderImage}'"
+                                        class="ingredient-image">
+                                </div>
+                                <div class="ingredient-basic-info">
+                                    <div class="ingredient-name" title="${ingredient.foodName}">${ingredient.foodName}</div>
+                                    <div class="ingredient-nutrition-row">
+                                        <span class="calorie-badge">${Math.round(ingredient.calories || kcalNum)} kcal</span>
+                                        <span class="amount-badge">${ingredient.amount} ${ingredient.unit}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ingredient-actions-vertical">
+                                <button class="edit-ingredient-btn" data-recipe-id="${recipeId}"
+                                    data-ingredient-index="${index}" title="Upravit ingredienci">
+                                    <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
+                                </button>
+                                <button class="delete-ingredient-btn" data-recipe-id="${recipeId}"
+                                    data-ingredient-index="${index}" title="Smazat ingredienci">
+                                    <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
+                                </button>
+                            </div>
+                        `;
 
                         ingredientsListEl.appendChild(ingredientItemDiv);
 
