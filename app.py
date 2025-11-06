@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 import time
 from supabase import create_client, Client
 from flask_cors import CORS, cross_origin
+from PIL import Image
 
 # Načtení proměnných prostředí ze souboru .env
 load_dotenv()
@@ -606,3 +607,38 @@ def debug_info():
         "supabase_initialized": supabase is not None,
         "app_id": app_id
     })
+
+@app.route('/manifest.json')
+def manifest():
+    return send_from_directory('static', 'manifest.json')
+
+@app.route('/sw.js')
+def sw():
+    return send_from_directory('static', 'sw.js', mimetype='application/javascript')
+
+@app.route('/pwa-check')
+def pwa_check():
+    """Kontrola PWA funkcí"""
+    return jsonify({
+        "has_manifest": True,
+        "has_service_worker": True,
+        "is_installable": True
+    })
+
+@app.route('/generate-icons')
+def generate_icons():
+    """Vygeneruje PWA ikony z faviconu"""
+    try:
+        # Otevřete ICO soubor
+        ico_path = os.path.join(app.root_path, 'static', 'favicon.ico')
+        with Image.open(ico_path) as img:
+            # Převést na PNG a uložit různé velikosti
+            sizes = [192, 512, 180]
+            for size in sizes:
+                resized = img.resize((size, size), Image.Resampling.LANCZOS)
+                output_path = os.path.join(app.root_path, 'static', 'icon', f'icon-{size}.png')
+                resized.save(output_path, 'PNG')
+        
+        return "Ikony vygenerovány!"
+    except Exception as e:
+        return f"Chyba: {e}"

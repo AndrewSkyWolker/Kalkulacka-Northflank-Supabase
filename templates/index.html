@@ -9,6 +9,35 @@
         href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="KalorickáKalkulačka">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#4a90e2">
+
+    <!-- Icons for iOS -->
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon/icon-192.png') }}">
+    <link rel="apple-touch-startup-image" href="{{ url_for('static', filename='icon/splash-screen.png') }}">
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('{{ url_for("static", filename="sw.js") }}')
+                    .then(function (registration) {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(function (error) {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+    </script>
 </head>
 
 <body data-app-id="{{ app_id }}" data-supabase-url="{{ supabase_url }}" data-supabase-key="{{ supabase_key }}">
@@ -962,13 +991,13 @@
             // Výpočty
             const calculations = performCalculations(formData);
 
-            // Zobrazení výsledků
+            // Zobrazení výsledků - DŮLEŽITÉ: zobrazit NOVÉ výsledky
             displayResults(calculations);
 
             // Uložení kompletních dat pro pozdější uložení
             personalCardData = {
                 formData: formData,
-                calculations: calculations,
+                calculations: calculations,  // NOVÉ VÝPOČTY
                 timestamp: new Date().toISOString()
             };
 
@@ -1627,11 +1656,11 @@
             const tdee = bmr * data.activityLevel;
             console.log("⚡ TDEE:", tdee);
 
-            // 4. Cílový kalorický příjem (s novými procenty)
+            // 4. Cílový kalorický příjem
             const targetCalories = calculateTargetCalories(tdee, data.goal, data.intensity);
 
-            // 5. Makroživiny
-            const macros = calculateMacros(targetCalories, data.goal, data.weight);
+            // 5. Makroživiny - OPRAVA: přidáme data jako parametr
+            const macros = calculateMacros(targetCalories, data.goal, data.weight, data);
 
             // 6. Rozdíl hmotnosti
             const weightDiff = data.targetWeight - data.weight;
@@ -1684,42 +1713,55 @@
             return targetCalories;
         }
 
+        // FUNKCE PRO VÝPOČET DOPORUČENÉ VLÁKNINY
+        function calculateFiber(age, gender) {
+            // Doporučené denní dávky vlákniny podle věku a pohlaví
+            if (gender === 'male') {
+                if (age < 50) return 38;  // Muži do 50 let: 38g
+                else return 30;           // Muži nad 50 let: 30g
+            } else {
+                if (age < 50) return 25;  // Ženy do 50 let: 25g  
+                else return 21;           // Ženy nad 50 let: 21g
+            }
+        }
+
         // Výpočet makroživin
         function calculateMacros(calories, goal, weight) {
-            // Bílkoviny (g) - podle cíle
+            // BÍLKOVINY - podle tvých koeficientů
             let proteinPerKg;
             switch (goal) {
-                case 'loss': proteinPerKg = 2.2; break;    // Více proteinů při redukci
-                case 'gain': proteinPerKg = 2.0; break;    // Střední množství při nabírání
-                default: proteinPerKg = 1.6;               // Standard při udržování
+                case 'loss': proteinPerKg = 1.52; break;
+                case 'maintain': proteinPerKg = 1.73; break;
+                case 'gain': proteinPerKg = 1.90; break;
+                default: proteinPerKg = 1.73;
             }
             const protein = Math.round(weight * proteinPerKg);
             const proteinCalories = protein * 4;
 
-            // Tuky (g) - 25% z kalorií
-            const fatCalories = calories * 0.25;
-            const fat = Math.round(fatCalories / 9);
-
-            // Sacharidy (g) - zbytek kalorií
-            const carbCalories = calories - proteinCalories - fatCalories;
+            // SACHARIDY - fixní poměr (musíme najít správný)
+            // Zkusíme 40% z kalorií:
+            const carbCalories = calories * 0.40;
             const carbs = Math.round(carbCalories / 4);
 
-            // Vláknina (g) - 25-35g
-            const fiber = weight > 80 ? 35 : 25;
+            // TUKY - zbytek kalorií
+            const fatCalories = calories - proteinCalories - carbCalories;
+            const fat = Math.round(fatCalories / 9);
+
+            // VLÁKNINA
+            const fiber = calculateFiber(age, gender);
 
             return {
                 protein: protein,
                 carbs: carbs,
                 fat: fat,
-                fiber: fiber,
-                proteinCalories: proteinCalories,
-                fatCalories: fatCalories,
-                carbCalories: carbCalories
+                fiber: fiber
             };
         }
 
         //Zobrazení výsledků
         function displayResults(results) {
+            console.log("🔄 Zobrazuji výsledky:", results);
+
             // Základní výsledky s jednotkami na stejném řádku
             document.getElementById('bmrResult').textContent = `${results.bmr} kcal`;
             document.getElementById('tdeeResult').textContent = `${results.tdee} kcal`;
