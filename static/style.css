@@ -1304,9 +1304,8 @@ button:hover {
 
 .recipe-ingredient-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 10px;
     padding: 10px;
     background: #f3f9ff;
     border: 1px solid #72b1f5;
@@ -1328,22 +1327,18 @@ button:hover {
 
 /* HLAVNÍ OBSAH - LEVÁ ČÁST */
 .ingredient-main-content {
-    display: flex;
-    align-items: center;
     flex: 1;
-    min-width: 0; /* DŮLEŽITÉ: umožňuje zkrácení textu */
-    gap: 10px;
-}
-
-.edit-ingredient-btn, .delete-ingredient-btn {
-    flex-shrink: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 0;
 }
 
 /* AKCE - PRAVÁ ČÁST */
 .ingredient-actions-vertical {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
     align-items: center;
     flex-shrink: 0;
     margin-top: 0;
@@ -1463,8 +1458,9 @@ button:hover {
 
 .ingredient-basic-info {
     flex: 1;
-    min-width: 0; /* DŮLEŽITÉ: umožňuje zkrácení textu */
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .ingredient-nutrition-row {
