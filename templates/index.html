@@ -66,7 +66,6 @@
                 <button id="prevDayBtn" class="date-nav-btn">←</button>
                 <span id="currentDateDisplay" class="current-date"></span>
                 <button id="nextDayBtn" class="date-nav-btn">→</button>
-                <button id="todayBtn" class="date-nav-btn" style="margin-left: 10px;">Dnes</button>
             </div>
         </div>
     </header>
@@ -907,7 +906,6 @@
         let currentFoodItemForMeal = null;
         let personalCardOriginalData = null;
         let personalCardHasChanges = false;
-        let isNavigating = false;
 
         // Nastavení uživatele
         let userSettings = {
@@ -966,9 +964,6 @@
             dinner: '🍽️'
         };
 
-        // PROMĚNNÁ PRO SLEDOVÁNÍ PRACUJÍCÍCH VOLÁNÍ
-        const pendingMealCreations = new Map();
-
         // Inicializace globálních proměnných
         window.supabaseClient = null;
         window.currentUser = null;
@@ -977,7 +972,6 @@
         window.isAppInitialized = false;
         window.isLoadingProfiles = false;
         window.isProfileModalShowing = false;
-        window.DEBUG_MODE = true; // Nastavte na false v produkci
 
         // =============================================
         // ZÁKLADNÍ UTILITY FUNKCE
@@ -1007,101 +1001,6 @@
                 closePersonalCardModal();
             }
         });
-
-        /*// FUNKCE S PREVENCÍ SOUBĚŽNÝCH VOLÁNÍ
-        async function getOrCreateMeal(dailyIntakeId, mealType) {
-            const key = `${dailyIntakeId}_${mealType}`;
-
-            // Pokud již probíhá vytváření pro tuto kombinaci, počkáme na výsledek
-            if (pendingMealCreations.has(key)) {
-                console.log("⏳ Čekám na dokončení existujícího volání pro:", key);
-                return await pendingMealCreations.get(key);
-            }
-
-            try {
-                // Vytvoříme Promise pro sledování tohoto volání
-                const creationPromise = (async () => {
-                    const maxRetries = 3;
-                    let retryCount = 0;
-
-                    while (retryCount < maxRetries) {
-                        try {
-                            // 1. Pokusíme se najít existující záznam
-                            const { data: existingMeal, error: findError } = await window.supabaseClient
-                                .from('daily_meals')
-                                .select('id')
-                                .eq('daily_intake_id', dailyIntakeId)
-                                .eq('meal_type', mealType)
-                                .maybeSingle();
-
-                            if (!findError && existingMeal) {
-                                console.log("✅ Nalezen existující daily_meal:", existingMeal.id);
-                                return existingMeal.id;
-                            }
-
-                            // 2. Pokud neexistuje, vytvoříme nový
-                            const mealOrder = {
-                                breakfast: 1,
-                                snack1: 2,
-                                lunch: 3,
-                                snack2: 4,
-                                dinner: 5
-                            }[mealType] || 0;
-
-                            const { data: newMeal, error: createError } = await window.supabaseClient
-                                .from('daily_meals')
-                                .insert({
-                                    daily_intake_id: dailyIntakeId,
-                                    meal_type: mealType,
-                                    meal_order: mealOrder,
-                                    created_at: new Date().toISOString()
-                                })
-                                .select('id')
-                                .single();
-
-                            if (createError) {
-                                if (createError.code === '23505') {
-                                    console.log(`⚠️ Duplicitní záznam, pokus ${retryCount + 1}/${maxRetries}`);
-                                    retryCount++;
-                                    await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, retryCount)));
-                                    continue;
-                                }
-                                throw createError;
-                            }
-
-                            console.log("✅ Vytvořen nový daily_meal:", newMeal.id);
-                            return newMeal.id;
-
-                        } catch (error) {
-                            if (retryCount >= maxRetries - 1) {
-                                throw error;
-                            }
-                            retryCount++;
-                            await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, retryCount)));
-                        }
-                    }
-                })();
-
-                // Uložíme Promise do mapy
-                pendingMealCreations.set(key, creationPromise);
-
-                // Počkáme na výsledek
-                const result = await creationPromise;
-                return result;
-
-            } finally {
-                // Vyčistíme z mapy bez ohledu na výsledek
-                pendingMealCreations.delete(key);
-            }
-        }*/
-
-        // Funkce pro reset na dnešek
-        function resetToToday() {
-            currentDailyIntakeDate = new Date();
-            updateDateDisplay();
-            loadDailyIntakeData(currentDailyIntakeDate);
-            console.log("🔄 Resetováno na dnešek:", formatDateForAPI(currentDailyIntakeDate));
-        }
 
         // Hlavní výpočetní funkce
         function calculatePersonalCard() {
@@ -1723,7 +1622,7 @@
             resultsDiv.appendChild(recipeGroupDiv);
         }
 
-        // UPRAVENÁ FUNKCE PRO ZOBRAZENÍ DENNÍHO PŘÍJMU
+        // Nová funkce pro zobrazení denního příjmu jako hlavního obsahu
         function showDailyIntakeAsMainContent() {
             console.log("📊 Zobrazuji denní příjem jako hlavní obsah");
 
@@ -1735,12 +1634,6 @@
 
             // Vložíme HTML denního příjmu do hlavního obsahu
             mainContent.innerHTML = document.getElementById('dailyIntakeSection').innerHTML;
-
-            // Inicializujeme datum
-            updateDateDisplay();
-
-            // Inicializujeme event listenery
-            setupDailyIntakeEventListeners();
 
             // Inicializujeme denní příjem
             if (!currentDailyIntakeData) {
@@ -2388,8 +2281,6 @@
 
         async function logoutUser() {
             try {
-                console.log("🚪 Odhlášení - resetuji kontext");
-                resetRecipeContext();
                 const { error } = await window.supabaseClient.auth.signOut();
                 if (error) {
                     console.error("❌ Chyba při odhlašování:", error);
@@ -2458,8 +2349,6 @@
 
         window.selectProfile = async function (profileId) {
             try {
-                console.log("👤 Změna profilu - resetuji kontext");
-                resetRecipeContext();
                 const oldProfileId = window.currentProfileId;
                 window.currentProfileId = profileId;
 
@@ -3305,25 +3194,6 @@
             }
         }
 
-        // DEBUG FUNKCE PRO DETAILNÉ LOGOVÁNÍ KONTEXTU
-        function debugContext(action) {
-            if (!window.DEBUG_MODE) return;
-
-            console.log(`🔍 [DEBUG CONTEXT] ${action}:`);
-            console.log("   - currentMealContext:", window.currentMealContext);
-            console.log("   - currentFoodItemForRecipe:", window.currentFoodItemForRecipe ? {
-                foodName: window.currentFoodItemForRecipe.foodName,
-                amount: window.currentFoodItemForRecipe.amount,
-                unit: window.currentFoodItemForRecipe.unit
-            } : "null");
-            console.log("   - isAddingToRecipe:", window.isAddingToRecipe);
-            console.log("   - currentUser:", window.currentUser ? window.currentUser.email : "null");
-            console.log("   - currentProfileId:", window.currentProfileId);
-
-            // Přidejte call stack pro lepší trasování
-            console.log("   - Call stack:", new Error().stack.split('\n').slice(1, 4).join(' → '));
-        }
-
         // =============================================
         // ZOBRAZENÍ DETAILŮ POTRAVIN
         // =============================================
@@ -3485,12 +3355,17 @@
                         addToRecipeButton.addEventListener('click', async (e) => {
                             e.stopPropagation();
                             console.log("➕ Kliknuto na Přidat do receptu - z vyhledávání");
-                            debugContext("Přidat do receptu z detailu");
 
-                            // DŮLEŽITÉ: Nastavíme kontext na null - přidáváme potravinu do receptu
+                            // PŘIDÁNO: OKAMŽITÁ KONTROLA
+                            if (!window.supabaseClient) {
+                                console.error("❌ Supabase není inicializován, pokus o opravu...");
+                                await window.initializeSupabase();
+                            }
+
+                            if (!checkInitialization()) return;
+
                             window.currentMealContext = null;
                             window.currentFoodItemForRecipe = currentFoodItemData;
-
                             await loadUserRecipesForAdding();
                             detailsModal.style.display = 'none';
                             document.getElementById('selectRecipeModal').style.display = 'flex';
@@ -3510,15 +3385,19 @@
                     }
 
                     const addAsMealButton = document.getElementById('addAsMealButton');
-
                     if (addAsMealButton) {
                         addAsMealButton.addEventListener('click', (e) => {
                             e.stopPropagation();
                             console.log("🍽️ Kliknuto na Přidat jako jídlo");
-                            debugContext("Přidat jako jídlo z detailu");
 
                             if (!checkInitialization()) return;
-                            window.currentFoodItemForRecipe = currentFoodItemData;
+
+                            // ✅ POUŽIJ PŘÍMO GLOBÁLNÍ PROMĚNNOU
+                            if (!window.currentFoodItemForRecipe) {
+                                window.showCustomNotification("Nejdříve vyberte potravinu", 'info');
+                                return;
+                            }
+
                             openSelectMealModal();
                         });
                     }
@@ -3759,11 +3638,9 @@
             }
         }
 
-        // UPRAVENÁ FUNKCE PRO NAČÍTÁNÍ RECEPTŮ PRO PŘIDÁNÍ
         async function loadUserRecipesForAdding() {
-            const context = window.currentMealContext ? 'denní příjem' : 'recept z vyhledávání';
-            console.log("🔍 Načítám recepty pro přidání, kontext:", context);
-            debugContext(`Načítání receptů - ${context}`);
+            console.log("🔍 Načítám recepty pro přidání potraviny, kontext:",
+                window.currentMealContext ? 'denní příjem' : 'recept z vyhledávání');
 
             if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) return;
 
@@ -3776,18 +3653,14 @@
 
                 if (error) throw error;
 
-                console.log(`✅ Načteno ${data?.length || 0} receptů pro přidání (kontext: ${context})`);
-
-                // Zobrazíme v modálním okně s režimem přidávání
-                displayRecipesInModal(data || [], true);
-
+                console.log(`✅ Načteno ${data?.length || 0} receptů pro přidání`);
+                displayRecipesInModal(data || [], true); // true = režim přidávání
             } catch (error) {
                 console.error("❌ Chyba při načítání receptů:", error);
             }
         }
 
         // Modální okno pro zobrazení seznamu receptu po kliknutí na RECEPTY
-        // UPRAVENÉ ZOBRAZENÍ RECEPTŮ V MODÁLNÍM OKNĚ
         function displayRecipesInModal(recipes, isAddToRecipeMode = false) {
             const existingRecipesList = document.getElementById('existingRecipesList');
             const recipeCountDisplay = document.getElementById('recipeCountDisplay');
@@ -3814,33 +3687,34 @@
                     recipeItem.className = 'recipe-list-item with-actions'; // S akcemi
                 }
 
-                // VŽDY ZOBRAZUJEME HODNOTY PRO JEDNU PORCI
+                // ZOBRAZENÍ PŘI KLIKNUTÍ NA RECEPTY
+                const totalCalories = calculateRecipeTotalCalories(recipe);
                 const portions = recipe.portions || 1;
                 const hasMultiplePortions = recipe.has_multiple_portions || false;
 
-                let displayCalories = calculateRecipeTotalCalories(recipe);
-                let displayText = '';
+                // ROZHODNUTÍ: Které kalorie zobrazit
+                let displayCalories = totalCalories;
 
                 if (hasMultiplePortions && recipe.recipe_one_portion) {
                     // Zobrazíme kalorie na jednu porci
-                    displayCalories = Math.round(recipe.recipe_one_portion.total_kcal || displayCalories / portions);
-                    displayText = ` (${portions} porcí)`;
+                    displayCalories = Math.round(recipe.recipe_one_portion.total_kcal);
                 }
 
                 const formattedCalories = displayCalories > 0 ? `${Math.round(displayCalories)} kcal` : '-';
+                const portionText = portions > 1 ? ` (${portions} porcí)` : '';
 
                 if (isAddToRecipeMode) {
-                    // REŽIM VÝBĚRU PRO DENNÍ PŘÍJEM NEBO PRO PŘIDÁNÍ POTRAVINY
+                    // REŽIM VÝBĚRU - bez ikonky smazání
                     recipeItem.innerHTML = `
                 <div class="recipe-number">${index + 1}.</div>
-                <div class="recipe-name">${recipe.name}${displayText}</div>
+                <div class="recipe-name">${recipe.name}${portionText}</div>
                 <div class="recipe-calories">${formattedCalories}</div>
             `;
                 } else {
-                    // REŽIM PROHLÍŽENÍ
+                    // REŽIM PROHLÍŽENÍ - s ikonkou smazání
                     recipeItem.innerHTML = `
                 <div class="recipe-number">${index + 1}.</div>
-                <div class="recipe-name">${recipe.name}${displayText}</div>
+                <div class="recipe-name">${recipe.name}${portionText}</div>
                 <div class="recipe-calories">${formattedCalories}</div>
                 <div class="recipe-actions">
                     <img src="{{ url_for('static', filename='icon/kos.png') }}" 
@@ -3852,7 +3726,7 @@
             `;
                 }
 
-                // Event listenery
+                // Event listenery pouze pro režim s akcemi
                 if (!isAddToRecipeMode) {
                     const deleteIcon = recipeItem.querySelector('.recipe-delete-icon');
                     if (deleteIcon) {
@@ -3865,21 +3739,24 @@
                     }
                 }
 
-                // Kliknutí na celou položku - DŮLEŽITÁ ZMĚNA
+                // Kliknutí na celou položku
                 recipeItem.addEventListener('click', (e) => {
                     if (isAddToRecipeMode) {
                         const context = window.currentMealContext ? 'denní příjem' : 'recept';
                         console.log(`🎯 Kliknuto na recept v kontextu: ${context}`);
-                        debugContext(`Klik na recept v módu přidávání`);
 
                         if (window.currentMealContext) {
-                            // KONTEXT: Přidáváme recept do denního příjmu (z hlavní stránky)
+                            // KONTEXT: Přidáváme recept do denního příjmu
                             console.log("🥘 Přidávám RECEPT do denního příjmu:", recipe.name);
                             addRecipeToMeal(recipe);
+                            // ZAVŘÍME MODAL OKAMŽITĚ PO KLIKNUTÍ
+                            document.getElementById('selectRecipeModal').style.display = 'none';
                         } else {
-                            // KONTEXT: Přidáváme potravinu do receptu (z vyhledávání)
+                            // KONTEXT: Přidáváme potravinu do receptu
                             console.log("🥘 Přidávám POTRAVINU do receptu:", recipe.name);
                             addFoodItemToExistingRecipe(recipe.id, window.currentFoodItemForRecipe);
+                            // ZAVŘÍME MODAL OKAMŽITĚ PO KLIKNUTÍ
+                            document.getElementById('selectRecipeModal').style.display = 'none';
                         }
                     } else {
                         // Logika pro zobrazení detailu receptu
@@ -3892,15 +3769,6 @@
 
                 existingRecipesList.appendChild(recipeItem);
             });
-        }
-
-        // FUNKCE PRO RESET KONTEXTU
-        function resetRecipeContext() {
-            console.log("🔄 Resetuji kontext receptu");
-            window.currentMealContext = null;
-            window.currentFoodItemForRecipe = null;
-            window.isAddingToRecipe = false;
-            debugContext("Po resetu");
         }
 
         function calculateRecipeTotalCalories(recipe) {
@@ -3956,14 +3824,13 @@
             }
         }
 
-        // OPRAVENÁ FUNKCE PRO PŘIDÁNÍ POTRAVINY DO VYBRANÉHO RECEPTU
         async function addFoodItemToSelectedRecipe(recipeId, recipeName) {
-            const context = window.currentMealContext ? 'denní příjem' : 'recept';
-            console.log(`➕ Přidávám do ${context} "${recipeName}"`);
-            debugContext(`Přidávání do ${context}`);
+            window.isAddingToRecipe = true;
 
             try {
-                // Načteme kompletní data receptu
+                console.log(`➕ Přidávám recept "${recipeName}" do denního příjmu`);
+
+                // Načteme kompletní data receptu z databáze
                 const { data: recipeData, error } = await window.supabaseClient
                     .from('recipes')
                     .select('*')
@@ -3972,23 +3839,81 @@
 
                 if (error) throw error;
 
-                // Zavřeme modal
-                document.getElementById('selectRecipeModal').style.display = 'none';
+                const portions = recipeData.portions || 1;
+                const hasMultiplePortions = recipeData.has_multiple_portions || false;
+                const recipeOnePortion = recipeData.recipe_one_portion;
 
-                // ROZHODNUTÍ: Přidáme potravinu do receptu nebo recept do denního příjmu?
-                if (window.currentMealContext) {
-                    // KONTEXT: Přidáváme recept do denního příjmu (z hlavní stránky)
-                    console.log("🥘 Přidávám RECEPT do denního příjmu:", recipeName);
-                    await addRecipeToMeal(recipeData);
+                console.log("📊 Recept:", {
+                    name: recipeName,
+                    portions: portions,
+                    hasMultiplePortions: hasMultiplePortions,
+                    recipeOnePortion: recipeOnePortion
+                });
+
+                // VŽDY POUŽIJEME DATA PRO JEDNU PORCI - pokud jsou dostupná
+                let nutritionalData = {};
+                let displayCalories = 0;
+                let usedOnePortionData = false;
+
+                if (hasMultiplePortions && recipeOnePortion) {
+                    // RECEPT S VÍCE PORCEMI: použijeme data pro jednu porci
+                    console.log("🔢 Používám data pro jednu porci z recipe_one_portion");
+                    nutritionalData = recipeOnePortion;
+                    displayCalories = recipeOnePortion.total_kcal;
+                    usedOnePortionData = true;
                 } else {
-                    // KONTEXT: Přidáváme potravinu do receptu (z vyhledávání)
-                    console.log("🥘 Přidávám POTRAVINU do receptu:", recipeName);
-                    await addFoodItemToExistingRecipe(recipeId, window.currentFoodItemForRecipe);
+                    // RECEPT S JEDNOU PORCÍ: použijeme původní data
+                    console.log("🔢 Používám původní data");
+                    const firstIngredient = recipeData.ingredients?.[0];
+                    nutritionalData = firstIngredient?.nutritionalDetails || {};
+                    displayCalories = parseFloat(firstIngredient?.kcal || 0);
                 }
 
+                // Vytvoříme foodItem s PŘEPOČTENÝMI DATY
+                const recipeFoodItem = {
+                    foodName: recipeName,
+                    slug: '',
+                    imageUrl: recipeData.imageUrl || "{{ url_for('static', filename='icon/recepty.png') }}",
+                    foodType: 'recept',
+                    amount: 100, // základní množství pro jednu porci
+                    unit: 'g',
+                    kcal: displayCalories + ' kcal',
+                    nutritionalDetails: nutritionalData, // DŮLEŽITÉ: použijeme přepočtená data
+                    isRecipe: true,
+                    recipeId: recipeId,
+                    portions: 1, // VŽDY přidáme jednu porci do denního příjmu
+                    ingredients: recipeData.ingredients || [],
+                    usedOnePortionData: usedOnePortionData,
+                    // DŮLEŽITÉ: Přepíšeme nutriční data ingrediencí přepočtenými daty
+                    overriddenNutrition: nutritionalData
+                };
+
+                console.log("📦 Připraven foodItem s přepočtenými daty:", {
+                    foodName: recipeFoodItem.foodName,
+                    calories: recipeFoodItem.kcal,
+                    usedOnePortionData: recipeFoodItem.usedOnePortionData,
+                    nutritionalData: recipeFoodItem.nutritionalDetails
+                });
+
+                // Zavřeme modaly a přidáme do denního příjmu
+                document.getElementById('selectRecipeModal').style.display = 'none';
+
+                const currentDate = new Date();
+                const mealType = window.currentMealContext?.mealType || 'breakfast';
+
+                await addFoodItemToDailyMeal(recipeFoodItem, mealType, currentDate);
+
+                window.showCustomNotification(
+                    `Recept "<strong>${recipeName}</strong>" byl přidán do ${mealTypeLabels[mealType]}!`,
+                    'success'
+                );
+
             } catch (error) {
-                console.error("❌ Chyba při přidávání do receptu:", error);
+                console.error("❌ Chyba při přidávání receptu:", error);
                 window.showCustomNotification("Chyba: " + error.message, 'error');
+            } finally {
+                window.isAddingToRecipe = false;
+                window.currentFoodItemForRecipe = null;
             }
         }
 
@@ -3997,12 +3922,53 @@
             await showRecipeDetailsModal(recipeId, recipeName);
         }
 
-        // FUNKCE PRO PŘIDÁNÍ POTRAVINY DO EXISTUJÍCÍHO RECEPTU
         async function addFoodItemToExistingRecipe(recipeId, foodItem) {
+            if (!window.supabaseClient) {
+                console.error("❌ Supabase není inicializován! Pokusím se opravit...");
+
+                console.log("🥘 addFoodItemToExistingRecipe volána s:", {
+                    recipeId,
+                    foodName: foodItem?.foodName,
+                    context: "přidání potraviny do receptu"
+                });
+
+                // Zkusíme znovu inicializovat
+                try {
+                    await window.initializeSupabase();
+                    if (!window.supabaseClient) {
+                        window.showCustomNotification("Chyba databáze. Obnovte stránku.", 'error');
+                        return;
+                    }
+                    // DŮLEŽITÉ: PO ÚSPĚŠNÉM PŘIDÁNÍ ZAVŘEME MODAL
+                    document.getElementById('selectRecipeModal').style.display = 'none';
+
+                    console.log("✅ Potravina úspěšně přidána do receptu");
+
+                    // Zobrazíme potvrzení
+                    window.showCustomNotification(
+                        `"<strong>${completeFoodItem.foodName}</strong>" byl přidán do receptu "<strong>${recipeData.name}</strong>"`,
+                        'success'
+                    );
+
+                    // Resetujeme stav
+                    window.currentFoodItemForRecipe = null;
+
+                } catch (error) {
+                    console.error("❌ Neočekávaná chyba při přidávání do receptu:", error);
+                    // I při chybě zavřeme modal
+                    document.getElementById('selectRecipeModal').style.display = 'none';
+                }
+            }
+
+            if (!window.currentUser || !window.currentProfileId) {
+                window.showCustomNotification("Pro tuto akci se musíte přihlásit.", 'info');
+                return;
+            }
+
             console.log("🥘 addFoodItemToExistingRecipe volána s:", {
                 recipeId,
                 foodName: foodItem?.foodName,
-                context: "přidání potraviny do receptu"
+                context: window.currentMealContext ? 'denní příjem' : 'recept z vyhledávání'
             });
 
             if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) {
@@ -4011,7 +3977,6 @@
                     user: !!window.currentUser,
                     profile: !!window.currentProfileId
                 });
-                window.showCustomNotification("Pro tuto akci se musíte přihlásit.", 'info');
                 return;
             }
 
@@ -4062,21 +4027,20 @@
 
                 console.log("✅ Potravina úspěšně přidána do receptu");
 
-                // Zobrazíme potvrzení
-                window.showCustomNotification(
-                    `"<strong>${completeFoodItem.foodName}</strong>" byl přidán do receptu "<strong>${recipeData.name}</strong>"`,
-                    'success'
-                );
-
-                // Resetujeme stav
-                window.currentFoodItemForRecipe = null;
-
             } catch (error) {
                 console.error("❌ Neočekávaná chyba při přidávání do receptu:", error);
 
                 // Zobrazíme chybu i když je notifikace vypnutá
                 const errorMessage = `Chyba při přidávání do receptu: ${error.message}`;
-                window.showCustomNotification(errorMessage, 'error');
+                const customNotificationModal = document.getElementById('customNotificationModal');
+                const customNotificationMessage = document.getElementById('customNotificationMessage');
+
+                if (customNotificationModal && customNotificationMessage) {
+                    customNotificationMessage.innerHTML = errorMessage;
+                    customNotificationModal.style.display = 'flex';
+                } else {
+                    alert(errorMessage);
+                }
             }
         }
 
@@ -6212,8 +6176,7 @@
             // ✅ OPRAVA: Event listenery pro všechny modaly receptů a jídel
             document.getElementById('selectRecipeModal').addEventListener('click', function (event) {
                 if (event.target === this) {
-                    console.log("❌ Zavírám modal receptů - resetuji kontext");
-                    resetRecipeContext();
+                    console.log("❌ Kliknuto mimo modal receptů");
                     this.style.display = 'none';
                 }
             });
@@ -6644,9 +6607,6 @@
         function initializeDailyIntake() {
             console.log("🔄 Inicializace denního příjmu pro profil:", window.currentProfileId);
 
-            // Aktualizujeme zobrazení data
-            updateDateDisplay();
-
             // Načteme cíle a pak data
             loadDailyIntakeGoals()
                 .finally(() => {
@@ -6766,279 +6726,140 @@
             }
         }
 
-        // DEBUG FUNKCE PRO KONTROLU NAVIGACE
-        function debugNavigation() {
-            console.log("🔍 Debug navigace:");
-            console.log("- currentDailyIntakeDate před změnou:", currentDailyIntakeDate);
-            console.log("- Typ currentDailyIntakeDate:", typeof currentDailyIntakeDate);
-            console.log("- Je Date objekt?", currentDailyIntakeDate instanceof Date);
-
-            const prevDayBtn = document.getElementById('prevDayBtn');
-            const nextDayBtn = document.getElementById('nextDayBtn');
-            console.log("- prevDayBtn nalezen:", !!prevDayBtn);
-            console.log("- nextDayBtn nalezen:", !!nextDayBtn);
-
-            if (prevDayBtn) {
-                console.log("- prevDayBtn click events:", prevDayBtn._clickEvents);
-            }
-        }
-
-        // Přidejte volání debugu
-        setTimeout(debugNavigation, 2000);
-
-        // UPRAVENÁ FUNKCE PRO NAČÍTÁNÍ DENNÍHO PŘÍJMU
+        // Načtení denních dat
         async function loadDailyIntakeData(date) {
-            // Ověříme, že datum je platné Date objekt
-            if (!(date instanceof Date) || isNaN(date)) {
-                console.error("❌ Neplatné datum:", date);
-                date = new Date(); // Fallback na dnešek
-                currentDailyIntakeDate = date;
-            }
-            console.log("📊 Načítám denní příjem pro:", formatDateForAPI(date));
-
-            if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) {
-                console.error("❌ Nelze načíst denní příjem - chybí inicializace");
-                return;
-            }
-
             try {
+                if (!window.currentUser || !window.currentProfileId) {
+                    console.log("❌ Nelze načíst data - není přihlášení nebo profil");
+                    return;
+                }
+
                 const dateString = formatDateForAPI(date);
+                console.log("📅 Načítám data pro:", dateString, "profil:", window.currentProfileId);
 
-                // Načteme nebo vytvoříme daily_intake
-                let dailyIntakeId = await getOrCreateDailyIntake(dateString);
-
-                // Nejprve načteme daily_meals pro tento den
-                const { data: dailyMeals, error: mealsError } = await window.supabaseClient
-                    .from('daily_meals')
-                    .select('id, meal_type')
-                    .eq('daily_intake_id', dailyIntakeId);
-
-                if (mealsError) {
-                    console.error("❌ Chyba při načítání daily_meals:", mealsError);
-                    throw mealsError;
-                }
-
-                console.log("📋 Načteno daily_meals:", dailyMeals);
-
-                // Pokud máme daily_meals, načteme meal_items
-                let mealItems = [];
-                if (dailyMeals && dailyMeals.length > 0) {
-                    const mealIds = dailyMeals.map(meal => meal.id);
-
-                    const { data: items, error: mealItemsError } = await window.supabaseClient
-                        .from('meal_items')
-                        .select(`
-                    *,
-                    daily_meals (
-                        meal_type
-                    ),
-                    independent_meals (
-                        id,
-                        food_name,
-                        nutritional_data,
-                        portions,
-                        original_recipe_id
-                    )
-                `)
-                        .in('daily_meal_id', mealIds);
-
-                    if (mealItemsError) {
-                        console.error("❌ Chyba při načítání meal_items:", mealItemsError);
-                        throw mealItemsError;
-                    }
-
-                    mealItems = items || [];
-                    console.log("📋 Načteno meal_items:", mealItems.length);
-                }
-
-                // Načteme také independent meals přímo
-                const { data: independentMeals, error: independentError } = await window.supabaseClient
-                    .from('independent_meals')
-                    .select('*')
+                const { data: dailyData, error: dailyError } = await window.supabaseClient
+                    .from('daily_intakes')
+                    .select('id, intake_date')
+                    .eq('user_id', window.currentUser.id)
                     .eq('profile_id', window.currentProfileId)
                     .eq('intake_date', dateString);
 
-                if (independentError) {
-                    console.error("❌ Chyba při načítání independent meals:", independentError);
-                    throw independentError;
-                }
+                if (dailyError) throw dailyError;
 
-                console.log("📋 Načteno independent meals:", independentMeals?.length || 0);
+                let dailyIntakeId = null;
+                let meals = [];
 
-                // Spojíme data
-                currentDailyIntakeData = {
-                    mealItems: mealItems,
-                    independentMeals: independentMeals || [],
-                    dailyMeals: dailyMeals || [],
-                    date: dateString
-                };
+                if (dailyData && dailyData.length > 0) {
+                    dailyIntakeId = dailyData[0].id;
 
-                // Aktualizujeme zobrazení
-                updateDailyIntakeDisplay();
+                    // Načteme meals pro tento daily_intake
+                    const { data: mealsData, error: mealsError } = await window.supabaseClient
+                        .from('daily_meals')
+                        .select('id, meal_type, meal_order')
+                        .eq('daily_intake_id', dailyIntakeId)
+                        .order('meal_order', { ascending: true });
 
-            } catch (error) {
-                console.error("❌ Chyba při načítání denního příjmu:", error);
-                window.showCustomNotification("Chyba při načítání denního příjmu: " + error.message, 'error');
-            }
-        }
+                    if (mealsError) throw mealsError;
 
-        // OPRAVENÁ FUNKCE PRO AKTUALIZACI ZOBRAZENÍ DENNÍHO PŘÍJMU
-        function updateDailyIntakeDisplay() {
-            if (!currentDailyIntakeData) {
-                console.log("ℹ️ Žádná data denního příjmu k zobrazení");
-                return;
-            }
+                    // Pro každé jídlo načteme položky
+                    for (const meal of mealsData) {
+                        const { data: itemsData, error: itemsError } = await window.supabaseClient
+                            .from('meal_items')
+                            .select('*')
+                            .eq('daily_meal_id', meal.id)
+                            .order('created_at', { ascending: true });
 
-            console.log("🔄 Aktualizuji zobrazení denního příjmu");
+                        if (itemsError) throw itemsError;
 
-            // Skupinujeme položky podle typu jídla
-            const mealItemsByType = {
-                breakfast: [],
-                snack1: [],
-                lunch: [],
-                snack2: [],
-                dinner: []
-            };
+                        // DŮLEŽITÉ: Pro položky s recipe_id načteme aktuální data receptu
+                        const itemsWithRecipeData = await Promise.all(
+                            (itemsData || []).map(async (item) => {
+                                if (item.recipe_id) {
+                                    try {
+                                        const { data: recipeData, error: recipeError } = await window.supabaseClient
+                                            .from('recipes')
+                                            .select('has_multiple_portions, recipe_one_portion, portions')
+                                            .eq('id', item.recipe_id)
+                                            .single();
 
-            // Zpracujeme independent meals
-            currentDailyIntakeData.independentMeals.forEach(meal => {
-                if (mealItemsByType[meal.meal_type]) {
-                    mealItemsByType[meal.meal_type].push({
-                        id: meal.id,
-                        type: 'independent',
-                        food_name: meal.food_name,
-                        nutritional_data: meal.nutritional_data,
-                        portions: meal.portions,
-                        original_recipe_id: meal.original_recipe_id,
-                        meal_type: meal.meal_type
-                    });
-                }
-            });
+                                        if (!recipeError && recipeData) {
+                                            console.log("🔍 Načítám data receptu pro meal_item:", {
+                                                foodName: item.food_name,
+                                                recipeId: item.recipe_id,
+                                                hasMultiplePortions: recipeData.has_multiple_portions,
+                                                usedOnePortionData: item.used_one_portion_data
+                                            });
 
-            // Zpracujeme meal_items
-            currentDailyIntakeData.mealItems.forEach(item => {
-                const mealType = item.daily_meals?.meal_type;
-                if (mealType && mealItemsByType[mealType]) {
-                    mealItemsByType[mealType].push({
-                        id: item.id,
-                        type: 'meal_item',
-                        food_name: item.food_name,
-                        nutritional_data: item.nutritional_data,
-                        calories: item.calories,
-                        protein: item.protein,
-                        carbs: item.carbs,
-                        fat: item.fat,
-                        fiber: item.fiber,
-                        is_independent: item.is_independent,
-                        independent_meal_id: item.independent_meal_id,
-                        meal_type: mealType
-                    });
-                }
-            });
+                                            // POKUD byl recept přidán s přepočtem na jednu porci, použijeme data z meal_items
+                                            if (item.used_one_portion_data && recipeData.has_multiple_portions) {
+                                                console.log("🔢 Používám přepočtená data z meal_items pro:", item.food_name);
+                                                // Data jsou již v item - nic neměníme
+                                            } else if (recipeData.has_multiple_portions && recipeData.recipe_one_portion) {
+                                                // RECEPT MÁ VÍCE PORCÍ: použijeme data pro jednu porci
+                                                console.log("🔢 Aktualizuji na data pro jednu porci pro:", item.food_name);
+                                                return {
+                                                    ...item,
+                                                    calories: recipeData.recipe_one_portion.total_kcal || item.calories,
+                                                    protein: recipeData.recipe_one_portion.protein || item.protein,
+                                                    carbs: recipeData.recipe_one_portion.carbs || item.carbs,
+                                                    fat: recipeData.recipe_one_portion.fat || item.fat,
+                                                    fiber: recipeData.recipe_one_portion.fiber || item.fiber,
+                                                    nutritional_data: recipeData.recipe_one_portion
+                                                };
+                                            }
+                                        }
+                                    } catch (error) {
+                                        console.log("❌ Chyba při načítání receptu:", error);
+                                    }
+                                }
+                                return item;
+                            })
+                        );
 
-            // Aktualizujeme zobrazení pro každý typ jídla
-            Object.keys(mealItemsByType).forEach(mealType => {
-                const containerId = `${mealType}Items`;
-                const container = document.getElementById(containerId);
-
-                if (container) {
-                    container.innerHTML = '';
-
-                    const items = mealItemsByType[mealType];
-
-                    if (items.length === 0) {
-                        container.innerHTML = `
-                    <div class="empty-meal-message">
-                        Žádné položky
-                    </div>
-                `;
-                    } else {
-                        items.forEach(item => {
-                            const itemElement = createMealItemElement(item, mealType);
-                            container.appendChild(itemElement);
+                        meals.push({
+                            ...meal,
+                            meal_items: itemsWithRecipeData
                         });
                     }
                 }
-            });
 
-            // Aktualizujeme přehledy a grafy pomocí VAŠICH existujících funkcí
-            updateIntakeOverview();
+                currentDailyIntakeData = {
+                    id: dailyIntakeId,
+                    intake_date: dateString,
+                    daily_meals: meals
+                };
+
+                console.log("📊 Načtena denní data:", currentDailyIntakeData?.daily_meals?.length || 0, "jídel");
+                updateDailyIntakeDisplay();
+
+            } catch (error) {
+                console.error("❌ Chyba při načítání denních dat:", error);
+                window.showCustomNotification("Chyba při načítání denních dat: " + error.message, 'error');
+            }
         }
 
-        // NOVÁ FUNKCE PRO AKTUALIZACI PŘEHLEDU - POUŽÍVÁ VAŠE EXISTUJÍCÍ FUNKCE
-        function updateIntakeOverview() {
-            if (!currentDailyIntakeData || !dailyIntakeGoals) {
-                console.log("ℹ️ Nelze aktualizovat přehled - chybí data nebo cíle");
-                return;
+        // Aktualizace zobrazení
+        function updateDailyIntakeDisplay() {
+            console.log("🔄 Aktualizuji zobrazení denního příjmu");
+
+            // Debug: zkontrolujte data která se zobrazují
+            if (currentDailyIntakeData?.daily_meals) {
+                currentDailyIntakeData.daily_meals.forEach(meal => {
+                    meal.meal_items?.forEach(item => {
+                        if (item.recipe_id) {
+                            console.log("📋 Zobrazuji recept:", {
+                                name: item.food_name,
+                                calories: item.calories,
+                                usedOnePortionData: item.used_one_portion_data
+                            });
+                        }
+                    });
+                });
             }
 
-            console.log("📈 Aktualizuji přehled denního příjmu");
-
-            // Připravíme data ve formátu, který očekávají vaše funkce
-            const formattedData = {
-                daily_meals: formatMealDataForCharts()
-            };
-
-            // Dočasně nastavíme currentDailyIntakeData pro vaše funkce
-            const originalData = currentDailyIntakeData;
-            currentDailyIntakeData = formattedData;
-
-            // Použijeme vaše existující funkce
+            updateDateDisplay();
             calculateAndDisplayTotals();
-
-            // Obnovíme původní data
-            currentDailyIntakeData = originalData;
-        }
-
-        // POMOCNÁ FUNKCE PRO FORMÁTOVÁNÍ DAT PRO VAŠE GRAFY
-        function formatMealDataForCharts() {
-            const formattedMeals = [];
-
-            // Zpracujeme independent meals
-            currentDailyIntakeData.independentMeals.forEach(meal => {
-                const nutritionalData = meal.nutritional_data || {};
-
-                formattedMeals.push({
-                    meal_type: meal.meal_type,
-                    meal_items: [{
-                        calories: nutritionalData.total_kcal || 0,
-                        protein: nutritionalData.protein || 0,
-                        carbs: nutritionalData.carbs || 0,
-                        fat: nutritionalData.fat || 0,
-                        fiber: nutritionalData.fiber || 0
-                    }]
-                });
-            });
-
-            // Zpracujeme meal_items a seskupíme je podle meal_type
-            const mealItemsByType = {};
-
-            currentDailyIntakeData.mealItems.forEach(item => {
-                const mealType = item.daily_meals?.meal_type;
-                if (!mealType) return;
-
-                if (!mealItemsByType[mealType]) {
-                    mealItemsByType[mealType] = [];
-                }
-
-                mealItemsByType[mealType].push({
-                    calories: item.calories || 0,
-                    protein: item.protein || 0,
-                    carbs: item.carbs || 0,
-                    fat: item.fat || 0,
-                    fiber: item.fiber || 0
-                });
-            });
-
-            // Přidáme meal_items do formattedMeals
-            Object.keys(mealItemsByType).forEach(mealType => {
-                formattedMeals.push({
-                    meal_type: mealType,
-                    meal_items: mealItemsByType[mealType]
-                });
-            });
-
-            return formattedMeals;
+            renderMealItems();
         }
 
         // Funkce pro zobrazení varování když nejsou cíle
@@ -7072,25 +6893,12 @@
             });
         }
 
-        // FUNKCE PRO KONTROLU A AKTUALIZACI DATA
+        // Aktualizace zobrazení data
         function updateDateDisplay() {
             const dateDisplay = document.getElementById('currentDateDisplay');
             if (dateDisplay) {
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 dateDisplay.textContent = currentDailyIntakeDate.toLocaleDateString('cs-CZ', options);
-                console.log("📅 Aktualizováno zobrazení data:", dateDisplay.textContent);
-            } else {
-                console.error("❌ Element currentDateDisplay nebyl nalezen");
-
-                // Pokusíme se najít element po chvíli znovu
-                setTimeout(() => {
-                    const retryDateDisplay = document.getElementById('currentDateDisplay');
-                    if (retryDateDisplay) {
-                        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                        retryDateDisplay.textContent = currentDailyIntakeDate.toLocaleDateString('cs-CZ', options);
-                        console.log("📅 Datum nastaveno při opakovaném pokusu:", retryDateDisplay.textContent);
-                    }
-                }, 100);
             }
         }
 
@@ -7234,10 +7042,10 @@
                     continue;
                 }
 
-
+                // PŘEDEJ ASYNC FUNKCI A POČKEJ NA VÝSLEDEK
                 const groupedItems = await groupMealItemsByRecipe(meals);
 
-
+                // Zbytek funkce zůstává stejný...
                 groupedItems.forEach(group => {
                     if (group.isRecipe) {
                         const recipeElement = createRecipeGroupElement(group, mealType);
@@ -7603,166 +7411,60 @@
             );
         }
 
-        // OPRAVENÁ FUNKCE PRO VYTVOŘENÍ ELEMENTU POLOŽKY JÍDLA
-        function createMealItemElement(item, mealType) {
+        // Vytvoření elementu položky jídla
+        function createMealItemElement(item, mealId) {
             const div = document.createElement('div');
             div.className = 'meal-item';
-            div.dataset.itemId = item.id;
-            div.dataset.itemType = item.type;
-
-            const nutritionalData = item.nutritional_data || {};
-            const calories = item.calories || nutritionalData.total_kcal || 0;
-            const protein = item.protein || nutritionalData.protein || 0;
-            const carbs = item.carbs || nutritionalData.carbs || 0;
-            const fat = item.fat || nutritionalData.fat || 0;
-            const fiber = item.fiber || nutritionalData.fiber || 0;
-
-            // Rozhodneme zda zobrazit "(z receptu)"
-            const showFromRecipe = item.type === 'independent' && item.original_recipe_id;
-
             div.innerHTML = `
-        <div class="meal-item-info">
-            <div class="meal-item-name">
-                ${item.food_name}
-                ${showFromRecipe ? ' <span style="color: #6c757d; font-size: 0.9em;">(z receptu)</span>' : ''}
-            </div>
-            <div class="meal-item-details">
-                ${Math.round(calories)} kcal | 
-                B: ${Math.round(protein)}g | 
-                S: ${Math.round(carbs)}g | 
-                T: ${Math.round(fat)}g
-                ${item.portions > 1 ? ` | ${item.portions} porce` : ''}
-            </div>
-        </div>
-        <div class="meal-item-actions">
-            <button class="meal-item-action delete-meal-item" title="Smazat">
-                <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
-            </button>
-        </div>
-    `;
-
-            // Event listener pro smazání
-            const deleteBtn = div.querySelector('.delete-meal-item');
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    await deleteMealItem(item.id, item.type, item.food_name);
-                });
-            }
+                                                <div class="meal-item-info">
+                                                    <div class="meal-item-name">${item.food_name}</div>
+                                                    <div class="meal-item-details">
+                                                        ${item.amount} ${item.unit} • ${Math.round(item.calories)} kcal
+                                                        ${item.protein ? ` • B: ${Math.round(item.protein)}g` : ''}
+                                                        ${item.carbs ? ` • S: ${Math.round(item.carbs)}g` : ''}
+                                                        ${item.fat ? ` • T: ${Math.round(item.fat)}g` : ''}
+                                                    </div>
+                                                </div>
+                                                <div class="meal-item-actions">
+                                                    <button class="meal-item-action edit-meal-item" data-item-id="${item.id}">
+                                                        <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
+                                                    </button>
+                                                    <button class="meal-item-action delete-meal-item" data-item-id="${item.id}" data-meal-id="${mealId}">
+                                                        <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
+                                                    </button>
+                                                </div>
+                                                `;
 
             return div;
         }
 
-        // FUNKCE PRO NASTAVENÍ EVENT LISTENERŮ DENNÍHO PŘÍJMU
-        // OPRAVENÁ FUNKCE PRO NASTAVENÍ EVENT LISTENERŮ
+        // Nastavení event listenerů
         function setupDailyIntakeEventListeners() {
-
-            const todayBtn = document.getElementById('todayBtn');
-            if (todayBtn) {
-                todayBtn.addEventListener('click', resetToToday);
-            }
-
-            // Odebereme staré event listenery
-            const prevDayBtn = document.getElementById('prevDayBtn');
-            const nextDayBtn = document.getElementById('nextDayBtn');
-
-            if (prevDayBtn) {
-                prevDayBtn.replaceWith(prevDayBtn.cloneNode(true));
-            }
-            if (nextDayBtn) {
-                nextDayBtn.replaceWith(nextDayBtn.cloneNode(true));
-            }
-
-            // Znovu najdeme elementy
-            const newPrevDayBtn = document.getElementById('prevDayBtn');
-            const newNextDayBtn = document.getElementById('nextDayBtn');
-
-            if (newPrevDayBtn) {
-                newPrevDayBtn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log("⬅️ Kliknuto na předchozí den");
-                    navigateDailyIntakeDate(-1);
-                });
-            }
-
-            if (newNextDayBtn) {
-                newNextDayBtn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log("➡️ Kliknuto na další den");
-                    navigateDailyIntakeDate(1);
-                });
-            }
+            // Navigace mezi dny
+            document.getElementById('prevDayBtn')?.addEventListener('click', () => navigateDay(-1));
+            document.getElementById('nextDayBtn')?.addEventListener('click', () => navigateDay(1));
 
             // Tlačítka pro přidání jídla
-            const addMealButtons = document.querySelectorAll('.add-meal-btn');
-            addMealButtons.forEach(btn => {
-                // Odebereme staré listenery
-                btn.replaceWith(btn.cloneNode(true));
-            });
-
-            const newAddMealButtons = document.querySelectorAll('.add-meal-btn');
-            newAddMealButtons.forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const mealType = this.dataset.mealType;
-                    openMealSelection(mealType);
+            document.querySelectorAll('.add-meal-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const mealType = e.target.dataset.mealType;
+                    openRecipeSelectionForMeal(mealType);
                 });
             });
 
-            console.log("✅ Event listenery denního příjmu nastaveny");
-        }
+            // Delegace eventů pro akce s jídly
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.edit-meal-item')) {
+                    const itemId = e.target.closest('.edit-meal-item').dataset.itemId;
+                    editMealItem(itemId);
+                }
 
-        // OPRAVENÁ FUNKCE PRO NAVIGACI MEZI DNY
-        function navigateDailyIntakeDate(direction) {
-            if (isNavigating) {
-                console.log("⏳ Navigace již probíhá, přeskočeno");
-                return;
-            }
-
-            isNavigating = true;
-
-            try {
-                // Vytvoříme NOVÉ datum objekt
-                const newDate = new Date(currentDailyIntakeDate);
-                newDate.setDate(newDate.getDate() + direction);
-
-                // Aktualizujeme globální proměnnou
-                currentDailyIntakeDate = newDate;
-
-                // Aktualizujeme zobrazení data
-                updateDateDisplay();
-
-                // Načteme data pro nový den
-                loadDailyIntakeData(currentDailyIntakeDate);
-
-                console.log("📅 Přecházím na den:", formatDateForAPI(currentDailyIntakeDate), "směr:", direction);
-
-            } finally {
-                // Po 500ms resetujeme ochranu
-                setTimeout(() => {
-                    isNavigating = false;
-                }, 500);
-            }
-        }
-
-        // FUNKCE PRO OTEVŘENÍ VÝBĚRU JÍDLA Z HLAVNÍ STRÁNKY
-        function openMealSelection(mealType) {
-            if (!checkInitialization()) return;
-
-            console.log("🍽️ Otevírám výběr jídla pro:", mealTypeLabels[mealType]);
-            debugContext(`Otevření výběru jídla pro ${mealType}`);
-
-            // Nastavíme kontext pro přidání jídla do denního příjmu
-            window.currentMealContext = {
-                mealType: mealType,
-                date: currentDailyIntakeDate
-            };
-            window.currentFoodItemForRecipe = null; // Resetujeme potravinu
-
-            // Načteme a zobrazíme recepty
-            loadUserRecipesForAdding();
-            document.getElementById('selectRecipeModal').style.display = 'flex';
+                if (e.target.closest('.delete-meal-item')) {
+                    const itemId = e.target.closest('.delete-meal-item').dataset.itemId;
+                    const mealId = e.target.closest('.delete-meal-item').dataset.mealId;
+                    deleteMealItem(itemId, mealId);
+                }
+            });
         }
 
         // Navigace mezi dny
@@ -7869,169 +7571,41 @@
             });
         }
 
-        // NOVÁ FUNKCE PRO PŘIDÁNÍ RECEPTU DO DENNÍHO PŘÍJMU
-        // OPRAVENÁ FUNKCE PRO PŘIDÁNÍ RECEPTU DO DENNÍHO PŘÍJMU - BEZ INGREDIENCÍ
+        // Přidání receptu do jídla
         async function addRecipeToMeal(recipe) {
-            console.log("🥘 Přidávám recept do denního příjmu:", recipe.name);
+            // PŘIDÁNO: Kontrola jestli přidáváme do receptu nebo do denního příjmu
+            if (!window.currentMealContext) {
+                // PŘIDÁVÁME DO RECEPTU Z VYHLEDÁVÁNÍ
+                console.log("📝 Přidávám potravinu do receptu z vyhledávání:", recipe.name);
+                await addFoodItemToExistingRecipe(recipe.id, window.currentFoodItemForRecipe);
+                document.getElementById('selectRecipeModal').style.display = 'none';
 
-            if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) {
-                window.showCustomNotification("Chyba: Aplikace není správně inicializována.", 'error');
+                // Zavřeme i detailní modal pokud je otevřený
+                if (detailsModal.style.display === 'flex') {
+                    detailsModal.style.display = 'none';
+                }
+
+                window.isOpeningDetailsModal = false;
+                window.currentFoodItemForRecipe = null;
                 return;
             }
 
+            // PŮVODNÍ KÓD PRO PŘIDÁVÁNÍ DO DENNÍHO PŘÍJMU
             try {
-                const portions = recipe.portions || 1;
-                const hasMultiplePortions = recipe.has_multiple_portions || false;
-                const recipeOnePortion = recipe.recipe_one_portion;
+                const { mealType, date } = window.currentMealContext;
 
-                console.log("📊 Data receptu:", {
-                    name: recipe.name,
-                    portions: portions,
-                    hasMultiplePortions: hasMultiplePortions,
-                    recipeOnePortion: recipeOnePortion
-                });
-
-                // VŽDY POUŽIJEME DATA PRO JEDNU PORCI - pokud jsou dostupná
-                let nutritionalData = {};
-                let displayCalories = 0;
-
-                if (hasMultiplePortions && recipeOnePortion) {
-                    // RECEPT S VÍCE PORCEMI: použijeme data pro jednu porci
-                    console.log("🔢 Používám data pro jednu porci z recipe_one_portion");
-                    nutritionalData = recipeOnePortion;
-                    displayCalories = recipeOnePortion.total_kcal || 0;
-                } else {
-                    // RECEPT S JEDNOU PORCÍ: použijeme původní data
-                    console.log("🔢 Používám původní data");
-
-                    // Spočítáme celkové nutriční hodnoty z ingrediencí
-                    nutritionalData = calculateTotalNutritionFromIngredients(recipe.ingredients);
-                    displayCalories = nutritionalData.total_kcal || 0;
-                }
-
-                // Vytvoříme independent meal data - POUZE JEDEN ZÁZNAM
-                const independentMealData = {
-                    user_id: window.currentUser.id,
-                    profile_id: window.currentProfileId,
-                    original_recipe_id: recipe.id,
-                    food_name: recipe.name,
-                    meal_type: window.currentMealContext?.mealType || 'breakfast',
-                    intake_date: formatDateForAPI(new Date()),
-                    nutritional_data: nutritionalData,
-                    portions: 1, // VŽDY přidáme jednu porci do denního příjmu
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                };
-
-                console.log("💾 Ukládám independent meal:", independentMealData);
-
-                // Uložíme do independent_meals
-                const { data: independentMeal, error: independentError } = await window.supabaseClient
-                    .from('independent_meals')
-                    .insert(independentMealData)
-                    .select()
-                    .single();
-
-                if (independentError) {
-                    console.error("❌ Chyba při ukládání independent meal:", independentError);
-                    throw independentError;
-                }
-
-                console.log("✅ Independent meal uložen:", independentMeal);
-
-                // Zavřeme modaly
+                // Zavřeme modal
                 document.getElementById('selectRecipeModal').style.display = 'none';
 
-                // Aktualizujeme zobrazení denního příjmu
-                await loadDailyIntakeData(currentDailyIntakeDate);
+                // Přidáme recept do denního příjmu
+                await addRecipeToDailyIntake(recipe, mealType, date);
 
-                window.showCustomNotification(
-                    `Recept "<strong>${recipe.name}</strong>" byl přidán do denního příjmu!`,
-                    'success'
-                );
+                window.showCustomNotification(`Recept "${recipe.name}" byl přidán do ${mealTypeLabels[mealType]}!`, 'success');
 
             } catch (error) {
-                console.error("❌ Chyba při přidávání receptu do denního příjmu:", error);
-
-                let errorMessage = "Chyba při přidávání receptu";
-                if (error.code === '23505') {
-                    errorMessage = "Toto jídlo již bylo přidáno do denního příjmu";
-                } else if (error.message) {
-                    errorMessage += ": " + error.message;
-                }
-
-                window.showCustomNotification(errorMessage, 'error');
+                console.error("❌ Chyba při přidávání receptu:", error);
+                window.showCustomNotification("Chyba při přidávání receptu: " + error.message, 'error');
             }
-        }
-
-        // FUNKCE PRO VÝPOČET CELKOVÝCH NUTRIČNÍCH HODNOT Z INGREDIENCÍ
-        function calculateTotalNutritionFromIngredients(ingredients) {
-            const totals = {
-                total_kcal: 0,
-                total_kj: 0,
-                protein: 0,
-                carbs: 0,
-                sugar: 0,
-                fat: 0,
-                saturated_fat: 0,
-                trans_fat: 0,
-                monounsaturated_fat: 0,
-                polyunsaturated_fat: 0,
-                cholesterol: 0,
-                fiber: 0,
-                salt: 0,
-                calcium: 0,
-                sodium: 0,
-                water: 0,
-                phe: 0
-            };
-
-            if (!ingredients || !Array.isArray(ingredients)) {
-                return totals;
-            }
-
-            ingredients.forEach(ingredient => {
-                if (!ingredient) return;
-
-                const nutritionalDetails = ingredient.nutritionalDetails || {};
-                const amount = parseFloat(ingredient.amount) || 0;
-                const unit = ingredient.unit || 'g';
-
-                // Přepočet množství na základní jednotky
-                let baseAmount = amount;
-                if (unit === 'kg' || unit === 'l') baseAmount *= 1000;
-
-                const factor = baseAmount / 100; // Faktor pro přepočet na 100g/ml
-
-                // Sečteme všechny nutriční hodnoty
-                Object.keys(totals).forEach(key => {
-                    if (nutritionalDetails[key] && nutritionalDetails[key] !== "N/A") {
-                        const { number: valNum } = parseValueAndUnit(nutritionalDetails[key]);
-                        if (!isNaN(valNum)) {
-                            totals[key] += valNum * factor;
-                        }
-                    }
-                });
-
-                // Pokud nemáme nutriční data, použijeme kalorie z ingredient.kcal
-                if (totals.total_kcal === 0 && ingredient.kcal) {
-                    const { number: kcalNum } = parseValueAndUnit(ingredient.kcal);
-                    if (!isNaN(kcalNum)) {
-                        totals.total_kcal += kcalNum * factor;
-                        totals.total_kj = totals.total_kcal * 4.184; // Přepočet na kJ
-                    }
-                }
-            });
-
-            // Zaokrouhlíme hodnoty
-            Object.keys(totals).forEach(key => {
-                if (typeof totals[key] === 'number') {
-                    totals[key] = Math.round(totals[key] * 100) / 100;
-                }
-            });
-
-            console.log("🧮 Vypočítané nutriční hodnoty z ingrediencí:", totals);
-            return totals;
         }
 
         // Přidání receptu do denního příjmu
@@ -8079,128 +7653,63 @@
             return date.toISOString().split('T')[0];
         }
 
-        // OPRAVENÁ FUNKCE PRO ZÍSKÁNÍ NEBO VYTVOŘENÍ DAILY_INTAKE
         async function getOrCreateDailyIntake(dateString) {
-            try {
-                // Nejprve zkusíme najít existující záznam
-                const { data: existingIntake, error: findError } = await window.supabaseClient
-                    .from('daily_intakes')
-                    .select('id')
-                    .eq('profile_id', window.currentProfileId)
-                    .eq('intake_date', dateString)
-                    .maybeSingle(); // Použijeme maybeSingle
+            // Nejprve zkusíme najít existující záznam S KONTROLOU PROFILU
+            const { data: existing, error: findError } = await window.supabaseClient
+                .from('daily_intakes')
+                .select('id')
+                .eq('user_id', window.currentUser.id)
+                .eq('profile_id', window.currentProfileId) // ✅ DŮLEŽITÉ
+                .eq('intake_date', dateString)
+                .single();
 
-                if (!findError && existingIntake) {
-                    console.log("✅ Nalezen existující daily_intake:", existingIntake.id);
-                    return existingIntake.id;
-                }
+            if (findError && findError.code !== 'PGRST116') throw findError;
 
-                // Pokud neexistuje, vytvoříme nový
-                const { data: newIntake, error: createError } = await window.supabaseClient
-                    .from('daily_intakes')
-                    .insert({
-                        user_id: window.currentUser.id,
-                        profile_id: window.currentProfileId,
-                        intake_date: dateString,
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString()
-                    })
-                    .select('id')
-                    .single();
-
-                if (createError) {
-                    // Pokud dojde k duplicitě, zkusíme znovu najít
-                    if (createError.code === '23505') {
-                        console.log("⚠️ Duplicitní daily_intake, hledám existující...");
-                        const { data: retryIntake, error: retryError } = await window.supabaseClient
-                            .from('daily_intakes')
-                            .select('id')
-                            .eq('profile_id', window.currentProfileId)
-                            .eq('intake_date', dateString)
-                            .single();
-
-                        if (!retryError && retryIntake) {
-                            console.log("✅ Nalezen existující daily_intake po duplicitě:", retryIntake.id);
-                            return retryIntake.id;
-                        }
-                    }
-                    throw createError;
-                }
-
-                console.log("✅ Vytvořen nový daily_intake:", newIntake.id);
-                return newIntake.id;
-
-            } catch (error) {
-                console.error("❌ Chyba v getOrCreateDailyIntake:", error);
-                throw error;
+            if (existing) {
+                return existing.id;
             }
+
+            // Vytvoříme nový záznam S SPRÁVNÝM PROFIL_ID
+            const { data: newIntake, error: createError } = await window.supabaseClient
+                .from('daily_intakes')
+                .insert({
+                    user_id: window.currentUser.id,
+                    profile_id: window.currentProfileId, // ✅ DŮLEŽITÉ
+                    intake_date: dateString
+                })
+                .select()
+                .single();
+
+            if (createError) throw createError;
+            return newIntake.id;
         }
 
-        // ROBUSTNĚJŠÍ VERZE FUNKCE GETORCREATEMEAL
         async function getOrCreateMeal(dailyIntakeId, mealType) {
-            const maxRetries = 3;
-            let retryCount = 0;
+            // Najdeme poslední pořadí pro tento typ jídla
+            const { data: existingMeals, error: findError } = await window.supabaseClient
+                .from('daily_meals')
+                .select('id, meal_order')
+                .eq('daily_intake_id', dailyIntakeId)
+                .eq('meal_type', mealType)
+                .order('meal_order', { ascending: false });
 
-            while (retryCount < maxRetries) {
-                try {
-                    // 1. Pokusíme se najít existující záznam
-                    const { data: existingMeal, error: findError } = await window.supabaseClient
-                        .from('daily_meals')
-                        .select('id')
-                        .eq('daily_intake_id', dailyIntakeId)
-                        .eq('meal_type', mealType)
-                        .maybeSingle();
+            if (findError) throw findError;
 
-                    if (!findError && existingMeal) {
-                        console.log("✅ Nalezen existující daily_meal:", existingMeal.id);
-                        return existingMeal.id;
-                    }
+            const nextOrder = existingMeals && existingMeals.length > 0 ? existingMeals[0].meal_order + 1 : 0;
 
-                    // 2. Pokud neexistuje, vytvoříme nový
-                    const mealOrder = {
-                        breakfast: 1,
-                        snack1: 2,
-                        lunch: 3,
-                        snack2: 4,
-                        dinner: 5
-                    }[mealType] || 0;
+            // Vytvoříme nové jídlo
+            const { data: newMeal, error: createError } = await window.supabaseClient
+                .from('daily_meals')
+                .insert({
+                    daily_intake_id: dailyIntakeId,
+                    meal_type: mealType,
+                    meal_order: nextOrder
+                })
+                .select()
+                .single();
 
-                    const { data: newMeal, error: createError } = await window.supabaseClient
-                        .from('daily_meals')
-                        .insert({
-                            daily_intake_id: dailyIntakeId,
-                            meal_type: mealType,
-                            meal_order: mealOrder,
-                            created_at: new Date().toISOString()
-                        })
-                        .select('id')
-                        .single();
-
-                    if (createError) {
-                        // 3. Pokud je chyba duplicity, počkáme a zkusíme znovu
-                        if (createError.code === '23505') {
-                            console.log(`⚠️ Duplicitní záznam, pokus ${retryCount + 1}/${maxRetries}`);
-                            retryCount++;
-
-                            // Počkáme před dalším pokusem (exponenciální backoff)
-                            await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, retryCount)));
-                            continue;
-                        }
-                        throw createError;
-                    }
-
-                    console.log("✅ Vytvořen nový daily_meal:", newMeal.id);
-                    return newMeal.id;
-
-                } catch (error) {
-                    if (retryCount >= maxRetries - 1) {
-                        console.error("❌ Maximální počet pokusů překročen v getOrCreateMeal:", error);
-                        throw error;
-                    }
-                    retryCount++;
-                    await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, retryCount)));
-                }
-            }
+            if (createError) throw createError;
+            return newMeal.id;
         }
 
         async function addMealItem(mealId, ingredient, recipeName) {
@@ -8242,42 +7751,29 @@
             window.showCustomNotification("Funkce úpravy bude brzy dostupná", 'info');
         }
 
-        // OPRAVENÁ FUNKCE PRO SMAZÁNÍ POLOŽKY JÍDLA
-        async function deleteMealItem(itemId, itemType, itemName) {
-            if (!window.supabaseClient) {
-                window.showCustomNotification("Chyba: Aplikace není správně inicializována.", 'error');
-                return;
-            }
+        async function deleteMealItem(itemId, mealId) {
+            window.showCustomNotification(
+                `Opravdu chcete smazat tuto položku?`,
+                'confirmDeleteRecipeItem',
+                async () => {
+                    try {
+                        const { error } = await window.supabaseClient
+                            .from('meal_items')
+                            .delete()
+                            .eq('id', itemId);
 
-            try {
-                if (itemType === 'independent') {
-                    // Smazat pouze independent meal - NEMAŽEME meal_items
-                    const { error: independentError } = await window.supabaseClient
-                        .from('independent_meals')
-                        .delete()
-                        .eq('id', itemId);
+                        if (error) throw error;
 
-                    if (independentError) throw independentError;
+                        window.showCustomNotification("Položka byla smazána", 'success');
+                        await loadDailyIntakeData(currentDailyIntakeDate);
 
-                } else if (itemType === 'meal_item') {
-                    // Smazat pouze meal_item
-                    const { error: mealItemError } = await window.supabaseClient
-                        .from('meal_items')
-                        .delete()
-                        .eq('id', itemId);
-
-                    if (mealItemError) throw mealItemError;
-                }
-
-                // Aktualizovat zobrazení
-                await loadDailyIntakeData(currentDailyIntakeDate);
-
-                window.showCustomNotification(`"${itemName}" bylo smazáno z denního příjmu`, 'success');
-
-            } catch (error) {
-                console.error("❌ Chyba při mazání položky:", error);
-                window.showCustomNotification("Chyba při mazání: " + error.message, 'error');
-            }
+                    } catch (error) {
+                        console.error("❌ Chyba při mazání položky:", error);
+                        window.showCustomNotification("Chyba při mazání položky: " + error.message, 'error');
+                    }
+                },
+                true
+            );
         }
 
         function closeSettingsModal() {

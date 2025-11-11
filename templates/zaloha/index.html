@@ -3742,14 +3742,21 @@
                 // Kliknutí na celou položku
                 recipeItem.addEventListener('click', (e) => {
                     if (isAddToRecipeMode) {
-                        // PŘIDÁNO: Rozlišení kontextu
+                        const context = window.currentMealContext ? 'denní příjem' : 'recept';
+                        console.log(`🎯 Kliknuto na recept v kontextu: ${context}`);
+
                         if (window.currentMealContext) {
-                            // Přidáváme do denního příjmu (z hlavní stránky)
+                            // KONTEXT: Přidáváme recept do denního příjmu
+                            console.log("🥘 Přidávám RECEPT do denního příjmu:", recipe.name);
                             addRecipeToMeal(recipe);
+                            // ZAVŘÍME MODAL OKAMŽITĚ PO KLIKNUTÍ
+                            document.getElementById('selectRecipeModal').style.display = 'none';
                         } else {
-                            // Přidáváme potravinu do receptu z vyhledávání
-                            console.log("🥘 Přidávám potravinu do receptu:", recipe.name);
-                            addFoodItemToSelectedRecipe(recipe.id, recipe.name);
+                            // KONTEXT: Přidáváme potravinu do receptu
+                            console.log("🥘 Přidávám POTRAVINU do receptu:", recipe.name);
+                            addFoodItemToExistingRecipe(recipe.id, window.currentFoodItemForRecipe);
+                            // ZAVŘÍME MODAL OKAMŽITĚ PO KLIKNUTÍ
+                            document.getElementById('selectRecipeModal').style.display = 'none';
                         }
                     } else {
                         // Logika pro zobrazení detailu receptu
@@ -3919,6 +3926,12 @@
             if (!window.supabaseClient) {
                 console.error("❌ Supabase není inicializován! Pokusím se opravit...");
 
+                console.log("🥘 addFoodItemToExistingRecipe volána s:", {
+                    recipeId,
+                    foodName: foodItem?.foodName,
+                    context: "přidání potraviny do receptu"
+                });
+
                 // Zkusíme znovu inicializovat
                 try {
                     await window.initializeSupabase();
@@ -3926,9 +3939,24 @@
                         window.showCustomNotification("Chyba databáze. Obnovte stránku.", 'error');
                         return;
                     }
+                    // DŮLEŽITÉ: PO ÚSPĚŠNÉM PŘIDÁNÍ ZAVŘEME MODAL
+                    document.getElementById('selectRecipeModal').style.display = 'none';
+
+                    console.log("✅ Potravina úspěšně přidána do receptu");
+
+                    // Zobrazíme potvrzení
+                    window.showCustomNotification(
+                        `"<strong>${completeFoodItem.foodName}</strong>" byl přidán do receptu "<strong>${recipeData.name}</strong>"`,
+                        'success'
+                    );
+
+                    // Resetujeme stav
+                    window.currentFoodItemForRecipe = null;
+
                 } catch (error) {
-                    window.showCustomNotification("Chyba připojení k databázi.", 'error');
-                    return;
+                    console.error("❌ Neočekávaná chyba při přidávání do receptu:", error);
+                    // I při chybě zavřeme modal
+                    document.getElementById('selectRecipeModal').style.display = 'none';
                 }
             }
 
