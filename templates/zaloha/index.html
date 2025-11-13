@@ -1779,9 +1779,9 @@
             // BÍLKOVINY - podle tvých koeficientů
             let proteinPerKg;
             switch (goal) {
-                case 'loss': proteinPerKg = 1.52; break;
-                case 'maintain': proteinPerKg = 1.73; break;
-                case 'gain': proteinPerKg = 1.90; break;
+                case 'loss': proteinPerKg = 2.0; break;
+                case 'maintain': proteinPerKg = 2.2; break;
+                case 'gain': proteinPerKg = 2.5; break;
                 default: proteinPerKg = 1.73;
             }
             const protein = Math.round(weight * proteinPerKg);
