@@ -1295,8 +1295,9 @@
         async function addFoodItemToDailyMeal(foodItem, mealType, date) {
             console.log("📦 addFoodItemToDailyMeal - kontext:", {
                 foodName: foodItem.foodName,
-                context: window.currentMealContext ? "Z HLAVNÍ STRÁNKY" : "Z DETAILU RECEPTU",
-                mealContext: window.currentMealContext
+                isRecipe: foodItem.isRecipe,
+                portions: foodItem.portions,
+                usedOnePortionData: foodItem.usedOnePortionData
             });
 
             const dateString = formatDateForAPI(date);
@@ -1320,7 +1321,8 @@
                         let nutritionalData = ingredient.nutritionalDetails || {};
                         let calories = parseFloat(ingredient.calories || nutritionalData.total_kcal || 0);
 
-                        if (foodItem.overriddenNutrition) {
+                        // DŮLEŽITÉ: Pokud recept má více porcí a používáme data pro jednu porci
+                        if (foodItem.overriddenNutrition && usedOnePortionData) {
                             console.log("🔢 Používám přepočtená data z overriddenNutrition");
                             nutritionalData = foodItem.overriddenNutrition;
                             calories = parseFloat(foodItem.overriddenNutrition.total_kcal || 0);
@@ -1337,18 +1339,20 @@
                             fat: parseFloat(nutritionalData.fat || 0),
                             fiber: parseFloat(nutritionalData.fiber || 0),
                             nutritional_data: nutritionalData,
-                            recipe_id: foodItem.recipeId, // DŮLEŽITÉ: musí být UUID, ne null
-                            recipe_name: foodItem.foodName, // DŮLEŽITÉ: vždy nastavit
+                            recipe_id: foodItem.recipeId,
+                            recipe_name: foodItem.foodName,
                             is_portion: true,
-                            portions: portions,
-                            used_one_portion_data: usedOnePortionData
+                            portions: portions, // ULOŽIT počet porcí
+                            used_one_portion_data: usedOnePortionData, // ULOŽIT zda se použila data pro jednu porci
+                            original_portion_data: foodItem.overriddenNutrition // ULOŽIT původní data pro jednu porci
                         };
 
-                        console.log("💾 Kontrola recipe_id před uložením:", {
-                            recipeId: foodItem.recipeId,
-                            type: typeof foodItem.recipeId,
-                            isNull: foodItem.recipeId === null,
-                            isUndefined: foodItem.recipeId === undefined
+                        console.log("💾 UKLÁDÁM DO DATABÁZE - mealItemData:", {
+                            recipe_id: mealItemData.recipe_id,
+                            recipe_name: mealItemData.recipe_name,
+                            portions: mealItemData.portions,
+                            used_one_portion_data: mealItemData.used_one_portion_data,
+                            calories: mealItemData.calories
                         });
 
                         const { error } = await window.supabaseClient
@@ -4080,25 +4084,34 @@
         }
 
         async function deleteRecipe(recipeId, recipeName) {
-            if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) return;
+    if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) return;
 
-            window.showCustomNotification(`Opravdu chcete odstranit recept "<strong>${recipeName}</strong>" ? `, 'confirmDeleteRecipe', async () => {
-                try {
-                    const { error } = await window.supabaseClient
-                        .from('recipes')
-                        .delete()
-                        .eq('id', recipeId)
-                        .eq('profile_id', window.currentProfileId);
+    window.showCustomNotification(`Opravdu chcete odstranit recept "<strong>${recipeName}</strong>" ze seznamu receptů?`, 'confirmDeleteRecipe', async () => {
+        try {
+            console.log(`🗑️ Mažu recept ${recipeName} (${recipeId}) - pouze ze seznamu...`);
 
-                    if (error) throw error;
-                    window.showCustomNotification(`Recept "<strong>${recipeName}</strong>" byl úspěšně smazán.`, 'recipeDeletionSuccess');
-                    loadUserRecipes();
-                } catch (error) {
-                    console.error("Error deleting recipe:", error);
-                    window.showCustomNotification(`Chyba při odstraňování receptu "<strong>${recipeName}</strong>": ${error.message} `, 'recipeDeletionError');
-                }
-            }, true);
+            // 1. POUZE smažte recept ze seznamu
+            const { error: deleteRecipeError } = await window.supabaseClient
+                .from('recipes')
+                .delete()
+                .eq('id', recipeId)
+                .eq('profile_id', window.currentProfileId);
+
+            if (deleteRecipeError) {
+                console.error("❌ Chyba při mazání receptu:", deleteRecipeError);
+                throw deleteRecipeError;
+            }
+
+            console.log(`✅ Recept ${recipeName} úspěšně smazán ze seznamu`);
+            window.showCustomNotification(`Recept "<strong>${recipeName}</strong>" byl odstraněn ze seznamu. Jídla v denním příjmu zůstala zachována.`, 'recipeDeletionSuccess');
+            loadUserRecipes();
+            
+        } catch (error) {
+            console.error("❌ Error deleting recipe:", error);
+            window.showCustomNotification(`Chyba při odstraňování receptu: ${error.message}`, 'recipeDeletionError');
         }
+    }, true);
+}
 
         async function deleteFoodItemFromRecipe(recipeId, ingredientIndex, ingredientName, recipeName) {
             if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) return;
@@ -6774,6 +6787,7 @@
                         if (itemsError) throw itemsError;
 
                         // DŮLEŽITÉ: Pro položky s recipe_id načteme aktuální data receptu
+                        // V části kde načítáme data receptu pro meal_item přidejte:
                         const itemsWithRecipeData = await Promise.all(
                             (itemsData || []).map(async (item) => {
                                 if (item.recipe_id) {
@@ -6784,10 +6798,31 @@
                                             .eq('id', item.recipe_id)
                                             .single();
 
-                                        // DŮLEŽITÉ: Pokud recept neexistuje, použijeme původní data z meal_items
+                                        // DŮLEŽITÉ: Pokud recept neexistuje, použijeme data z meal_items
                                         if (recipeError || !recipeData) {
-                                            console.log("ℹ️ Recept již neexistuje, používám původní data:", item.food_name);
-                                            return item; // VRÁTÍME PŮVODNÍ ITEM BEZ ZMĚN
+                                            console.log("ℹ️ Recept již neexistuje, používám data z meal_items:", {
+                                                foodName: item.food_name,
+                                                portions: item.portions,
+                                                usedOnePortionData: item.used_one_portion_data,
+                                                hasOriginalData: !!item.original_portion_data
+                                            });
+
+                                            // Pokud máme uložená data pro jednu porci, použijeme je
+                                            if (item.used_one_portion_data && item.original_portion_data) {
+                                                console.log("🔢 Používám uložená data pro jednu porci");
+                                                return {
+                                                    ...item,
+                                                    calories: item.original_portion_data.total_kcal || item.calories,
+                                                    protein: item.original_portion_data.protein || item.protein,
+                                                    carbs: item.original_portion_data.carbs || item.carbs,
+                                                    fat: item.original_portion_data.fat || item.fat,
+                                                    fiber: item.original_portion_data.fiber || item.fiber,
+                                                    nutritional_data: item.original_portion_data
+                                                };
+                                            }
+
+                                            // Jinak vrátíme původní item
+                                            return item;
                                         }
 
                                         console.log("🔍 Načítám data receptu pro meal_item:", {
