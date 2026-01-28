@@ -1047,7 +1047,37 @@
 
         // Funkce pro zavření vyhledávacího modalu
         function closeSearchModal() {
-            document.getElementById('searchModal').style.display = 'none';
+            console.log("🔴 Zavírám vyhledávací modal");
+            
+            // ZRUŠÍME PROBÍHAJÍCÍ VYHLEDÁVÁNÍ
+            if (searchAbortController) {
+                searchAbortController.abort();
+                searchAbortController = null;
+                console.log("🛑 Vyhledávání zrušeno při zavření modalu");
+            }
+            
+            const modal = document.getElementById('searchModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            
+            // Vyčistíme vstupní pole
+            const searchInput = document.getElementById('searchModalQuery');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            
+            // Vyčistíme výsledky
+            const resultsDiv = document.getElementById('searchModalResults');
+            if (resultsDiv) {
+                resultsDiv.innerHTML = '';
+            }
+            
+            // Skryjeme loading
+            const loadingDiv = document.getElementById('searchModalLoading');
+            if (loadingDiv) {
+                loadingDiv.style.display = 'none';
+            }
         }
 
         // Event listener pro vyhledávací form v modalu
@@ -1498,6 +1528,11 @@
         });
 
         // Funkce pro vyhledávání
+        // =====================================================
+        // GLOBÁLNÍ PROMĚNNÁ PRO KONTROLU ZRUŠENÍ VYHLEDÁVÁNÍ
+        // =====================================================
+        let searchAbortController = null;
+
         async function performSearch(query) {
             const loadingDiv = document.getElementById('searchModalLoading');
             const resultsDiv = document.getElementById('searchModalResults');
@@ -1507,11 +1542,18 @@
             errorDiv.style.display = 'none';
             loadingDiv.style.display = 'block';
 
+            // VYTVOŘÍME NOVÝ ABORT CONTROLLER PRO TENTO SEARCH
+            if (searchAbortController) {
+                searchAbortController.abort(); // Zrušíme předchozí hledání
+            }
+            searchAbortController = new AbortController();
+
             try {
                 const response = await fetch('/search', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `query=${encodeURIComponent(query)}`
+                    body: `query=${encodeURIComponent(query)}`,
+                    signal: searchAbortController.signal // PŘIDÁME SIGNAL PRO MOŽNOST ZRUŠENÍ
                 });
 
                 if (!response.ok) {
@@ -1523,6 +1565,13 @@
                 let buffer = '';
 
                 while (true) {
+                    // KONTROLA ZRUŠENÍ VYHLEDÁVÁNÍ
+                    if (searchAbortController.signal.aborted) {
+                        console.log("🛑 Vyhledávání přerušeno uživatelem");
+                        reader.cancel(); // Zastavíme čtení streamu
+                        break;
+                    }
+
                     const { done, value } = await reader.read();
                     if (done) break;
 
@@ -1553,6 +1602,13 @@
                 }
 
             } catch (error) {
+                // KONTROLA, ZDA BYLA CHYBA ZPŮSOBENA ZRUŠENÍM
+                if (error.name === 'AbortError') {
+                    console.log("🛑 Fetch byl zrušen");
+                    loadingDiv.style.display = 'none';
+                    return;
+                }
+                
                 console.error('Došlo k chybě:', error);
                 loadingDiv.style.display = 'none';
                 errorDiv.textContent = 'Došlo k chybě při komunikaci se serverem.';
@@ -1610,6 +1666,13 @@
                     if (!e.target.closest('.add-food-item-btn')) { // Tlačítko Přidat jsme prozatím zrušili, ale kontrola je dobrá pro budoucí použití
                         e.preventDefault();
                         e.stopPropagation();
+                        
+                        // ⚡ KLÍČOVÁ ZMĚNA: OKAMŽITĚ PŘERUŠÍME VYHLEDÁVÁNÍ
+                        if (searchAbortController) {
+                            searchAbortController.abort();
+                            console.log("🛑 Vyhledávání přerušeno - uživatel klikl na výsledek");
+                        }
+                        
                         closeSearchModal();
                         showDetailsModal(item.slug, item.name, item.image_url, item.calories, item.food_type);
                     }
