@@ -1418,16 +1418,23 @@
                     console.log("💾 Ukládám jednotlivou potravinu...");
                     const nutritionalData = foodItem.nutritionalDetails || {};
 
+                    // PARSOVÁNÍ S parseValueAndUnit aby se neztrácela desetinná místa
+                    const { number: caloriesNum } = parseValueAndUnit(foodItem.kcal || nutritionalData.total_kcal);
+                    const { number: proteinNum } = parseValueAndUnit(nutritionalData.protein);
+                    const { number: carbsNum } = parseValueAndUnit(nutritionalData.carbs);
+                    const { number: fatNum } = parseValueAndUnit(nutritionalData.fat);
+                    const { number: fiberNum } = parseValueAndUnit(nutritionalData.fiber);
+
                     const mealItemData = {
                         daily_meal_id: mealId,
                         food_name: foodItem.foodName || 'Neznámá potravina',
                         amount: foodItem.amount || 100,
                         unit: foodItem.unit || 'g',
-                        calories: parseFloat(foodItem.kcal || nutritionalData.total_kcal || 0) || 0,
-                        protein: parseFloat(nutritionalData.protein || 0) || 0,
-                        carbs: parseFloat(nutritionalData.carbs || 0) || 0,
-                        fat: parseFloat(nutritionalData.fat || 0) || 0,
-                        fiber: parseFloat(nutritionalData.fiber || 0) || 0,
+                        calories: caloriesNum || 0,
+                        protein: proteinNum || 0,
+                        carbs: carbsNum || 0,
+                        fat: fatNum || 0,
+                        fiber: fiberNum || 0,
                         nutritional_data: nutritionalData,
                         recipe_id: null, // Jednotlivá potravina
                         recipe_name: null // Jednotlivá potravina
@@ -7698,10 +7705,11 @@
             <div class="recipe-main-info">
                 <div class="recipe-icon">${group.recipeExists ? '📋' : '🗑️'}</div>
                 <div class="recipe-details">
-                    <div class="recipe-name">
+  <div class="recipe-name">
                         ${group.recipeName}
                         ${!group.recipeExists ? '<span class="deleted-badge">(smazáno)</span>' : ''}
                     </div>
+                    <!-- OBA TYPY - DVOUŘÁDKOVÝ LAYOUT -->
                     <div class="recipe-totals-row main-highlight-row">
                         <span class="calorie-highlight">${smartRound(group.totalCalories)} kcal</span>
                         <span class="total-amount-display">${smartRound(totalAmount)} ${mainUnit}</span>
@@ -7723,17 +7731,37 @@
             </div>
         </div>
         <div class="recipe-ingredients ${isExpanded ? 'expanded' : ''}">
-            ${group.items.map(item => `
+            ${group.items.map(item => {
+                const cals = parseFloat(item.calories) || 0;
+                const prot = parseFloat(item.protein) || 0;
+                const carb = parseFloat(item.carbs) || 0;
+                const fat = parseFloat(item.fat) || 0;
+                const amt = parseFloat(item.amount) || 0;
+                
+                return `
                 <div class="recipe-ingredient-item ${isCustomRecipe ? 'custom-recipe-ingredient' : ''}">
                     <div class="ingredient-info">
                         <div class="ingredient-name">${item.food_name}</div>
-                        <div class="ingredient-details">
-                            ${!isCustomRecipe ? `<span class="amount-badge">${smartRound(parseFloat(item.amount) || 0)} ${item.unit}</span>` : ''}
-                            <span class="calorie-value">${smartRound(parseFloat(item.calories) || 0)} kcal</span>
-                            ${item.protein ? `<span>B: ${smartRound(parseFloat(item.protein) || 0)}g</span>` : ''}
-                            ${item.carbs ? `<span>S: ${smartRound(parseFloat(item.carbs) || 0)}g</span>` : ''}
-                            ${item.fat ? `<span>T: ${smartRound(parseFloat(item.fat) || 0)}g</span>` : ''}
-                        </div>
+                        ${isCustomRecipe ? `
+                            <!-- VLASTNÍ RECEPT - DVOUŘÁDKOVÝ -->
+                            <div class="ingredient-details-custom">
+                                <div class="custom-row-1">
+                                    <span>${smartRound(cals)} kcal</span>
+                                    <span>B: ${smartRound(prot)}g</span>
+                                    <span>S: ${smartRound(carb)}g</span>
+                                    <span>T: ${smartRound(fat)}g</span>
+                                </div>
+                            </div>
+                        ` : `
+                            <!-- BĚŽNÝ RECEPT - JEDNOŘÁDKOVÝ -->
+                            <div class="ingredient-details">
+                                <span class="amount-badge">${smartRound(amt)} ${item.unit}</span>
+                                <span class="calorie-value">${smartRound(cals)} kcal</span>
+                                ${item.protein ? `<span>B: ${smartRound(prot)}g</span>` : ''}
+                                ${item.carbs ? `<span>S: ${smartRound(carb)}g</span>` : ''}
+                                ${item.fat ? `<span>T: ${smartRound(fat)}g</span>` : ''}
+                            </div>
+                        `}
                     </div>
                     <div class="ingredient-actions">
                         <button class="edit-ingredient-btn" data-item-id="${item.id}" title="Upravit ingredienci">
@@ -7744,7 +7772,7 @@
                         </button>
                     </div>
                 </div>
-            `).join('')}
+            `}).join('')}
         </div>
     `;
 
@@ -7827,9 +7855,9 @@
                                                     <div class="food-item-details">
                                                         <span class="amount-badge">${item.amount} ${item.unit}</span>
                                                         <span>${smartRound(parseFloat(item.calories) || 0)} kcal</span>
-                                                        ${item.protein ? `<span>B: ${smartRound(parseFloat(item.protein) || 0)}g</span>` : ''}
-                                                        ${item.carbs ? `<span>S: ${smartRound(parseFloat(item.carbs) || 0)}g</span>` : ''}
-                                                        ${item.fat ? `<span>T: ${smartRound(parseFloat(item.fat) || 0)}g</span>` : ''}
+                                                        ${item.protein ? `<span>B: ${Math.round(parseFloat(item.protein) || 0)}g</span>` : ''}
+                                                        ${item.carbs ? `<span>S: ${Math.round(parseFloat(item.carbs) || 0)}g</span>` : ''}
+                                                        ${item.fat ? `<span>T: ${Math.round(parseFloat(item.fat) || 0)}g</span>` : ''}
                                                     </div>
                                                 </div>
                                                 <div class="food-item-actions">
@@ -8214,7 +8242,16 @@
                 .select()
                 .single();
 
-            if (createError) throw createError;
+            if (createError) {
+                // SPECIÁLNÍ CHYBA PRO DINNER2
+                if (createError.code === '23514' && mealType === 'dinner2') {
+                    window.showCustomNotification(
+                        'Druhá večeře vyžaduje aktualizaci databáze. Kontaktujte administrátora nebo spusťte SQL příkaz pro přidání dinner2 do check constraintu.',
+                        'error'
+                    );
+                }
+                throw createError;
+            }
             return newMeal.id;
         }
 

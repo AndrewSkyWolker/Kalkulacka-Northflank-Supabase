@@ -5040,3 +5040,110 @@ select.form-input {
     color: #0066cc;
 }
 
+
+/* ============================================= */
+/* OPRAVY PODLE POŽADAVKŮ - KOLO 13 */
+/* ============================================= */
+
+/* 1. NUTRIENTY V HLAVIČCE - ČERNÉ PÍSMO (ne šedá) */
+.recipe-totals-row span {
+    color: #000000 !important;
+}
+
+/* 2. HODNOTA KALORIÍ V POLOŽKÁCH - ČERNÁ */
+.calorie-value {
+    color: #000000 !important;
+    font-weight: 600;
+}
+
+/* 3. SKRÝT KALORIE U VLASTNÍHO RECEPTU V POLOŽKÁCH */
+.custom-recipe-ingredient .calorie-value {
+    display: none !important;
+}
+
+/* 4. POSUNOUT KALORIE A NUTRIENTY BLÍŽ K HMOTNOSTI */
+.ingredient-details {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important; /* MENŠÍ MEZERA */
+}
+
+/* 5. HMOTNOST V HLAVIČCE - BEZ POZADÍ, ČERNÉ PÍSMO */
+.total-amount-display {
+    background: none !important;
+    color: #000000 !important;
+    padding: 0 !important;
+}
+
+/* 6. OMEZIT DÉLKU NÁZVU POLOŽKY */
+.ingredient-name {
+    max-width: 200px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+
+/* ============================================= */
+/* OPRAVY KOLO 14 - Layout podle požadavků */
+/* ============================================= */
+
+/* HLAVIČKA - Jednořádkový layout pro běžný recept */
+.recipe-single-row {
+    display: flex !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+}
+
+/* POLOŽKY VLASTNÍHO RECEPTU - Dvouřádkový */
+.ingredient-details-custom {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.custom-row-1 {
+    display: flex;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.custom-row-1 span {
+    color: #000000;
+}
+
+
+/* ============================================= */
+/* OPRAVY KOLO 15 - Vertikální zarovnání a úpravy */
+/* ============================================= */
+
+/* VERTIKÁLNÍ ZAROVNÁNÍ POLOŽEK - všechny elementy na střed */
+.ingredient-details,
+.ingredient-details-custom,
+.food-item-details {
+    display: flex !important;
+    align-items: center !important; /* VERTIKÁLNĚ NA STŘED */
+    gap: 6px !important; /* BLÍŽ K SOBĚ */
+}
+
+/* KALORIE TUČNĚ U VLASTNÍHO RECEPTU */
+.custom-recipe-ingredient .calorie-value,
+.ingredient-details-custom span:first-child {
+    font-weight: 700 !important;
+}
+
+/* VYHLEDANÁ POTRAVINA - úpravy */
+.food-item-name {
+    color: #2c3e50 !important; /* STEJNÁ JAKO NÁZEV RECEPTU */
+    font-weight: 600 !important;
+}
+
+.food-item-details span {
+    color: #000000 !important; /* ČERNÁ */
+}
+
+.food-item-details .calorie-value,
+.food-item-details span:nth-child(2) {
+    font-weight: 700 !important; /* KALORIE TUČNĚ */
+}
+

@@ -5083,3 +5083,126 @@ select.form-input {
     white-space: nowrap !important;
 }
 
+
+/* ============================================= */
+/* OPRAVY KOLO 14 - Layout podle požadavků */
+/* ============================================= */
+
+/* HLAVIČKA - Jednořádkový layout pro běžný recept */
+.recipe-single-row {
+    display: flex !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+}
+
+/* POLOŽKY VLASTNÍHO RECEPTU - Dvouřádkový */
+.ingredient-details-custom {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.custom-row-1 {
+    display: flex;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.custom-row-1 span {
+    color: #000000;
+}
+
+
+/* ============================================= */
+/* OPRAVY KOLO 15 - Vertikální zarovnání a úpravy */
+/* ============================================= */
+
+/* VERTIKÁLNÍ ZAROVNÁNÍ POLOŽEK - všechny elementy na střed */
+.ingredient-details,
+.ingredient-details-custom,
+.food-item-details {
+    display: flex !important;
+    align-items: center !important; /* VERTIKÁLNĚ NA STŘED */
+    gap: 6px !important; /* BLÍŽ K SOBĚ */
+}
+
+/* KALORIE TUČNĚ U VLASTNÍHO RECEPTU */
+.custom-recipe-ingredient .calorie-value,
+.ingredient-details-custom span:first-child {
+    font-weight: 700 !important;
+}
+
+/* VYHLEDANÁ POTRAVINA - úpravy */
+.food-item-name {
+    color: #2c3e50 !important; /* STEJNÁ JAKO NÁZEV RECEPTU */
+    font-weight: 600 !important;
+}
+
+.food-item-details span {
+    color: #000000 !important; /* ČERNÁ */
+}
+
+.food-item-details .calorie-value,
+.food-item-details span:nth-child(2) {
+    font-weight: 700 !important; /* KALORIE TUČNĚ */
+}
+
+
+/* ============================================= */
+/* OPRAVY KOLO 16 - Wrap a vertikální zarovnání */
+/* ============================================= */
+
+/* HLAVIČKA - zabránit wrap nutrientů */
+.macro-stats-row {
+    display: flex !important;
+    flex-wrap: nowrap !important; /* ZAKÁZAT WRAP */
+    gap: 8px !important;
+}
+
+.recipe-totals-row {
+    flex-wrap: nowrap !important; /* ZAKÁZAT WRAP */
+}
+
+/* VERTIKÁLNÍ ZAROVNÁNÍ - opravit aby skutečně fungovalo */
+.ingredient-details {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.ingredient-details span {
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1 !important; /* KLÍČ PRO ZAROVNÁNÍ */
+}
+
+.ingredient-details-custom {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+
+.custom-row-1 {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.custom-row-1 span {
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1 !important;
+}
+
+.food-item-details {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.food-item-details span {
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1 !important;
+}
+
