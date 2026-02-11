@@ -3026,27 +3026,23 @@ select.form-input {
 }
 
 .date-nav-btn {
-    padding: 8px 14px !important; /* ZVĚTŠENO - přesahuje datum */
-    font-size: 1rem !important; /* STEJNÁ VELIKOST JAKO DATUM */
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    padding: 6px 12px !important;
+    font-size: .9rem !important
 }
 
 .today-text-btn {
     background: none !important;
     border: none !important;
-    color: #333 !important; /* STEJNÁ BARVA JAKO DATUM */
-    font-size: 1rem !important; /* STEJNÁ VELIKOST JAKO DATUM */
-    font-weight: 500 !important; /* STEJNÁ TLOUŠŤKA JAKO DATUM */
+    color: #6f42c1 !important; /* FIALOVÁ */
+    font-size: 0.85rem !important;
     cursor: pointer !important;
     padding: 2px 8px !important;
     transition: all 0.2s !important;
-    text-decoration: none !important; /* BEZ PODTRŽENÍ */
+    text-decoration: underline !important;
 }
 
 .today-text-btn:hover {
-    color: #000 !important;
+    color: #5a32a3 !important;
     font-weight: 600 !important;
 }
 
@@ -4825,7 +4821,7 @@ select.form-input {
     background-color: #6f42c1 !important; /* FIALOVÁ JAKO PŮVODNĚ */
     color: white !important;
     border: none !important;
-    padding: 6px 20px !important; /* VÝŠKA: 10px → 6px (o třetinu menší) */
+    padding: 10px 20px !important;
     border-radius: 6px !important;
     font-size: 1rem !important;
     font-weight: 500 !important; /* NETUČNÉ */
@@ -4833,8 +4829,7 @@ select.form-input {
     transition: all 0.2s !important;
     white-space: nowrap !important;
     flex-shrink: 0 !important;
-    width: 50% !important; /* POLOVIČNÍ ŠÍŘKA */
-    max-width: 50% !important;
+    width: 100% !important; /* STEJNÁ ŠÍŘKA JAKO EDIT */
     justify-content: center !important;
     display: flex !important;
     align-items: center !important;
@@ -4919,7 +4914,7 @@ select.form-input {
     background-color: #007bff !important; /* MODRÁ */
     color: white !important;
     border: none !important;
-    padding: 6px 20px !important; /* VÝŠKA STEJNÁ JAKO ADD */
+    padding: 10px 20px !important;
     border-radius: 6px !important;
     font-size: 1rem !important;
     font-weight: 500 !important; /* NETUČNÉ */
@@ -4929,9 +4924,9 @@ select.form-input {
     align-items: center !important;
     gap: 6px !important;
     white-space: nowrap !important;
-    width: 50% !important; /* POLOVIČNÍ ŠÍŘKA */
-    max-width: 50% !important;
+    width: 100% !important; /* STEJNÁ ŠÍŘKA */
     justify-content: center !important;
+    max-width: 25% !important; /* MAX 1/4 ŠÍŘKY */
 }
 
 .btn-edit-custom:hover {
@@ -4966,77 +4961,5 @@ select.form-input {
     justify-content: space-between !important;
     align-items: center !important;
     gap: 15px !important;
-}
-
-
-/* ============================================= */
-/* NOVÝ DVOUŘÁDKOVÝ LAYOUT NUTRIENTŮ */
-/* ============================================= */
-
-.ingredient-details-new {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 0.85rem;
-}
-
-/* SLOUPEC S HMOTNOSTÍ (pouze u běžného receptu) */
-.amount-column {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-width: 50px;
-}
-
-.amount-value {
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-.amount-unit {
-    font-size: 0.75rem;
-    color: #666;
-}
-
-/* MŘÍŽKA S NUTRIENTY */
-.nutrients-grid {
-    display: flex;
-    gap: 10px;
-    flex: 1;
-}
-
-.nutrient-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.nutrient-label {
-    font-size: 0.75rem;
-    color: #666;
-    font-weight: 500;
-}
-
-.nutrient-value {
-    font-weight: 600;
-    font-size: 0.85rem;
-}
-
-.nutrient-unit {
-    font-size: 0.75rem;
-    color: #666;
-}
-
-/* SLOUPEC S KALORIEMI - zvýrazněný */
-.calories-col {
-    background: #f0f9ff;
-    padding: 4px 8px;
-    border-radius: 4px;
-}
-
-.calories-col .nutrient-value {
-    font-weight: 700;
-    color: #0066cc;
 }
 
