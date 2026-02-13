@@ -5147,3 +5147,256 @@ select.form-input {
     font-weight: 700 !important; /* KALORIE TUČNĚ */
 }
 
+
+/* ============================================= */
+/* OPRAVY KOLO 16 - Wrap a vertikální zarovnání */
+/* ============================================= */
+
+/* HLAVIČKA - zabránit wrap nutrientů */
+.macro-stats-row {
+    display: flex !important;
+    flex-wrap: nowrap !important; /* ZAKÁZAT WRAP */
+    gap: 8px !important;
+}
+
+.recipe-totals-row {
+    flex-wrap: nowrap !important; /* ZAKÁZAT WRAP */
+}
+
+/* VERTIKÁLNÍ ZAROVNÁNÍ - opravit aby skutečně fungovalo */
+.ingredient-details {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.ingredient-details span {
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1 !important; /* KLÍČ PRO ZAROVNÁNÍ */
+}
+
+.ingredient-details-custom {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+
+.custom-row-1 {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.custom-row-1 span {
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1 !important;
+}
+
+.food-item-details {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.food-item-details span {
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1 !important;
+}
+
+
+/* ============================================= */
+/* KOLO 17 - DVOUŘÁDKOVÝ LAYOUT S CENTROVÁNÍM */
+/* ============================================= */
+
+/* DVOUŘÁDKOVÝ LAYOUT - label NAD hodnotou */
+.ingredient-details-tworow {
+    display: flex !important;
+    gap: 10px !important;
+    align-items: flex-start !important;
+}
+
+/* SLOUPEC PRO JEDEN NUTRIENT */
+.nutrient-column {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important; /* ZAROVNÁNÍ NA STŘED */
+    gap: 2px !important;
+}
+
+/* LABEL NAHOŘE (kcal, B:, S:, T:) */
+.nutrient-label-top {
+    font-size: 0.75rem !important;
+    color: #666 !important;
+    font-weight: 500 !important;
+}
+
+/* HODNOTA DOLE */
+.nutrient-value-bottom {
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    color: #000 !important;
+}
+
+/* SLOUPEC S HMOTNOSTÍ */
+.amount-column-tworow {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 2px !important;
+}
+
+.amount-column-tworow .amount-value {
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    color: #000 !important;
+}
+
+.amount-column-tworow .amount-unit {
+    font-size: 0.75rem !important;
+    color: #666 !important;
+}
+
+/* VLASTNÍ RECEPT - K LEVÉMU OKRAJI */
+.custom-left {
+    justify-content: flex-start !important;
+}
+
+/* VYHLEDANÁ POTRAVINA - Název jako hlavička receptu */
+.food-item-name {
+    color: #2c3e50 !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    margin-bottom: 4px !important;
+}
+
+/* NÁZEV INGREDIENCE ZAROVNANÝ S HMOTNOSTÍ */
+.ingredient-name {
+    margin-bottom: 4px !important;
+}
+
+/* IKONKY - BEZ POZADÍ PŘI HOVER */
+.edit-ingredient-btn:hover,
+.delete-ingredient-btn:hover,
+.edit-food-item:hover,
+.delete-food-item:hover {
+    background: none !important;
+    background-color: transparent !important;
+}
+
+
+/* ============================================= */
+/* KOLO 18 - Opravy podle přesných požadavků */
+/* ============================================= */
+
+/* 1. TUČNÉ POUZE KALORIE */
+.nutrient-bold {
+    font-weight: 700 !important;
+}
+
+.nutrient-value-bottom {
+    font-weight: normal !important; /* DEFAULTNĚ NE TUČNÉ */
+    color: #000 !important;
+}
+
+/* 2. HMOTNOST JEDNOŘÁDKOVÁ, VERTIKÁLNĚ NA STŘED */
+.amount-single {
+    display: flex !important;
+    align-items: center !important;
+    align-self: center !important; /* VERTIKÁLNĚ NA STŘED KONTEJNERU */
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    color: #000 !important;
+    white-space: nowrap !important;
+}
+
+/* 3. NÁZEV VYHLEDANÉ POTRAVINY - STEJNÁ BARVA JAKO HLAVIČKA */
+.food-item-name {
+    color: #2c3e50 !important; /* PŘESNĚ STEJNÁ JAKO .recipe-name */
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+}
+
+/* Zajistit že .recipe-name má tuto barvu */
+.recipe-name {
+    color: #2c3e50 !important;
+}
+
+/* 4. VYHLEDANÁ POTRAVINA - HMOTNOST A NUTRIENTY DOLEVA */
+.food-item-details {
+    display: flex !important;
+    justify-content: flex-start !important; /* DOLEVA */
+    align-items: flex-start !important;
+    gap: 6px !important;
+}
+
+/* 5. VŠECHNY IKONKY - BEZ POZADÍ PŘI HOVER (VŠUDE) */
+button:hover,
+.edit-ingredient-btn:hover,
+.delete-ingredient-btn:hover,
+.edit-food-item:hover,
+.delete-food-item:hover,
+.toggle-recipe-btn:hover,
+.delete-recipe-group-btn:hover,
+.add-meal-btn:hover,
+.btn-edit-custom:hover,
+.btn-add-meal-small:hover {
+    background: none !important;
+    background-color: transparent !important;
+}
+
+
+/* ============================================= */
+/* KOLO 19 - Kalorie tučně, barva názvu, zarovnání */
+/* ============================================= */
+
+/* 1. KALORIE - TUČNĚ HODNOTA I JEDNOTKA */
+.nutrient-column:first-of-type .nutrient-label-top,
+.nutrient-column:first-of-type .nutrient-value-bottom {
+    font-weight: 700 !important; /* TUČNĚ */
+}
+
+/* 2. NUTRIENTY - ČERNÉ PÍSMO (labely i hodnoty) */
+.nutrient-label-top,
+.nutrient-value-bottom {
+    color: #000000 !important;
+}
+
+/* 3. HMOTNOST BĚŽNÉHO RECEPTU - NETUČNĚ, MENŠÍ */
+.amount-single {
+    font-weight: normal !important; /* NETUČNĚ */
+    font-size: 0.85rem !important; /* MENŠÍ */
+}
+
+/* 4. VYHLEDANÁ POTRAVINA - BARVA NÁZVU STEJNÁ JAKO RECEPT */
+.food-item-name {
+    color: #2c5aa0 !important; /* PŘESNĚ STEJNÁ JAKO .recipe-name */
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+}
+
+/* 5. VYHLEDANÁ POTRAVINA - HMOTNOST DOLEVA ZAROVNANÁ S NÁZVEM */
+.food-item-details {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+}
+
+.food-item-info {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+}
+
+
+/* ============================================= */
+/* KOLO 20 - Zarovnání a přepočet nutrientů */
+/* ============================================= */
+
+/* 1. VYHLEDANÁ POTRAVINA - ZAROVNÁNÍ DOLEVA */
+/* 2. BARVA NÁZVU V HLAVIČCE JÍDLA NA HLAVNÍ STRÁNCE */
+.recipe-group .recipe-name {
+    color: #2c5aa0 !important;
+}
+

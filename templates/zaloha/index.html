@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="cs">
-
+<!-- VERSION 24 - DEBUG + REFACTORED SAVING - REFRESH REQUIRED -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,6 +26,9 @@
 
     <!-- Service Worker Registration -->
     <script>
+        console.log("🚀 APP VERSION: 24 - DEBUG + REFACTORED SAVING");
+        console.log("🔄 Pokud nevidíš debug logy při ukládání, proveď hard refresh: Ctrl+Shift+R");
+        
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
                 navigator.serviceWorker.register('{{ url_for("static", filename="sw.js") }}')
@@ -1233,7 +1236,7 @@
                 mealTypeButtons.forEach(btn => {
                     btn.addEventListener('click', function () {
                         const mealType = this.dataset.mealType;
-                        addFoodToMeal(mealType);
+                        addFoodToMeal(mealType); // Modal se zavře až po úspěšném přidání
                     });
                 });
                 console.log(`✅ ${mealTypeButtons.length} mealTypeButtons inicializováno`);
@@ -1344,8 +1347,7 @@
             console.log("📦 addFoodItemToDailyMeal - kontext:", {
                 foodName: foodItem.foodName,
                 isRecipe: foodItem.isRecipe,
-                portions: foodItem.portions,
-                usedOnePortionData: foodItem.usedOnePortionData
+                recipeId: foodItem.recipeId
             });
 
             const dateString = formatDateForAPI(date);
@@ -1354,103 +1356,190 @@
                 let dailyIntakeId = await getOrCreateDailyIntake(dateString);
                 let mealId = await getOrCreateMeal(dailyIntakeId, mealType);
 
-                if (foodItem.isRecipe && foodItem.ingredients && foodItem.ingredients.length > 0) {
-                    const portions = foodItem.portions || 1;
-                    const usedOnePortionData = foodItem.usedOnePortionData || false;
+                // 1. VYHLEDANÁ POTRAVINA (není recept)
+                if (!foodItem.isRecipe) {
+                    console.log("💾 Ukládám vyhledanou potravinu - přepočítávám nutrienty na hmotnost");
+                    const nutritionalData = foodItem.nutritionalDetails || {};
+                    const amount = parseFloat(foodItem.amount) || 100;
 
-                    console.log("🥘 Přidávám recept do jídla:", {
-                        name: foodItem.foodName,
-                        portions: portions,
-                        usedOnePortionData: usedOnePortionData,
-                        hasOverriddenNutrition: !!foodItem.overriddenNutrition
+                    // KALORIE jsou UŽ přepočítané
+                    const { number: caloriesNum } = parseValueAndUnit(foodItem.kcal || nutritionalData.total_kcal);
+                    
+                    // NUTRIENTY jsou NA 100g - musíme přepočítat na skutečnou hmotnost
+                    const { number: proteinPer100 } = parseValueAndUnit(nutritionalData.protein);
+                    const { number: carbsPer100 } = parseValueAndUnit(nutritionalData.carbs);
+                    const { number: fatPer100 } = parseValueAndUnit(nutritionalData.fat);
+                    const { number: fiberPer100 } = parseValueAndUnit(nutritionalData.fiber);
+                    
+                    // PŘEPOČET NA SKUTEČNOU HMOTNOST
+                    const actualProtein = (proteinPer100 * amount) / 100;
+                    const actualCarbs = (carbsPer100 * amount) / 100;
+                    const actualFat = (fatPer100 * amount) / 100;
+                    const actualFiber = (fiberPer100 * amount) / 100;
+
+                    const mealItemData = {
+                        daily_meal_id: mealId,
+                        food_name: foodItem.foodName || 'Neznámá potravina',
+                        amount: amount,
+                        unit: foodItem.unit || 'g',
+                        calories: caloriesNum || 0,      // JAK JSOU (UŽ přepočítáno)
+                        protein: actualProtein || 0,     // PŘEPOČTENO
+                        carbs: actualCarbs || 0,         // PŘEPOČTENO
+                        fat: actualFat || 0,             // PŘEPOČTENO
+                        fiber: actualFiber || 0,         // PŘEPOČTENO
+                        nutritional_data: nutritionalData,
+                        recipe_id: null,
+                        recipe_name: null
+                    };
+
+                    console.log("💾 UKLÁDÁM DO DB - VYHLEDANÁ POTRAVINA:", {
+                        food_name: mealItemData.food_name,
+                        amount: mealItemData.amount,
+                        per100g: {
+                            protein: proteinPer100,
+                            carbs: carbsPer100,
+                            fat: fatPer100
+                        },
+                        actual: {
+                            calories: mealItemData.calories,
+                            protein: mealItemData.protein,
+                            carbs: mealItemData.carbs,
+                            fat: mealItemData.fat
+                        }
                     });
 
-                    for (const ingredient of foodItem.ingredients) {
-                        let nutritionalData = ingredient.nutritionalDetails || {};
-                        let calories = parseFloat(ingredient.calories || nutritionalData.total_kcal || 0);
+                    const { error } = await window.supabaseClient
+                        .from('meal_items')
+                        .insert(mealItemData);
 
-                        // DŮLEŽITÉ: Pokud recept má více porcí a používáme data pro jednu porci
-                        if (foodItem.overriddenNutrition && usedOnePortionData) {
-                            console.log("🔢 Používám přepočtená data z overriddenNutrition");
-                            nutritionalData = foodItem.overriddenNutrition;
-                            calories = parseFloat(foodItem.overriddenNutrition.total_kcal || 0);
-                        }
+                    if (error) throw error;
+                    console.log("✅ Vyhledaná potravina uložena");
+                    
+                // 2. RECEPT (běžný nebo vlastní)
+                } else if (foodItem.isRecipe && foodItem.ingredients && foodItem.ingredients.length > 0) {
+                    // Načteme data receptu z databáze
+                    const { data: recipeData, error: recipeError } = await window.supabaseClient
+                        .from('recipes')
+                        .select('has_multiple_portions, recipe_one_portion, portions')
+                        .eq('id', foodItem.recipeId)
+                        .single();
 
+                    if (recipeError) {
+                        console.error("❌ Chyba při načítání receptu:", recipeError);
+                        throw recipeError;
+                    }
+
+                    const isCustomRecipe = recipeData.has_multiple_portions === true;
+                    
+                    console.log("🥘 Typ receptu:", {
+                        name: foodItem.foodName,
+                        isCustomRecipe: isCustomRecipe,
+                        hasMultiplePortions: recipeData.has_multiple_portions,
+                        hasOnePortionData: !!recipeData.recipe_one_portion
+                    });
+
+                    // 3. VLASTNÍ RECEPT - ukládáme hodnoty NA JEDNU PORCI
+                    if (isCustomRecipe && recipeData.recipe_one_portion) {
+                        console.log("🔢 Ukládám VLASTNÍ recept - hodnoty NA JEDNU PORCI");
+                        
+                        const onePortionData = recipeData.recipe_one_portion;
+                        
+                        // Uložíme JEDNU položku s hodnotami pro jednu porci
                         const mealItemData = {
                             daily_meal_id: mealId,
-                            food_name: ingredient.foodName || foodItem.foodName,
-                            amount: ingredient.amount || 100,
-                            unit: ingredient.unit || 'g',
-                            calories: calories,
-                            protein: parseFloat(nutritionalData.protein || 0),
-                            carbs: parseFloat(nutritionalData.carbs || 0),
-                            fat: parseFloat(nutritionalData.fat || 0),
-                            fiber: parseFloat(nutritionalData.fiber || 0),
-                            nutritional_data: nutritionalData,
+                            food_name: foodItem.foodName,
+                            amount: onePortionData.weight || 100, // Hmotnost jedné porce
+                            unit: 'g',
+                            calories: parseFloat(onePortionData.total_kcal) || 0,
+                            protein: parseFloat(onePortionData.protein) || 0,
+                            carbs: parseFloat(onePortionData.carbs) || 0,
+                            fat: parseFloat(onePortionData.fat) || 0,
+                            fiber: parseFloat(onePortionData.fiber) || 0,
+                            nutritional_data: onePortionData,
                             recipe_id: foodItem.recipeId,
-                            recipe_name: foodItem.foodName,
-                            is_portion: true,
-                            portions: portions, // ULOŽIT počet porcí
-                            used_one_portion_data: usedOnePortionData, // ULOŽIT zda se použila data pro jednu porci
-                            original_portion_data: foodItem.overriddenNutrition // ULOŽIT původní data pro jednu porci
+                            recipe_name: foodItem.foodName
                         };
 
-                        console.log("💾 UKLÁDÁM DO DATABÁZE - mealItemData:", {
-                            recipe_id: mealItemData.recipe_id,
-                            recipe_name: mealItemData.recipe_name,
-                            portions: mealItemData.portions,
-                            used_one_portion_data: mealItemData.used_one_portion_data,
-                            calories: mealItemData.calories
+                        console.log("💾 UKLÁDÁM DO DB - VLASTNÍ RECEPT (1 PORCE):", {
+                            food_name: mealItemData.food_name,
+                            amount: mealItemData.amount,
+                            calories: mealItemData.calories,
+                            protein: mealItemData.protein,
+                            carbs: mealItemData.carbs,
+                            fat: mealItemData.fat,
+                            recipe_id: mealItemData.recipe_id
                         });
 
                         const { error } = await window.supabaseClient
                             .from('meal_items')
                             .insert(mealItemData);
 
-                        if (error) {
-                            console.error("❌ Chyba při ukládání ingredience receptu:", error);
-                            throw error;
+                        if (error) throw error;
+                        console.log("✅ Vlastní recept uložen (1 porce)");
+                        
+                    // 4. BĚŽNÝ RECEPT - ukládáme hodnoty ingrediencí PŘEPOČÍTANÉ NA SKUTEČNOU HMOTNOST
+                    } else {
+                        console.log("📋 Ukládám BĚŽNÝ recept - kalorie JAK JSOU, nutrienty PŘEPOČÍTANÉ");
+                        
+                        for (const ingredient of foodItem.ingredients) {
+                            const nutritionalData = ingredient.nutritionalDetails || {};
+                            const amount = parseFloat(ingredient.amount) || 100;
+                            
+                            // KALORIE jsou UŽ přepočítané - použijeme je JAK JSOU
+                            const { number: caloriesNum } = parseValueAndUnit(ingredient.kcal || nutritionalData.total_kcal);
+                            
+                            // Nutrienty jsou NA 100g - musíme přepočítat
+                            const { number: proteinPer100 } = parseValueAndUnit(nutritionalData.protein);
+                            const { number: carbsPer100 } = parseValueAndUnit(nutritionalData.carbs);
+                            const { number: fatPer100 } = parseValueAndUnit(nutritionalData.fat);
+                            const { number: fiberPer100 } = parseValueAndUnit(nutritionalData.fiber);
+                            
+                            // PŘEPOČÍTÁME NUTRIENTY NA SKUTEČNOU HMOTNOST
+                            const actualProtein = (proteinPer100 * amount) / 100;
+                            const actualCarbs = (carbsPer100 * amount) / 100;
+                            const actualFat = (fatPer100 * amount) / 100;
+                            const actualFiber = (fiberPer100 * amount) / 100;
+
+                            const mealItemData = {
+                                daily_meal_id: mealId,
+                                food_name: ingredient.foodName,
+                                amount: amount,
+                                unit: ingredient.unit || 'g',
+                                calories: caloriesNum || 0, // JAK JSOU
+                                protein: actualProtein || 0, // PŘEPOČTENO
+                                carbs: actualCarbs || 0,     // PŘEPOČTENO
+                                fat: actualFat || 0,         // PŘEPOČTENO
+                                fiber: actualFiber || 0,     // PŘEPOČTENO
+                                nutritional_data: nutritionalData,
+                                recipe_id: foodItem.recipeId,
+                                recipe_name: foodItem.foodName
+                            };
+
+                            console.log(`💾 UKLÁDÁM DO DB - BĚŽNÝ RECEPT (ingredience ${ingredient.foodName}):`, {
+                                food_name: mealItemData.food_name,
+                                amount: mealItemData.amount,
+                                per100g: {
+                                    protein: proteinPer100,
+                                    carbs: carbsPer100
+                                },
+                                actual: {
+                                    calories: mealItemData.calories,
+                                    protein: mealItemData.protein,
+                                    carbs: mealItemData.carbs,
+                                    fat: mealItemData.fat
+                                },
+                                recipe_id: mealItemData.recipe_id,
+                                recipe_name: mealItemData.recipe_name
+                            });
+
+                            const { error } = await window.supabaseClient
+                                .from('meal_items')
+                                .insert(mealItemData);
+
+                            if (error) throw error;
                         }
+                        console.log("✅ Běžný recept uložen (všechny ingredience)");
                     }
-                    console.log("✅ Recept úspěšně uložen s přepočtenými daty");
-                } else {
-                    // Původní kód pro jednotlivé potraviny
-                    console.log("💾 Ukládám jednotlivou potravinu...");
-                    const nutritionalData = foodItem.nutritionalDetails || {};
-
-                    // PARSOVÁNÍ S parseValueAndUnit aby se neztrácela desetinná místa
-                    const { number: caloriesNum } = parseValueAndUnit(foodItem.kcal || nutritionalData.total_kcal);
-                    const { number: proteinNum } = parseValueAndUnit(nutritionalData.protein);
-                    const { number: carbsNum } = parseValueAndUnit(nutritionalData.carbs);
-                    const { number: fatNum } = parseValueAndUnit(nutritionalData.fat);
-                    const { number: fiberNum } = parseValueAndUnit(nutritionalData.fiber);
-
-                    const mealItemData = {
-                        daily_meal_id: mealId,
-                        food_name: foodItem.foodName || 'Neznámá potravina',
-                        amount: foodItem.amount || 100,
-                        unit: foodItem.unit || 'g',
-                        calories: caloriesNum || 0,
-                        protein: proteinNum || 0,
-                        carbs: carbsNum || 0,
-                        fat: fatNum || 0,
-                        fiber: fiberNum || 0,
-                        nutritional_data: nutritionalData,
-                        recipe_id: null, // Jednotlivá potravina
-                        recipe_name: null // Jednotlivá potravina
-                    };
-
-                    console.log("💾 Ukládám potravinu:", mealItemData);
-
-                    const { error } = await window.supabaseClient
-                        .from('meal_items')
-                        .insert(mealItemData);
-
-                    if (error) {
-                        console.error("❌ Chyba při ukládání meal_items:", error);
-                        throw error;
-                    }
-                    console.log("✅ Potravina úspěšně uložena");
                 }
 
                 // Aktualizace zobrazení
@@ -7138,82 +7227,10 @@
 
                         if (itemsError) throw itemsError;
 
-                        // DŮLEŽITÉ: Pro položky s recipe_id načteme aktuální data receptu
-                        // V části kde načítáme data receptu pro meal_item přidejte:
-                        const itemsWithRecipeData = await Promise.all(
-                            (itemsData || []).map(async (item) => {
-                                if (item.recipe_id) {
-                                    try {
-                                        const { data: recipeData, error: recipeError } = await window.supabaseClient
-                                            .from('recipes')
-                                            .select('has_multiple_portions, recipe_one_portion, portions')
-                                            .eq('id', item.recipe_id)
-                                            .single();
-
-                                        // DŮLEŽITÉ: Pokud recept neexistuje, použijeme data z meal_items
-                                        if (recipeError || !recipeData) {
-                                            console.log("ℹ️ Recept již neexistuje, používám data z meal_items:", {
-                                                foodName: item.food_name,
-                                                portions: item.portions,
-                                                usedOnePortionData: item.used_one_portion_data,
-                                                hasOriginalData: !!item.original_portion_data
-                                            });
-
-                                            // Pokud máme uložená data pro jednu porci, použijeme je
-                                            if (item.used_one_portion_data && item.original_portion_data) {
-                                                console.log("🔢 Používám uložená data pro jednu porci");
-                                                return {
-                                                    ...item,
-                                                    calories: item.original_portion_data.total_kcal || item.calories,
-                                                    protein: item.original_portion_data.protein || item.protein,
-                                                    carbs: item.original_portion_data.carbs || item.carbs,
-                                                    fat: item.original_portion_data.fat || item.fat,
-                                                    fiber: item.original_portion_data.fiber || item.fiber,
-                                                    nutritional_data: item.original_portion_data
-                                                };
-                                            }
-
-                                            // Jinak vrátíme původní item
-                                            return item;
-                                        }
-
-                                        console.log("🔍 Načítám data receptu pro meal_item:", {
-                                            foodName: item.food_name,
-                                            recipeId: item.recipe_id,
-                                            hasMultiplePortions: recipeData.has_multiple_portions,
-                                            usedOnePortionData: item.used_one_portion_data
-                                        });
-
-                                        // POKUD byl recept přidán s přepočtem na jednu porci, použijeme data z meal_items
-                                        if (item.used_one_portion_data && recipeData.has_multiple_portions) {
-                                            console.log("🔢 Používám přepočtená data z meal_items pro:", item.food_name);
-                                            // Data jsou již v item - nic neměníme
-                                        } else if (recipeData.has_multiple_portions && recipeData.recipe_one_portion) {
-                                            // RECEPT MÁ VÍCE PORCÍ: použijeme data pro jednu porci
-                                            console.log("🔢 Aktualizuji na data pro jednu porci pro:", item.food_name);
-                                            return {
-                                                ...item,
-                                                calories: recipeData.recipe_one_portion.total_kcal || item.calories,
-                                                protein: recipeData.recipe_one_portion.protein || item.protein,
-                                                carbs: recipeData.recipe_one_portion.carbs || item.carbs,
-                                                fat: recipeData.recipe_one_portion.fat || item.fat,
-                                                fiber: recipeData.recipe_one_portion.fiber || item.fiber,
-                                                nutritional_data: recipeData.recipe_one_portion
-                                            };
-                                        }
-                                    } catch (error) {
-                                        console.log("❌ Chyba při načítání receptu:", error);
-                                        // POKUD DOJDE K CHYBĚ, VRÁTÍME PŮVODNÍ ITEM
-                                        return item;
-                                    }
-                                }
-                                return item;
-                            })
-                        );
-
+                        // ZJEDNODUŠENO: Data jsou přímo v meal_items, nepotřebujeme načítat z receptu
                         meals.push({
                             ...meal,
-                            meal_items: itemsWithRecipeData
+                            meal_items: itemsData || []
                         });
                     }
                 }
@@ -7743,23 +7760,45 @@
                     <div class="ingredient-info">
                         <div class="ingredient-name">${item.food_name}</div>
                         ${isCustomRecipe ? `
-                            <!-- VLASTNÍ RECEPT - DVOUŘÁDKOVÝ -->
-                            <div class="ingredient-details-custom">
-                                <div class="custom-row-1">
-                                    <span>${smartRound(cals)} kcal</span>
-                                    <span>B: ${smartRound(prot)}g</span>
-                                    <span>S: ${smartRound(carb)}g</span>
-                                    <span>T: ${smartRound(fat)}g</span>
+                            <!-- VLASTNÍ RECEPT - DVOUŘÁDKOVÝ, K LEVÉMU OKRAJI -->
+                            <div class="ingredient-details-tworow custom-left">
+                                <div class="nutrient-column">
+                                    <div class="nutrient-label-top">kcal</div>
+                                    <div class="nutrient-value-bottom nutrient-bold">${smartRound(cals)}</div>
+                                </div>
+                                <div class="nutrient-column">
+                                    <div class="nutrient-label-top">B:</div>
+                                    <div class="nutrient-value-bottom">${smartRound(prot)}g</div>
+                                </div>
+                                <div class="nutrient-column">
+                                    <div class="nutrient-label-top">S:</div>
+                                    <div class="nutrient-value-bottom">${smartRound(carb)}g</div>
+                                </div>
+                                <div class="nutrient-column">
+                                    <div class="nutrient-label-top">T:</div>
+                                    <div class="nutrient-value-bottom">${smartRound(fat)}g</div>
                                 </div>
                             </div>
                         ` : `
-                            <!-- BĚŽNÝ RECEPT - JEDNOŘÁDKOVÝ -->
-                            <div class="ingredient-details">
-                                <span class="amount-badge">${smartRound(amt)} ${item.unit}</span>
-                                <span class="calorie-value">${smartRound(cals)} kcal</span>
-                                ${item.protein ? `<span>B: ${smartRound(prot)}g</span>` : ''}
-                                ${item.carbs ? `<span>S: ${smartRound(carb)}g</span>` : ''}
-                                ${item.fat ? `<span>T: ${smartRound(fat)}g</span>` : ''}
+                            <!-- BĚŽNÝ RECEPT - DVOUŘÁDKOVÝ S HMOTNOSTÍ JEDNOŘÁDKOVOU -->
+                            <div class="ingredient-details-tworow">
+                                <div class="amount-single">${smartRound(amt)}${item.unit}</div>
+                                <div class="nutrient-column">
+                                    <div class="nutrient-label-top">kcal</div>
+                                    <div class="nutrient-value-bottom nutrient-bold">${smartRound(cals)}</div>
+                                </div>
+                                <div class="nutrient-column">
+                                    <div class="nutrient-label-top">B:</div>
+                                    <div class="nutrient-value-bottom">${smartRound(prot)}g</div>
+                                </div>
+                                <div class="nutrient-column">
+                                    <div class="nutrient-label-top">S:</div>
+                                    <div class="nutrient-value-bottom">${smartRound(carb)}g</div>
+                                </div>
+                                <div class="nutrient-column">
+                                    <div class="nutrient-label-top">T:</div>
+                                    <div class="nutrient-value-bottom">${smartRound(fat)}g</div>
+                                </div>
                             </div>
                         `}
                     </div>
@@ -7855,9 +7894,9 @@
                                                     <div class="food-item-details">
                                                         <span class="amount-badge">${item.amount} ${item.unit}</span>
                                                         <span>${smartRound(parseFloat(item.calories) || 0)} kcal</span>
-                                                        ${item.protein ? `<span>B: ${smartRound(parseFloat(item.protein) || 0)}g</span>` : ''}
-                                                        ${item.carbs ? `<span>S: ${smartRound(parseFloat(item.carbs) || 0)}g</span>` : ''}
-                                                        ${item.fat ? `<span>T: ${smartRound(parseFloat(item.fat) || 0)}g</span>` : ''}
+                                                        ${item.protein ? `<span>B: ${Math.round(parseFloat(item.protein) || 0)}g</span>` : ''}
+                                                        ${item.carbs ? `<span>S: ${Math.round(parseFloat(item.carbs) || 0)}g</span>` : ''}
+                                                        ${item.fat ? `<span>T: ${Math.round(parseFloat(item.fat) || 0)}g</span>` : ''}
                                                     </div>
                                                 </div>
                                                 <div class="food-item-actions">
@@ -8131,8 +8170,22 @@
                 // Zavřeme modal
                 document.getElementById('selectRecipeModal').style.display = 'none';
 
-                // Přidáme recept do denního příjmu
-                await addRecipeToDailyIntake(recipe, mealType, date);
+                // Připravíme foodItem objekt pro nový systém
+                const foodItemForMeal = {
+                    foodName: recipe.name,
+                    isRecipe: true,
+                    recipeId: recipe.id,
+                    ingredients: recipe.ingredients || []
+                };
+
+                console.log("📦 Přidávám recept z hlavní stránky:", {
+                    name: recipe.name,
+                    id: recipe.id,
+                    ingredients: recipe.ingredients?.length || 0
+                });
+
+                // Použijeme novou jednotnou funkci
+                await addFoodItemToDailyMeal(foodItemForMeal, mealType, date);
 
                 window.showCustomNotification(`Recept "${recipe.name}" byl přidán do ${mealTypeLabels[mealType]}!`, 'success');
 
@@ -8142,47 +8195,7 @@
             }
         }
 
-        // Přidání receptu do denního příjmu
-        async function addRecipeToDailyIntake(recipe, mealType, date) {
-            try {
-                // ✅ KONTROLA - recept musí patřit k aktuálnímu profilu
-                if (recipe.profile_id !== window.currentProfileId) {
-                    console.error("❌ Recept nepatří k aktuálnímu profilu:", recipe.profile_id, "vs", window.currentProfileId);
-                    window.showCustomNotification("Chyba: Recept nepatří k vybranému profilu", 'error');
-                    return;
-                }
-
-                const dateString = formatDateForAPI(date);
-
-                // 1. Zkontrolujeme/získáme denní záznam S KONTROLOU PROFILU
-                let dailyIntakeId = await getOrCreateDailyIntake(dateString);
-
-                // 2. Získáme/create meal pro daný typ
-                let mealId = await getOrCreateMeal(dailyIntakeId, mealType);
-
-                // 3. Přidáme všechny ingredience receptu jako položky jídla S RECIPE_ID
-                if (recipe.ingredients && recipe.ingredients.length > 0) {
-                    for (const ingredient of recipe.ingredients) {
-                        // ✅ DŮLEŽITÉ: Přidáme recipe_id k ingredienci
-                        const ingredientWithRecipeId = {
-                            ...ingredient,
-                            recipe_id: recipe.id // PŘIDÁME RECIPE_ID
-                        };
-
-                        await addMealItem(mealId, ingredientWithRecipeId, recipe.name);
-                    }
-                }
-
-                // 4. Znovu načteme data
-                await loadDailyIntakeData(date);
-
-            } catch (error) {
-                console.error("❌ Chyba při přidávání do denního příjmu:", error);
-                throw error;
-            }
-        }
-
-        // Pomocné funkce
+        // Pomocné funkce - formatDateForAPI, getOrCreateDailyIntake, getOrCreateMeal zůstávají
         function formatDateForAPI(date) {
             return date.toISOString().split('T')[0];
         }
@@ -8253,49 +8266,6 @@
                 throw createError;
             }
             return newMeal.id;
-        }
-
-        async function addMealItem(mealId, ingredient, recipeName) {
-            console.log("➕ Přidávám položku s recipe_id:", {
-                mealId: mealId,
-                foodName: ingredient.foodName,
-                recipeId: ingredient.recipe_id,
-                recipeName: recipeName
-            });
-
-            // DŮLEŽITÉ: Zajistěte, aby recipe_name bylo vždy nastaveno
-            const finalRecipeName = recipeName || ingredient.recipe_name || await getRecipeName(ingredient.recipe_id) || 'Recept';
-
-            // PARSOVÁNÍ KALORIÍ - zachová desetinná místa
-            const { number: caloriesNum } = parseValueAndUnit(ingredient.kcal);
-            const { number: proteinNum } = parseValueAndUnit(ingredient.nutritionalDetails?.protein);
-            const { number: carbsNum } = parseValueAndUnit(ingredient.nutritionalDetails?.carbs);
-            const { number: fatNum } = parseValueAndUnit(ingredient.nutritionalDetails?.fat);
-            const { number: fiberNum } = parseValueAndUnit(ingredient.nutritionalDetails?.fiber);
-
-            const { error } = await window.supabaseClient
-                .from('meal_items')
-                .insert({
-                    daily_meal_id: mealId,
-                    recipe_id: ingredient.recipe_id || null,
-                    recipe_name: finalRecipeName, // DŮLEŽITÉ: vždy nastavit
-                    food_name: ingredient.foodName || 'Neznámá potravina',
-                    amount: ingredient.amount || 100,
-                    unit: ingredient.unit || 'g',
-                    calories: caloriesNum || 0,
-                    protein: proteinNum || 0,
-                    carbs: carbsNum || 0,
-                    fat: fatNum || 0,
-                    fiber: fiberNum || 0,
-                    nutritional_data: ingredient.nutritionalDetails || null
-                });
-
-            if (error) {
-                console.error("❌ Chyba při ukládání položky:", error);
-                throw error;
-            }
-
-            console.log("✅ Položka úspěšně uložena s recipe_name:", finalRecipeName);
         }
 
         // Funkce pro úpravu a mazání (zatím základní)
