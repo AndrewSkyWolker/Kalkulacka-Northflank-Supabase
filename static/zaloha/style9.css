@@ -12,18 +12,6 @@ html::-webkit-scrollbar {
     display: none; /* Chrome/Safari/Opera */
 }
 
-/* Skrytí posuvníků GLOBÁLNĚ - zachovává možnost scrollování */
-* {
-    scrollbar-width: none !important; /* Firefox */
-    -ms-overflow-style: none !important; /* IE/Edge */
-}
-
-*::-webkit-scrollbar {
-    display: none !important; /* Chrome/Safari/Opera */
-    width: 0 !important;
-    height: 0 !important;
-}
-
 body {
     font-family: Lora, 'Times New Roman', serif;
     background-color: #f4f4f4
@@ -216,8 +204,8 @@ button {
 }
 
 .recipe-actions button img {
-    width: 20px !important;
-    height: 20px !important;
+    width: 16px !important;
+    height: 16px !important;
     opacity: .7
 }
 
@@ -249,10 +237,7 @@ button {
     margin: 0;
     color: #007bff;
     font-size: 1em;
-    line-height: 1.2;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.2
 }
 
 .food-item img {
@@ -627,27 +612,10 @@ button {
 
 .food-item-potravina .food-details {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    gap: 12px;
     font-size: .85rem;
-    color: #666;
-    flex: 1;
-    min-width: 0;
-    max-width: 100%;
-}
-
-/* Extra specific selector for search results */
-#results .food-item-potravina .food-details {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-}
-
-#results .food-item-potravina .food-details h3 {
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    max-width: 100%;
+    color: #666
 }
 
 .food-item-potravina .food-item-actions button {
@@ -890,8 +858,7 @@ button {
 }
 
 #customNotificationModal {
-    background-color: rgba(0, 0, 0, .6) !important;
-    z-index: 2000 !important; /* Nad všemi modaly */
+    background-color: rgba(0, 0, 0, .6) !important
 }
 
 #customNotificationModal .modal-content {
@@ -1249,7 +1216,7 @@ button {
 
 .macro-stats-row {
     font-size: .75em;
-    /* Barvy se nastavují inline per-span */
+    color: #6c757d
 }
 
 .recipe-name {
@@ -1581,17 +1548,13 @@ button {
 }
 
 #results .food-details {
-    flex: 1;
-    min-width: 0; /* Umožní truncate v flex containeru */
+    flex: 1
 }
 
 #results .food-details h3 {
     margin: 0 0 8px 0;
     font-size: 16px;
-    color: #333;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    color: #333
 }
 
 #results .calories-display {
@@ -2463,7 +2426,7 @@ button {
     margin-bottom: 15px;
     width: 100%;
     justify-content: center;
-    flex-wrap: wrap; /* Umožní zalomení třetího tlačítka */
+    flex-wrap: wrap
 }
 
 .registration-info {
@@ -3561,24 +3524,7 @@ select.form-input {
     font-size: 1.1em;
     font-weight: 700;
     color: #007bff;
-    margin-bottom: 4px;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-}
-
-/* Extra enforcement for search results */
-.search-header-custom .recipe-name {
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    max-width: 100%;
-}
-
-.search-header-custom .recipe-name-wrapper {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
+    margin-bottom: 4px
 }
 
 .recipe-summary-item-search {
@@ -3927,14 +3873,6 @@ select.form-input {
 }
 
 /* STATICKÝ KONTEJNER S FIXED POZICÍ - NESCROLLUJE SE */
-#customRecipeModal {
-    z-index: 1500 !important; /* Nad detailem receptu (1000), ale pod notifikacemi (2000) */
-}
-
-#saveAsModal {
-    z-index: 1800 !important; /* Nad editací (1500), pod notifikacemi (2000) */
-}
-
 #customRecipeModal .modal-content {
     max-width: 400px !important;
     width: 90vw !important;
@@ -4470,8 +4408,8 @@ select.form-input {
 }
 
 .macro-stats-row {
+    color: #6c757d;
     font-size: 0.85rem;
-    /* Barvy se nastavují inline per-span */
 }
 
 .recipe-actions {
@@ -4497,8 +4435,8 @@ select.form-input {
 }
 
 .recipe-actions button img {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     opacity: 0.7;
 }
 
@@ -4517,9 +4455,6 @@ select.form-input {
 .recipe-ingredients.expanded {
     max-height: 1000px;
     padding: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
 }
 
 /* IKONA ROZBALOVACÍ */
@@ -4593,13 +4528,11 @@ select.form-input {
     font-size: 1.2rem !important;
     font-weight: 700 !important;
     color: #000000 !important;
-    text-align: left !important;
-    flex: 1 !important;
-    white-space: normal !important;
-    overflow: visible !important;
-    text-overflow: unset !important;
-    word-break: break-word !important;
-    line-height: 1.3 !important;
+    text-align: left !important; /* KLÍČ: VLEVO, NE UPROSTŘED */
+    flex: 1 !important; /* Zabere zbytek prostoru */
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
 }
 
 /* TLAČÍTKO PŘIDAT JAKO JÍDLO */
@@ -4751,8 +4684,8 @@ select.form-input {
 .food-item-actions button img,
 .recipe-actions button img,
 .ingredient-actions-vertical button img {
-    width: 20px !important;
-    height: 20px !important;
+    width: 16px !important; /* ZMENŠENO Z 18px */
+    height: 16px !important;
 }
 
 /* OPRAVA PRO INGREDIENCE V RECEPTU */
@@ -5131,7 +5064,7 @@ select.form-input {
 
 /* 1. NUTRIENTY V HLAVIČCE - ČERNÉ PÍSMO (ne šedá) */
 .recipe-totals-row span {
-    /* Barva se nastavuje inline per-span - nenastavovat globálně */
+    color: #000000 !important;
 }
 
 /* 2. HODNOTA KALORIÍ V POLOŽKÁCH - ČERNÁ */
@@ -5516,16 +5449,14 @@ select.form-input {
 
 .recipe-detail-actions {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     margin-top: 10px;
 }
 
 .recipe-detail-actions button {
     flex: 1;
-    padding: 8px 6px;
-    font-size: 0.78rem;
-    white-space: nowrap;
-    line-height: 1.2;
+    padding: 10px;
+    font-size: 1rem;
 }
 
 /* Tlačítko Přidat jako jídlo - FIALOVÉ */
@@ -5729,14 +5660,12 @@ select.form-input {
 }
 
 .recipe-item-calories-badge {
-    background-color: #0d47a1;
+    background-color: #007bff;
     color: white;
-    padding: 3px 10px;
-    border-radius: 6px;
+    padding: 2px 8px;
+    border-radius: 12px;
     font-size: 0.85rem;
-    font-weight: 700;
-    display: inline-block;
-    white-space: nowrap;
+    font-weight: 600;
 }
 
 .recipe-item-amount-new {

@@ -69,9 +69,8 @@ button {
     flex-shrink: 0
 }
 
-button:hover {
-    background-color: #0056b3
-}
+/* ODSTRANĚNO GLOBÁLNÍ button:hover - způsobovalo mizení tlačítek */
+/* Každé tlačítko má vlastní hover styl */
 
 .main-fixed-header {
     position: fixed;
@@ -215,7 +214,12 @@ button:hover {
 .food-item-name {
     font-weight: 600;
     color: #11225a;
-    margin-bottom: 4px
+    margin-bottom: 4px;
+    /* Zkrácení dlouhého názvu */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: calc(100% - 80px); /* Prostor pro ikonky */
 }
 
 .food-item:hover {
@@ -1150,6 +1154,8 @@ button:hover {
     flex: 1 !important;
     text-align: left !important;
     min-width: 0 !important;
+    font-weight: 600 !important;
+    color: #2c5aa0 !important; /* STEJNÁ BARVA JAKO V RECEPTECH */
 }
 
 .recipe-list-item:not(.with-actions) .recipe-calories {
@@ -3043,6 +3049,7 @@ select.form-input {
     padding: 2px 8px !important;
     transition: all 0.2s !important;
     text-decoration: none !important; /* BEZ PODTRŽENÍ */
+    margin-top: 4px !important; /* POSUN DOLŮ */
 }
 
 .today-text-btn:hover {
@@ -3137,18 +3144,36 @@ select.form-input {
 .circular-chart {
     width: 100px;
     height: 100px;
-    margin: 0 auto 10px
+    margin: 0 auto 10px;
+    position: relative;
+}
+
+/* Radiální stín ze středu - pseudo-element */
+.circular-chart::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 70%;
+    height: 70%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
 }
 
 .circular-chart-svg {
     width: 100%;
-    height: 100%
+    height: 100%;
+    position: relative;
+    z-index: 2;
 }
 
 .circle-bg {
     fill: none;
     stroke: #e9ecef;
-    stroke-width: 3.8
+    stroke-width: 3.8;
 }
 
 .circle {
@@ -3156,7 +3181,7 @@ select.form-input {
     stroke-width: 3.8;
     stroke-linecap: round;
     animation: progress 1s ease-out forwards;
-    transition: stroke-dasharray .5s ease
+    transition: stroke-dasharray .5s ease;
 }
 
 .circle {
@@ -5332,17 +5357,15 @@ select.form-input {
     gap: 6px !important;
 }
 
-/* 5. VŠECHNY IKONKY - BEZ POZADÍ PŘI HOVER (VŠUDE) */
-button:hover,
+/* 5. SPECIFICKÉ IKONKY - BEZ POZADÍ PŘI HOVER */
+/* ODSTRANĚNO: button:hover, .add-meal-btn:hover, .btn-add-meal-small:hover */
 .edit-ingredient-btn:hover,
 .delete-ingredient-btn:hover,
 .edit-food-item:hover,
 .delete-food-item:hover,
 .toggle-recipe-btn:hover,
 .delete-recipe-group-btn:hover,
-.add-meal-btn:hover,
-.btn-edit-custom:hover,
-.btn-add-meal-small:hover {
+.btn-edit-custom:hover {
     background: none !important;
     background-color: transparent !important;
 }

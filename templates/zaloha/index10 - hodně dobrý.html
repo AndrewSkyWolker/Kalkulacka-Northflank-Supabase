@@ -456,6 +456,40 @@
         </div>
     </div>
 
+    <!-- NOVÝ DETAIL RECEPTU - podle vzoru selectRecipeModal -->
+    <div id="recipeDetailModal" class="modal-overlay">
+        <div class="modal-content recipe-detail-modal-content">
+            <!-- STATICKÁ HLAVIČKA -->
+            <div class="recipe-detail-header">
+                <span class="close-button" id="closeRecipeDetailModal">&times;</span>
+                <h3 id="recipeDetailName">Název receptu</h3>
+                <div class="recipe-detail-calories" id="recipeDetailCalories">0 kcal</div>
+                <div class="recipe-detail-actions">
+                    <button id="addRecipeAsMealBtn" class="btn-primary">
+                        🍽️ Přidat jako jídlo
+                    </button>
+                    <button id="editRecipeBtn" class="btn-secondary" style="display: none;">
+                        ✏️ Upravit recept
+                    </button>
+                </div>
+            </div>
+            
+            <!-- SKROLOVACÍ OBLAST -->
+            <div class="recipe-detail-scroll-container">
+                <!-- NUTRIENTY - bez nadpisu -->
+                <div class="recipe-detail-nutrients">
+                    <div id="recipeDetailNutrientsList"></div>
+                </div>
+                
+                <!-- POLOŽKY RECEPTU -->
+                <div class="recipe-detail-items">
+                    <h4>Složení receptu</h4>
+                    <div id="recipeDetailItemsList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="customNotificationModal" class="modal-overlay">
         <div class="modal-content">
             <p id="customNotificationMessage"></p>
@@ -544,7 +578,7 @@
     <div id="customRecipeModal" class="modal-overlay">
         <div class="modal-content">
             <span class="close-button" id="closeCustomRecipeModal">&times;</span>
-            <h3>Vytvořit vlastní recept</h3>
+            <h3 id="customRecipeModalTitle">Vytvořit vlastní recept</h3>
 
             <!-- ZÁKLADNÍ INFORMACE -->
             <div class="basic-info-section">
@@ -705,13 +739,89 @@
                 </div>
             </div>
 
-            <!-- TLAČÍTKO -->
+            <!-- TLAČÍTKA -->
             <div class="modal-action-buttons">
                 <button id="saveCustomRecipeBtn" class="btn-primary">Uložit</button>
+                <button id="saveAsCustomRecipeBtn" class="btn-secondary" style="display: none;">Uložit jako...</button>
             </div>
 
             <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">
                 * Povinné pole
+            </div>
+        </div>
+    </div>
+
+    <!-- MODÁLNÍ OKNO PRO "ULOŽIT JAKO..." -->
+    <div id="saveAsModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <span class="close-button" id="closeSaveAsModal">&times;</span>
+            <h3>💾 Uložit jako nový recept</h3>
+            
+            <div class="form-group">
+                <label for="saveAsRecipeName">Název receptu *</label>
+                <input type="text" id="saveAsRecipeName" class="form-input" placeholder="Zadejte název" required>
+                <div id="saveAsErrorMessage" style="color: #dc3545; font-size: 0.9rem; margin-top: 5px; display: none;"></div>
+            </div>
+            
+            <div class="modal-action-buttons">
+                <button id="confirmSaveAsBtn" class="btn-primary">Uložit jako nový recept</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODÁLNÍ OKNO PRO EDITACI INGREDIENCE V RECEPTU -->
+    <div id="editIngredientModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content modal-recipe-content">
+            <span class="close-button" id="closeEditIngredientModal">&times;</span>
+            <div class="modal-recipe-scroll-container">
+                <div class="modal-details modal-recipe-container">
+                    <!-- HLAVIČKA S OBRÁZKEM -->
+                    <div class="modal-recipe-header">
+                        <img id="editIngredientImage" src="" alt="" class="modal-header-image">
+                        <div class="modal-header-text">
+                            <div id="editIngredientName" class="modal-header-name"></div>
+                            <div class="energy-display-group">
+                                <div id="editIngredientKcal" class="energy-header">0 kcal</div>
+                                <div id="editIngredientKj" class="energy-sub-header">0 kJ</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- SKROLOVACÍ OBLAST -->
+                    <div class="modal-scrollable-container">
+                        <!-- FORMULÁŘ PRO MNOŽSTVÍ -->
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 8px;">Množství:</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="number" id="editIngredientAmount" class="form-input" step="0.1" min="0" 
+                                       style="flex: 2; font-size: 1.1rem; padding: 10px;">
+                                <select id="editIngredientUnit" class="form-input" 
+                                        style="flex: 1; font-size: 1.1rem; padding: 10px;">
+                                    <option value="g">g</option>
+                                    <option value="kg">kg</option>
+                                    <option value="ml">ml</option>
+                                    <option value="l">l</option>
+                                    <option value="ks">ks</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- NUTRIČNÍ HODNOTY -->
+                        <div id="editIngredientNutrientsSection"></div>
+                        
+                        <!-- TLAČÍTKA -->
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button id="saveIngredientChangesBtn" class="btn-primary" 
+                                    style="flex: 1; background-color: #28a745; padding: 12px;">
+                                ✓ Potvrdit změny
+                            </button>
+                            <button id="cancelIngredientChangesBtn" class="btn-secondary" 
+                                    style="flex: 1; background-color: #dc3545; color: white; padding: 12px;">
+                                ✕ Zahodit změny
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1236,7 +1346,8 @@
                 mealTypeButtons.forEach(btn => {
                     btn.addEventListener('click', function () {
                         const mealType = this.dataset.mealType;
-                        addFoodToMeal(mealType); // Modal se zavře až po úspěšném přidání
+                        closeSelectMealModal(); // ZAVŘÍT HNED
+                        addFoodToMeal(mealType);
                     });
                 });
                 console.log(`✅ ${mealTypeButtons.length} mealTypeButtons inicializováno`);
@@ -1328,8 +1439,7 @@
                 // POUŽIJEME STEJNOU FUNKCI JAKO PRO PŘIDÁVÁNÍ Z HLAVNÍ OBRAZOVKY
                 await addFoodItemToDailyMeal(foodItem, mealType, selectedMealDate);
 
-                // Zavřeme modaly
-                closeSelectMealModal();
+                // Modal je již zavřený (zavírá se hned při kliknutí)
 
                 window.showCustomNotification(
                     `"${foodItem.foodName}" přidáno do ${mealTypeLabels[mealType]}!`,
@@ -3402,6 +3512,14 @@
                 modalDetailsContent.classList.remove('modal-recipe-container');
                 document.getElementById('modalDetailsContent').classList.remove('modal-recipe-container');
                 document.getElementById('detailsModal').classList.remove('modal-recipe-open');
+                
+                // Vyšší z-index pro editační mód
+                if (isEditingRecipeIngredient) {
+                    detailsModal.style.zIndex = '1100';
+                } else {
+                    detailsModal.style.zIndex = '1000';
+                }
+                
                 detailsModal.style.display = 'flex';
                 modalDetailsContent.innerHTML = `<p class="loading-details">Načítám detaily pro ${name}...</p>`;
 
@@ -3453,7 +3571,7 @@
                         actionButtonsHtml = `
                             <div class="modal-action-buttons">
                                 <button id="discardChangesButton" style="background-color: #dc3545; min-width: 120px;">Zahodit změny</button>
-                                <button id="saveChangesButton" style="background-color: #28a745;">Uložit změny</button>
+                                <button id="saveChangesButton" style="background-color: #28a745;">Potvrdit změny</button>
                             </div>
                         `;
                     } else {
@@ -3591,7 +3709,7 @@
                     if (saveChangesButton) {
                         saveChangesButton.addEventListener('click', async () => {
                             if (currentEditingRecipeId && currentEditingIngredientIndex !== null) {
-                                console.log("💾 Kliknuto na Uložit změny");
+                                console.log("✓ Potvrdit změny - uložení do mezipaměti");
 
                                 // OKAMŽITĚ odstraníme event listener pro kliknutí mimo
                                 const existingHandler = detailsModal._editClickOutsideHandler;
@@ -3600,11 +3718,27 @@
                                     detailsModal._editClickOutsideHandler = null;
                                 }
 
+                                // Uložíme změny do mezipaměti (NE do DB!)
+                                if (!window.recipeEditCache) {
+                                    window.recipeEditCache = {};
+                                }
+                                
+                                window.recipeEditCache[currentEditingRecipeId] = {
+                                    ingredientIndex: currentEditingIngredientIndex,
+                                    newData: currentFoodItemData,
+                                    recipeName: editingRecipeContext.recipeName
+                                };
+                                
+                                console.log("💾 Změny uloženy do mezipaměti:", window.recipeEditCache);
+                                
+                                // Označíme že recept má neuložené změny
+                                window.recipeHasUnsavedChanges = true;
+
                                 // OKAMŽITĚ zavřeme modal
                                 detailsModal.style.display = 'none';
 
-                                // A zavoláme update funkci
-                                await updateFoodItemInRecipe(currentEditingRecipeId, currentEditingIngredientIndex, currentFoodItemData);
+                                // Znovu otevřeme detail receptu s tlačítky
+                                await showRecipeDetailsModal(currentEditingRecipeId, editingRecipeContext.recipeName);
                             } else {
                                 window.showCustomNotification("Chyba: Nelze uložit změny. Chybí kontext úpravy.", 'info');
                             }
@@ -3722,9 +3856,9 @@
 
             nutrientsHtmlContent += `<div class="nutrient-section">`;
             nutrientsHtmlContent += createNutrientRow('Bílkoviny', details.protein, null, 'red', 'main', factor, false);
-            nutrientsHtmlContent += createNutrientRow('Sacharidy', details.carbs, null, 'blue', 'main', factor, true);
+            nutrientsHtmlContent += createNutrientRow('Sacharidy', details.carbs, null, 'blue', 'main', factor, false);
             nutrientsHtmlContent += createNutrientRow('Cukry', details.sugar, null, null, 'nested', factor, false);
-            nutrientsHtmlContent += createNutrientRow('Tuky', details.fat, null, 'orange', 'main', factor, true);
+            nutrientsHtmlContent += createNutrientRow('Tuky', details.fat, null, 'orange', 'main', factor, false);
             nutrientsHtmlContent += createNutrientRow('Nasycené mastné kyseliny', details.saturated_fat, null, null, 'nested', factor, false);
             nutrientsHtmlContent += createNutrientRow('Trans mastné kyseliny', details.trans_fat, null, null, 'nested', factor, false);
             nutrientsHtmlContent += createNutrientRow('Mononenasycené', details.monounsaturated_fat, null, null, 'nested', factor, false);
@@ -3732,10 +3866,10 @@
             nutrientsHtmlContent += createNutrientRow('Cholesterol', details.cholesterol, null, null, 'nested', factor, false);
             nutrientsHtmlContent += `</div>`;
             nutrientsHtmlContent += `<div class="nutrient-section">`;
-            nutrientsHtmlContent += createNutrientRow('Vláknina', details.fiber, null, 'green', 'main', factor, true);
+            nutrientsHtmlContent += createNutrientRow('Vláknina', details.fiber, null, 'green', 'main', factor, false);
             nutrientsHtmlContent += `</div>`;
             nutrientsHtmlContent += `<div class="nutrient-section">`;
-            nutrientsHtmlContent += createNutrientRow('Sůl', details.salt, null, null, 'main', factor, true, 'normal', '1.05em');
+            nutrientsHtmlContent += createNutrientRow('Sůl', details.salt, null, null, 'main', factor, false, 'normal', '1.05em');
             nutrientsHtmlContent += createNutrientRow('Vápník', details.calcium, null, null, 'main', factor, false, 'normal', '1.05em');
             nutrientsHtmlContent += createNutrientRow('Sodík', details.sodium, null, null, 'main', factor, false, 'normal', '1.05em');
             nutrientsHtmlContent += createNutrientRow('Voda', details.water, null, null, 'main', factor, false, 'normal', '1.05em');
@@ -4233,43 +4367,37 @@
         async function updateFoodItemInRecipe(recipeId, ingredientIndex, updatedFoodItem) {
             if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) return;
 
-            const executeUpdate = async () => {
-                try {
-                    const { data: recipeData, error: fetchError } = await window.supabaseClient
+            try {
+                const { data: recipeData, error: fetchError } = await window.supabaseClient
+                    .from('recipes')
+                    .select('*')
+                    .eq('id', recipeId)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                const currentIngredients = recipeData.ingredients || [];
+                if (ingredientIndex >= 0 && ingredientIndex < currentIngredients.length) {
+                    currentIngredients[ingredientIndex] = updatedFoodItem;
+
+                    const { error: updateError } = await window.supabaseClient
                         .from('recipes')
-                        .select('*')
-                        .eq('id', recipeId)
-                        .single();
+                        .update({
+                            ingredients: currentIngredients,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', recipeId);
 
-                    if (fetchError) throw fetchError;
+                    if (updateError) throw updateError;
 
-                    const currentIngredients = recipeData.ingredients || [];
-                    if (ingredientIndex >= 0 && ingredientIndex < currentIngredients.length) {
-                        currentIngredients[ingredientIndex] = updatedFoodItem;
-
-                        const { error: updateError } = await window.supabaseClient
-                            .from('recipes')
-                            .update({
-                                ingredients: currentIngredients,
-                                updated_at: new Date().toISOString()
-                            })
-                            .eq('id', recipeId);
-
-                        if (updateError) throw updateError;
-
-                        // DŮLEŽITÉ: Použijeme společnou funkci pro zavření a obnovení
-                        await closeDetailsModalAndRestoreRecipe();
-
-                        // Zobrazíme notifikaci
-                        window.showCustomNotification(`Položka "<strong>${updatedFoodItem.foodName}</strong>" v receptu byla úspěšně aktualizována.`, 'recipeSaveSuccess');
-                    }
-                } catch (error) {
-                    console.error("Error updating food item in recipe:", error);
-                    window.showCustomNotification("Chyba při aktualizaci položky v receptu: " + error.message, 'recipeDeletionError');
+                    console.log("✅ Položka v receptu byla úspěšně aktualizována");
+                    // NEOTEVÍRÁME detail znovu!
+                    // NEZOBRAZUJEME žádný dialog - to udělá volající funkce
                 }
-            };
-
-            window.showCustomNotification(`Opravdu chcete uložit změny pro položku "<strong>${updatedFoodItem.foodName}</strong>" ? `, 'confirmSaveChanges', executeUpdate, true);
+            } catch (error) {
+                console.error("❌ Error updating food item in recipe:", error);
+                throw error; // Vyhodíme chybu nahoru pro zpracování
+            }
         }
 
         async function deleteRecipe(recipeId, recipeName) {
@@ -4341,433 +4469,633 @@
 
         async function showRecipeDetailsModal(recipeId, recipeName) {
             console.log("🔍 showRecipeDetailsModal volána pro:", recipeName, "ID:", recipeId);
-            if (window.isAddingToRecipe) return;
-
-            window.isOpeningDetailsModal = false;
-            modalDetailsContent.classList.add('modal-recipe-container');
-            document.getElementById('modalDetailsContent').classList.add('modal-recipe-container');
-            document.getElementById('detailsModal').classList.add('modal-recipe-open');
-            detailsModal.style.display = 'flex';
-            modalDetailsContent.innerHTML = `< p class="loading-details" > Načítám detaily receptu "${recipeName}"...</p > `;
-
-            if (!window.supabaseClient || !window.currentUser || !window.currentProfileId) {
-                modalDetailsContent.innerHTML = `< p class= "error-details" > Chyba: Aplikace se nenačetla správně.Nelze načíst recept.</p > `;
+            
+            // NEJPRVE odstraníme stará tlačítka pokud existují
+            const oldSaveBtn = document.getElementById('saveRecipeChangesInDetailBtn');
+            const oldSaveAsBtn = document.getElementById('saveRecipeAsInDetailBtn');
+            if (oldSaveBtn) {
+                console.log("🗑️ Odstraňuji staré tlačítko Uložit změny");
+                oldSaveBtn.remove();
+            }
+            if (oldSaveAsBtn) {
+                console.log("🗑️ Odstraňuji staré tlačítko Uložit jako");
+                oldSaveAsBtn.remove();
+            }
+            
+            // Otevřeme nový modal
+            const modal = document.getElementById('recipeDetailModal');
+            const nameEl = document.getElementById('recipeDetailName');
+            const caloriesEl = document.getElementById('recipeDetailCalories');
+            const nutrientsListEl = document.getElementById('recipeDetailNutrientsList');
+            const itemsListEl = document.getElementById('recipeDetailItemsList');
+            const addMealBtn = document.getElementById('addRecipeAsMealBtn');
+            const editBtn = document.getElementById('editRecipeBtn');
+            
+            if (!modal) {
+                console.error("❌ recipeDetailModal nenalezen!");
                 return;
             }
-
+            
+            // Zobrazíme modal s loading
+            modal.style.display = 'flex';
+            nameEl.textContent = recipeName;
+            caloriesEl.textContent = 'Načítám...';
+            nutrientsListEl.innerHTML = '<p>Načítám nutrienty...</p>';
+            itemsListEl.innerHTML = '<p>Načítám složení...</p>';
+            
             try {
+                // Načteme recept z databáze
                 const { data: recipeData, error } = await window.supabaseClient
                     .from('recipes')
                     .select('*')
                     .eq('id', recipeId)
                     .single();
-
+                
                 if (error) throw error;
-
                 if (!recipeData) {
-                    modalDetailsContent.innerHTML = `< p class= "error-details" > Recept "${recipeName}" nebyl nalezen.</p > `;
+                    nutrientsListEl.innerHTML = '<p>Recept nebyl nalezen.</p>';
                     return;
                 }
-
-                const portions = recipeData.portions || 1;
-                const imageUrl = recipeData.imageUrl || "{{ url_for('static', filename='icon/recepty.png') }}";
+                
                 const ingredients = recipeData.ingredients || [];
-
-                // Funkce pro výpočet nutričních hodnot na základě počtu porcí
-                const calculateNutritionForPortions = (targetPortions = portions) => {
-                    const aggregatedNutrients = {
-                        total_kcal: 0, total_kj: 0, protein: 0, carbs: 0, sugar: 0, fat: 0,
-                        saturated_fat: 0, trans_fat: 0, monounsaturated_fat: 0, polyunsaturated_fat: 0,
-                        cholesterol: 0, fiber: 0, salt: 0, calcium: 0, sodium: 0, water: 0, phe: 0
-                    };
-
-                    if (ingredients.length === 1 && ingredients[0].isCustomRecipe) {
-                        // Vlastní recept - použijeme KOMPLETNÍ data z ingredience
-                        const customRecipe = ingredients[0];
-                        const nutritionalDetails = customRecipe.nutritionalDetails || {};
-                        const originalPortions = customRecipe.portions || 1;
-
-                        // Přepočet na targetPortions
-                        const portionFactor = targetPortions / originalPortions;
-
-                        console.log("🔍 Načtená nutriční data vlastního receptu:", nutritionalDetails);
-
-                        // PŘENESEME VŠECHNY HODNOTY
-                        aggregatedNutrients.total_kcal = (nutritionalDetails.total_kcal || 0) * portionFactor;
-                        aggregatedNutrients.total_kj = (nutritionalDetails.total_kj || 0) * portionFactor;
-                        aggregatedNutrients.protein = (nutritionalDetails.protein || 0) * portionFactor;
-                        aggregatedNutrients.carbs = (nutritionalDetails.carbs || 0) * portionFactor;
-                        aggregatedNutrients.sugar = (nutritionalDetails.sugar || 0) * portionFactor;
-                        aggregatedNutrients.fat = (nutritionalDetails.fat || 0) * portionFactor;
-                        aggregatedNutrients.saturated_fat = (nutritionalDetails.saturated_fat || 0) * portionFactor;
-                        aggregatedNutrients.trans_fat = (nutritionalDetails.trans_fat || 0) * portionFactor;
-                        aggregatedNutrients.monounsaturated_fat = (nutritionalDetails.monounsaturated_fat || 0) * portionFactor;
-                        aggregatedNutrients.polyunsaturated_fat = (nutritionalDetails.polyunsaturated_fat || 0) * portionFactor;
-                        aggregatedNutrients.cholesterol = (nutritionalDetails.cholesterol || 0) * portionFactor;
-                        aggregatedNutrients.fiber = (nutritionalDetails.fiber || 0) * portionFactor;
-                        aggregatedNutrients.salt = (nutritionalDetails.salt || 0) * portionFactor;
-                        aggregatedNutrients.calcium = (nutritionalDetails.calcium || 0) * portionFactor;
-                        aggregatedNutrients.sodium = (nutritionalDetails.sodium || 0) * portionFactor;
-                        aggregatedNutrients.water = (nutritionalDetails.water || 0) * portionFactor;
-                        aggregatedNutrients.phe = (nutritionalDetails.phe || 0) * portionFactor;
-
-                        console.log("📊 Přepočtená data na", targetPortions, "porcí:", aggregatedNutrients);
-                    } else {
-                        // Normální recept s více ingrediencemi (původní kód)
-                        ingredients.forEach(ingredient => {
-                            if (ingredient.nutritionalDetails && typeof ingredient.nutritionalDetails === 'object') {
-                                const amount = parseFloat(ingredient.amount) || 0;
-                                let baseAmount = amount;
-                                if (ingredient.unit === 'kg' || ingredient.unit === 'l') baseAmount *= 1000;
-                                const factor = baseAmount / 100;
-
-                                for (const key in aggregatedNutrients) {
-                                    if (ingredient.nutritionalDetails[key] && ingredient.nutritionalDetails[key] !== "N/A") {
-                                        const { number: valNum } = parseValueAndUnit(ingredient.nutritionalDetails[key]);
-                                        if (!isNaN(valNum)) aggregatedNutrients[key] += valNum * factor;
-                                    }
-                                }
-                            }
-                        });
-
-                        // Přepočet na targetPortions
-                        const portionFactor = targetPortions / portions;
-                        for (const key in aggregatedNutrients) {
-                            aggregatedNutrients[key] *= portionFactor;
-                        }
-                    }
-
-                    const totalKj = aggregatedNutrients.total_kj || (aggregatedNutrients.total_kcal * 4.184);
-                    const formattedAggregatedNutrients = {};
-                    for (const key in aggregatedNutrients) {
-                        let unit = '';
-                        if (key.includes('kcal')) unit = 'kcal';
-                        else if (key.includes('kj')) unit = 'kJ';
-                        else if (['protein', 'carbs', 'sugar', 'fat', 'saturated_fat', 'trans_fat',
-                            'monounsaturated_fat', 'polyunsaturated_fat', 'fiber', 'salt', 'water', 'phe'].includes(key)) unit = 'g';
-                        else if (['cholesterol', 'calcium', 'sodium'].includes(key)) unit = 'mg';
-
-                        formattedAggregatedNutrients[key] = formatNumberForDisplay(aggregatedNutrients[key], unit, key.includes('kcal') || key.includes('kj'));
-                    }
-
-                    return {
-                        nutrients: formattedAggregatedNutrients,
-                        rawNutrients: aggregatedNutrients, // PŘIDÁNO - číselné hodnoty
-                        totalKj: totalKj,
-                        totalWeight: 100 * targetPortions // Přibližná hmotnost na porci
-                    };
+                const portions = recipeData.portions || 1;
+                const isCustomRecipe = ingredients.length === 1 && ingredients[0].isCustomRecipe;
+                
+                // Vypočítáme nutrienty
+                // Vypočítáme nutrienty ZE VŠECH INGREDIENCÍ (pro oba typy receptů)
+                let nutrients = {
+                    protein: 0, carbs: 0, sugar: 0, fat: 0,
+                    saturated_fat: 0, trans_fat: 0, monounsaturated_fat: 0, polyunsaturated_fat: 0,
+                    cholesterol: 0, fiber: 0, salt: 0, calcium: 0, sodium: 0, water: 0, phe: 0
                 };
-
-                // Počáteční výpočet pro aktuální počet porcí
-                let currentPortions = portions;
-                let currentNutrition = calculateNutritionForPortions(currentPortions);
-
-                // Vytvoření HTML s výběrem porcí
-                modalDetailsContent.innerHTML = `
-            <!-- HLAVIČKA S OBRÁZKEM A NÁZVEM -->
-            <div class="modal-recipe-fixed-header">
+                let totalCalories = 0;
                 
-                ${ingredients.length === 1 && ingredients[0].isCustomRecipe ? `
-                    <!-- VLASTNÍ RECEPT - POČET PORCÍ NAD NÁZVEM -->
-                    <div class="portions-display-text">Počet porcí: ${currentPortions}</div>
-                ` : ''}
-                
-                <!-- HORNÍ ŘÁDEK: OBRÁZEK VLEVO + NÁZEV -->
-                <div class="recipe-header-top">
-                    <img id="modalHeaderImage" src="${imageUrl}" alt="${recipeName}" 
-                         class="modal-header-image" 
-                         onerror="this.onerror=null;this.src='{{ url_for('static', filename='icon/recepty.png') }}'">
-                    <div id="modalHeaderName" class="modal-header-name">${recipeName}</div>
-                </div>
-                
-                ${ingredients.length === 1 && ingredients[0].isCustomRecipe ? `
-                    <!-- VLASTNÍ RECEPT - TLAČÍTKA VLEVO, ENERGIE VPRAVO -->
-                    <div class="custom-recipe-controls">
-                        <div class="custom-recipe-buttons">
-                            <button id="editCustomRecipeButton" class="btn-edit-custom" title="Upravit recept">
-                                <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
-                                Upravit recept
-                            </button>
-                            <button id="addRecipeAsMealButton" class="btn-add-meal-small">
-                                🍽️ Přidat jako jídlo
-                            </button>
-                        </div>
-                        
-                        <div class="energy-display-custom">
-                            <div id="totalKcalDisplay" class="energy-kcal-custom">${currentNutrition.nutrients.total_kcal}</div>
-                            <div id="totalKjDisplay" class="energy-kj-custom">${formatNumberForDisplay(currentNutrition.totalKj, 'kJ', true)}</div>
-                        </div>
-                    </div>
-                ` : `
-                    <!-- BĚŽNÝ RECEPT Z VYHLEDANÝCH POTRAVIN -->
-                    <div class="normal-recipe-controls">
-                        <button id="addRecipeAsMealButton" class="btn-add-meal-small">
-                            🍽️ Přidat jako jídlo
-                        </button>
-                        
-                        <div class="energy-display-normal">
-                            <div id="totalKcalDisplay" class="energy-kcal-normal">${currentNutrition.nutrients.total_kcal}</div>
-                            <div id="totalKjDisplay" class="energy-kj-normal">${formatNumberForDisplay(currentNutrition.totalKj, 'kJ', true)}</div>
-                        </div>
-                    </div>
-                `}
-                
-                <!-- KŘÍŽEK -->
-                <span class="close-button" id="closeRecipeDetailModal">&times;</span>
-            </div>
-
-            <!-- SCROLLOVATELNÝ OBSAH -->
-            <div class="modal-scrollable-container-with-header">
-                <div id="nutrientDetailsSection"></div>
-                <h3 class="ingredients-title">Složení receptu:</h3>
-                <div id="recipeIngredientsList"></div>
-            </div>
-`;
-
-                // Funkce pro aktualizaci zobrazení
-                const updateDisplay = () => {
-                    currentNutrition = calculateNutritionForPortions(currentPortions);
-
-                    // Aktualizace kalorií
-                    document.getElementById('totalKcalDisplay').textContent = currentNutrition.nutrients.total_kcal;
-                    document.getElementById('totalKjDisplay').textContent = formatNumberForDisplay(currentNutrition.totalKj, 'kJ', true);
-
-                    // Aktualizace nutričních hodnot
-                    renderAllNutrientDetails(currentNutrition.nutrients);
-                };
-
-                // OPRAVA: Event listener pro změnu počtu porcí - POUZE pokud element existuje
-                // POZN: Počet porcí je nyní jen zobrazený text, ne select
-                // const portionsSelect = document.getElementById('recipePortionsSelect');
-                // if (portionsSelect) {
-                //     portionsSelect.addEventListener('change', function () {
-                //         currentPortions = parseInt(this.value);
-                //         updateDisplay();
-                //     });
-                //     console.log("✅ Event listener pro recipePortionsSelect přidán");
-                // } else {
-                //     console.log("ℹ️ recipePortionsSelect neexistuje - normální recept bez výběru porcí");
-                // }
-
-                // Inicializace zobrazení
-                updateDisplay();
-
-                // Zobrazení ingrediencí
-                const ingredientsListEl = document.getElementById('recipeIngredientsList');
-
-                // OPRAVA: Přidejte kontrolu existence elementsListEl
-                if (ingredientsListEl) {
-                    if (ingredients.length === 0) {
-                        ingredientsListEl.innerHTML = '<p style="text-align: center; color: #888;">Tento recept neobsahuje žádné potraviny.</p>';
-                    } else {
-                        ingredients.forEach((ingredient, index) => {
-                            const ingredientItemDiv = document.createElement('div');
-                            ingredientItemDiv.classList.add('recipe-ingredient-item');
-                            
-                            // PŘIDÁME TŘÍDU PRO VLASTNÍ RECEPT
-                            const isCustomRecipe = ingredients.length === 1 && ingredient.isCustomRecipe;
-                            if (isCustomRecipe) {
-                                ingredientItemDiv.classList.add('custom-recipe-ingredient');
-                            }
-
-                            const ingPlaceholderImage = "{{ url_for('static', filename='icon/potraviny.png') }}";
-                            let displayImageUrl = ingredient.imageUrl || ingPlaceholderImage;
-
-                            const { number: kcalNum, unit: kcalUnit } = parseValueAndUnit(ingredient.kcal);
-                            const formattedIngredientKcal = formatNumberForDisplay(kcalNum, kcalUnit, true);
-
-                            // NAHRADTE staré HTML ingrediencí tímto:
-                            ingredientItemDiv.innerHTML = `
-    <div class="ingredient-main-content">
-        <div class="ingredient-image-wrapper">
-            <img src="${displayImageUrl}" alt="${ingredient.foodName}" 
-                onerror="this.onerror=null;this.src='${ingPlaceholderImage}'"
-                class="ingredient-image">
-        </div>
-        <div class="ingredient-basic-info">
-            <div class="ingredient-name" title="${ingredient.foodName}">${ingredient.foodName}</div>
-            <div class="ingredient-nutrition-row">
-                <span class="calorie-badge">${Math.round(ingredient.calories || kcalNum)} kcal</span>
-                <span class="amount-badge">${ingredient.amount} ${ingredient.unit}</span>
-            </div>
-        </div>
-        <div class="ingredient-actions-vertical">
-            <button class="edit-ingredient-btn" data-recipe-id="${recipeId}"
-                data-ingredient-index="${index}" title="Upravit ingredienci">
-                <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
-            </button>
-            <button class="delete-ingredient-btn" data-recipe-id="${recipeId}"
-                data-ingredient-index="${index}" title="Smazat ingredienci">
-                <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
-            </button>
-        </div>
-    </div>
-`;
-
-                            ingredientsListEl.appendChild(ingredientItemDiv);
-
-                            // OPRAVA: Bezpečné přiřazení event listenerů pro tlačítka ingrediencí
-                            const editBtn = ingredientItemDiv.querySelector('.edit-ingredient-btn');
-                            if (editBtn) {
-                                editBtn.addEventListener('click', async (e) => {
-                                    e.stopPropagation();
-                                    
-                                    // KONTROLA: Je to vlastní recept?
-                                    const isCustomRecipe = ingredients.length === 1 && ingredients[0].isCustomRecipe;
-                                    
-                                    if (isCustomRecipe && recipeId) {
-                                        console.log("🔧 Vlastní recept - otevírám editaci:", recipeId);
-                                        // Zavřeme detail receptu
-                                        detailsModal.style.display = 'none';
-                                        // Otevřeme modal pro editaci vlastního receptu
-                                        await openCustomRecipeModalForEdit(recipeId);
-                                    } else {
-                                        // Běžná editace ingredience v receptu
-                                        currentEditingRecipeId = e.target.closest('.edit-ingredient-btn').dataset.recipeId;
-                                        currentEditingIngredientIndex = parseInt(e.target.closest('.edit-ingredient-btn').dataset.ingredientIndex);
-                                        isEditingRecipeItem = true;
-                                        editingRecipeContext = { recipeId: currentEditingRecipeId, recipeName: recipeName };
-
-                                        const ingredientToEdit = ingredients[currentEditingIngredientIndex];
-                                        if (ingredientToEdit) {
-                                            await showDetailsModal(
-                                                ingredientToEdit.slug,
-                                                ingredientToEdit.foodName,
-                                                ingredientToEdit.imageUrl,
-                                                ingredientToEdit.kcal,
-                                                ingredientToEdit.foodType,
-                                                true,
-                                                ingredientToEdit.amount,
-                                                ingredientToEdit.unit,
-                                                ingredientToEdit.nutritionalDetails
-                                            );
-                                        }
-                                    }
-                                });
-                            }
-
-                            const deleteBtn = ingredientItemDiv.querySelector('.delete-ingredient-btn');
-                            if (deleteBtn) {
-                                deleteBtn.addEventListener('click', (e) => {
-                                    e.stopPropagation();
-                                    const currentRecipeId = e.target.closest('.delete-ingredient-btn').dataset.recipeId;
-                                    const ingredientIndex = parseInt(e.target.closest('.delete-ingredient-btn').dataset.ingredientIndex);
-                                    const ingredientName = ingredient.foodName;
-                                    deleteFoodItemFromRecipe(currentRecipeId, ingredientIndex, ingredientName, recipeName);
-                                });
-                            }
-
-                            // OPRAVA: Všechny event listenery s kontrolou existence elementů
-
-                            // 1. Křížek pro zavření
-                            const closeRecipeDetailModal = document.getElementById('closeRecipeDetailModal');
-                            if (closeRecipeDetailModal) {
-                                closeRecipeDetailModal.addEventListener('click', function (e) {
-                                    e.stopPropagation();
-                                    console.log("❌ Kliknuto na křížek detailu receptu");
-                                    detailsModal.style.display = 'none';
-                                    window.isOpeningDetailsModal = false;
-                                });
-                            } else {
-                                console.log("❌ closeRecipeDetailModal nenalezen");
-                            }
-
-                            // 2. Tlačítko "Přidat jako jídlo"
-                            const addRecipeAsMealButton = document.getElementById('addRecipeAsMealButton');
-                            if (addRecipeAsMealButton) {
-                                addRecipeAsMealButton.addEventListener('click', function (e) {
-                                    e.stopPropagation();
-                                    console.log("🍽️ Kliknuto na Přidat recept jako jídlo:", recipeName);
-
-                                    if (!checkInitialization()) return;
-
-                                    // Ujistíme se, že všechny nutriční hodnoty mají výchozí hodnotu 0
-                                    // POUŽÍVÁME rawNutrients (číselné) místo nutrients (formátované stringy)
-                                    const raw = currentNutrition.rawNutrients || {};
-                                    const safeNutrients = {
-                                        total_kcal: raw.total_kcal || 0,
-                                        total_kj: raw.total_kj || 0,
-                                        protein: raw.protein || 0,
-                                        carbs: raw.carbs || 0,
-                                        sugar: raw.sugar || 0,
-                                        fat: raw.fat || 0,
-                                        saturated_fat: raw.saturated_fat || 0,
-                                        trans_fat: raw.trans_fat || 0,
-                                        monounsaturated_fat: raw.monounsaturated_fat || 0,
-                                        polyunsaturated_fat: raw.polyunsaturated_fat || 0,
-                                        cholesterol: raw.cholesterol || 0,
-                                        fiber: raw.fiber || 0, // KLÍČ - číselná hodnota
-                                        salt: raw.salt || 0,
-                                        calcium: raw.calcium || 0,
-                                        sodium: raw.sodium || 0,
-                                        water: raw.water || 0,
-                                        phe: raw.phe || 0
-                                    };
-                                    
-                                    const recipeFoodItem = {
-                                        foodName: recipeName,
-                                        slug: '',
-                                        imageUrl: imageUrl,
-                                        foodType: 'recept',
-                                        amount: currentNutrition.totalWeight,
-                                        unit: 'g',
-                                        kcal: currentNutrition.nutrients.total_kcal,
-                                        nutritionalDetails: safeNutrients, // POUŽIJEME BEZPEČNÉ HODNOTY
-                                        isRecipe: true,
-                                        recipeId: recipeId,
-                                        portions: currentPortions,
-                                        ingredients: ingredients
-                                    };
-
-                                    window.currentFoodItemForRecipe = recipeFoodItem;
-                                    detailsModal.style.display = 'none';
-                                    openSelectMealModal();
-                                });
-                            } else {
-                                console.log("❌ addRecipeAsMealButton nenalezen");
-                            }
-                            
-                            // 2b. Tlačítko "Upravit recept" (pouze u vlastních receptů)
-                            const editCustomRecipeButton = document.getElementById('editCustomRecipeButton');
-                            if (editCustomRecipeButton) {
-                                editCustomRecipeButton.addEventListener('click', async function (e) {
-                                    e.stopPropagation();
-                                    console.log("✏️ Kliknuto na Upravit vlastní recept:", recipeId);
-                                    // Zavřeme detail receptu
-                                    detailsModal.style.display = 'none';
-                                    // Otevřeme modal pro editaci
-                                    await openCustomRecipeModalForEdit(recipeId);
-                                });
-                            }
-
-                            // 3. Výběr porcí - POUZE pokud element existuje
-                            const portionsSelect = document.getElementById('recipePortionsSelect');
-                            if (portionsSelect) {
-                                portionsSelect.addEventListener('change', function () {
-                                    currentPortions = parseInt(this.value);
-                                    updateDisplay();
-                                });
-                                console.log("✅ Event listener pro recipePortionsSelect přidán");
-                            } else {
-                                console.log("ℹ️ recipePortionsSelect neexistuje - normální recept bez výběru porcí");
-                            }
-
-                            // Inicializace zobrazení
-                            updateDisplay();
-                        });
+                // SEČTEME ZE VŠECH INGREDIENCÍ (s daty z cache pokud existují)
+                ingredients.forEach((ing, index) => {
+                    // Použijeme data z cache pokud existují
+                    let dataToUse = ing;
+                    if (window.recipeEditCache && window.recipeEditCache[recipeId] && 
+                        window.recipeEditCache[recipeId].ingredientIndex === index) {
+                        console.log("📦 Počítám s daty z cache pro index", index);
+                        dataToUse = window.recipeEditCache[recipeId].newData;
                     }
+                    
+                    const details = dataToUse.nutritionalDetails || ing.nutritionalDetails || {};
+                    totalCalories += parseFloat(dataToUse.kcal || ing.kcal) || 0;
+                    nutrients.protein += parseFloat(details.protein) || 0;
+                    nutrients.carbs += parseFloat(details.carbs) || 0;
+                    nutrients.sugar += parseFloat(details.sugar) || 0;
+                    nutrients.fat += parseFloat(details.fat) || 0;
+                    nutrients.saturated_fat += parseFloat(details.saturated_fat) || 0;
+                    nutrients.trans_fat += parseFloat(details.trans_fat) || 0;
+                    nutrients.monounsaturated_fat += parseFloat(details.monounsaturated_fat) || 0;
+                    nutrients.polyunsaturated_fat += parseFloat(details.polyunsaturated_fat) || 0;
+                    nutrients.cholesterol += parseFloat(details.cholesterol) || 0;
+                    nutrients.fiber += parseFloat(details.fiber) || 0;
+                    nutrients.salt += parseFloat(details.salt) || 0;
+                    nutrients.calcium += parseFloat(details.calcium) || 0;
+                    nutrients.sodium += parseFloat(details.sodium) || 0;
+                    nutrients.water += parseFloat(details.water) || 0;
+                    nutrients.phe += parseFloat(details.phe) || 0;
+                });
+                
+                if (isCustomRecipe) {
+                    // Zobrazit tlačítko upravit
+                    // Vlastní recept - ZOBRAZÍME tlačítko editace
+                    editBtn.style.display = 'block';
                 } else {
-                    console.log("❌ ingredientsListEl nenalezen - nelze zobrazit ingredience");
+                    editBtn.style.display = 'none';
                 }
+                
+                // Zobrazíme kalorie
+                caloriesEl.textContent = `${Math.round(totalCalories)} kcal`;
+                
+                // NUTRIENTY - přesně podle obrázku
+                // Funkce pro formátování hodnoty (0 = "-", čárka místo tečky, max 2 desetinná místa)
+                const formatValue = (value, unit = 'g') => {
+                    if (value <= 0) return '-';
+                    
+                    // Zaokrouhlíme na 2 desetinná místa
+                    let rounded = Math.round(value * 100) / 100;
+                    
+                    // Pokud je to celé číslo, zobrazíme bez desetinných míst
+                    if (rounded === Math.floor(rounded)) {
+                        return `${rounded} ${unit}`;
+                    }
+                    
+                    // Jinak zobrazíme s desetinnými místy (max 2) a nahradíme tečku čárkou
+                    let formatted = rounded.toFixed(2).replace(/\.?0+$/, '').replace('.', ',');
+                    return `${formatted} ${unit}`;
+                };
+                
+                let nutrientsHTML = '<div class="nutrients-list-new">';
+                
+                // 1. BÍLKOVINY
+                nutrientsHTML += `
+                    <div class="nutrient-item-new">
+                        <span class="nutrient-bullet" style="background-color: #f44336;"></span>
+                        <span class="nutrient-label-new" style="color: #000; text-shadow: 0 1px 3px rgba(244, 67, 54, 0.5);">Bílkoviny</span>
+                        <span class="nutrient-value-new" style="color: #000; text-shadow: 0 1px 3px rgba(244, 67, 54, 0.5);">${formatValue(nutrients.protein)}</span>
+                    </div>
+                `;
+                
+                // 2. SACHARIDY + podpoložka CUKRY (ne název receptu!)
+                nutrientsHTML += `
+                    <div class="nutrient-item-new">
+                        <span class="nutrient-bullet" style="background-color: #2196f3;"></span>
+                        <span class="nutrient-label-new" style="color: #000; text-shadow: 0 1px 3px rgba(33, 150, 243, 0.5);">Sacharidy</span>
+                        <span class="nutrient-value-new" style="color: #000; text-shadow: 0 1px 3px rgba(33, 150, 243, 0.5);">${formatValue(nutrients.carbs)}</span>
+                    </div>
+                `;
+                if (nutrients.sugar > 0) {
+                    nutrientsHTML += `
+                        <div class="nutrient-item-sub">
+                            <span class="nutrient-sublabel">Cukry</span>
+                            <span class="nutrient-subvalue">${formatValue(nutrients.sugar)}</span>
+                        </div>
+                    `;
+                }
+                
+                // 3. TUKY + podpoložky
+                nutrientsHTML += `
+                    <div class="nutrient-item-new">
+                        <span class="nutrient-bullet" style="background-color: #ffc107;"></span>
+                        <span class="nutrient-label-new" style="color: #000; text-shadow: 0 1px 3px rgba(255, 193, 7, 0.5);">Tuky</span>
+                        <span class="nutrient-value-new" style="color: #000; text-shadow: 0 1px 3px rgba(255, 193, 7, 0.5);">${formatValue(nutrients.fat)}</span>
+                    </div>
+                `;
+                const fatDetails = [
+                    { name: 'Nasycené mastné kyseliny', value: nutrients.saturated_fat },
+                    { name: 'Transmastné kyseliny', value: nutrients.trans_fat },
+                    { name: 'Mononenasycené', value: nutrients.monounsaturated_fat },
+                    { name: 'Polynenasycené', value: nutrients.polyunsaturated_fat },
+                    { name: 'Cholesterol', value: nutrients.cholesterol, unit: 'mg' }
+                ];
+                fatDetails.forEach(detail => {
+                    nutrientsHTML += `
+                        <div class="nutrient-item-sub">
+                            <span class="nutrient-sublabel">${detail.name}</span>
+                            <span class="nutrient-subvalue">${formatValue(detail.value, detail.unit || 'g')}</span>
+                        </div>
+                    `;
+                });
+                
+                // 4. VLÁKNINA
+                nutrientsHTML += `
+                    <div class="nutrient-item-new">
+                        <span class="nutrient-bullet" style="background-color: #28a745;"></span>
+                        <span class="nutrient-label-new" style="color: #000; text-shadow: 0 1px 3px rgba(40, 167, 69, 0.5);">Vláknina</span>
+                        <span class="nutrient-value-new" style="color: #000; text-shadow: 0 1px 3px rgba(40, 167, 69, 0.5);">${formatValue(nutrients.fiber)}</span>
+                    </div>
+                `;
+                
+                // 5. OSTATNÍ NUTRIENTY (bez odrážek)
+                const otherNutrients = [
+                    { name: 'Sůl', value: nutrients.salt, unit: 'g' },
+                    { name: 'Vápník', value: nutrients.calcium, unit: 'mg' },
+                    { name: 'Sodík', value: nutrients.sodium, unit: 'mg' },
+                    { name: 'Voda', value: nutrients.water, unit: 'g' },
+                    { name: 'PHE', value: nutrients.phe, unit: 'g' }
+                ];
+                otherNutrients.forEach(nutrient => {
+                    nutrientsHTML += `
+                        <div class="nutrient-item-other">
+                            <span class="nutrient-label-other">${nutrient.name}</span>
+                            <span class="nutrient-value-other">${formatValue(nutrient.value, nutrient.unit)}</span>
+                        </div>
+                    `;
+                });
+                
+                nutrientsHTML += '</div>';
+                nutrientsListEl.innerHTML = nutrientsHTML;
+                
+                // POLOŽKY - kartičky s obrázky jako na obrázku
+                let itemsHTML = '';
+                ingredients.forEach((ing, index) => {
+                    // Zkontrolujeme jestli existují data v cache pro tuto ingredienci
+                    let displayData = ing;
+                    if (window.recipeEditCache && window.recipeEditCache[recipeId] && window.recipeEditCache[recipeId].ingredientIndex === index) {
+                        console.log("📦 Načítám data z cache pro index", index);
+                        displayData = window.recipeEditCache[recipeId].newData;
+                    }
+                    
+                    const name = displayData.foodName || ing.foodName || 'Neznámá položka';
+                    const amount = displayData.amount || ing.amount || 0;
+                    const unit = displayData.unit || ing.unit || 'g';
+                    const calories = parseFloat(displayData.kcal) || parseFloat(ing.kcal) || 0;
+                    const protein = parseFloat(displayData.nutritionalDetails?.protein) || parseFloat(ing.nutritionalDetails?.protein) || 0;
+                    const carbs = parseFloat(displayData.nutritionalDetails?.carbs) || parseFloat(ing.nutritionalDetails?.carbs) || 0;
+                    const fat = parseFloat(displayData.nutritionalDetails?.fat) || parseFloat(ing.nutritionalDetails?.fat) || 0;
+                    const imageUrl = displayData.imageUrl || ing.imageUrl || "{{ url_for('static', filename='icon/potravina.png') }}";
+                    
+                    itemsHTML += `
+                        <div class="recipe-item-card-new">
+                            <img src="${imageUrl}" class="recipe-item-image" onerror="this.src='{{ url_for('static', filename='icon/potravina.png') }}'">
+                            <div class="recipe-item-info">
+                                <div class="recipe-item-name-new">${name}</div>
+                                <div class="recipe-item-calories-amount-row">
+                                    <div class="recipe-item-calories-badge">${Math.round(calories)} kcal</div>
+                                    ${!isCustomRecipe ? `<div class="recipe-item-amount-new">${String(amount).replace('.', ',')} ${unit}</div>` : ''}
+                                </div>
+                            </div>
+                            <div class="recipe-item-actions-new">
+                                ${!isCustomRecipe ? `
+                                <button class="recipe-item-edit-btn" data-index="${index}" title="Upravit">
+                                    <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
+                                </button>
+                                ` : ''}
+                                <button class="recipe-item-delete-btn" data-index="${index}" title="Smazat">
+                                    <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
+                                </button>
+                            </div>
+                            <div class="recipe-item-nutrients-new">
+                                <span style="color: #000; text-shadow: 0 1px 3px rgba(244, 67, 54, 0.5);">B: ${protein.toFixed(1).replace('.', ',')}g</span>
+                                <span style="color: #000; text-shadow: 0 1px 3px rgba(33, 150, 243, 0.5);">S: ${carbs.toFixed(1).replace('.', ',')}g</span>
+                                <span style="color: #000; text-shadow: 0 1px 3px rgba(255, 193, 7, 0.5);">T: ${fat.toFixed(1).replace('.', ',')}g</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                itemsListEl.innerHTML = itemsHTML || '<p>Žádné položky</p>';
+                
+                // EVENT LISTENERY NA IKONKY EDITACE A SMAZÁNÍ
+                document.querySelectorAll('.recipe-item-edit-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const index = parseInt(e.currentTarget.dataset.index);
+                        const ingredient = ingredients[index];
+                        
+                        console.log("✏️ Editace položky:", ingredient);
+                        
+                        // Zkontrolujeme jestli existují data v cache pro tuto položku
+                        let dataToEdit = ingredient;
+                        if (window.recipeEditCache && window.recipeEditCache[recipeId] && 
+                            window.recipeEditCache[recipeId].ingredientIndex === index) {
+                            console.log("📦 Načítám data z cache pro editaci");
+                            dataToEdit = window.recipeEditCache[recipeId].newData;
+                        }
+                        
+                        // Nastavíme globální kontext editace (BEZ window prefix!)
+                        currentEditingRecipeId = recipeId;
+                        currentEditingIngredientIndex = index;
+                        isEditingRecipeItem = true;
+                        editingRecipeContext = { recipeId: recipeId, recipeName: recipeName };
+                        
+                        console.log("✅ Kontext nastaven:", {
+                            currentEditingRecipeId,
+                            currentEditingIngredientIndex,
+                            isEditingRecipeItem
+                        });
+                        
+                        // Otevřeme detail modal v režimu editace s daty z cache
+                        await showDetailsModal(
+                            dataToEdit.slug || ingredient.slug,
+                            dataToEdit.foodName || ingredient.foodName,
+                            dataToEdit.imageUrl || ingredient.imageUrl,
+                            dataToEdit.kcal || ingredient.kcal,
+                            dataToEdit.foodType || ingredient.foodType,
+                            true,  // isEditingRecipeIngredient = true
+                            dataToEdit.amount,
+                            dataToEdit.unit,
+                            dataToEdit.nutritionalDetails || ingredient.nutritionalDetails
+                        );
+                    });
+                });
+                
+                document.querySelectorAll('.recipe-item-delete-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const index = parseInt(e.currentTarget.dataset.index);
+                        const ingredient = ingredients[index];
+                        
+                        console.log("🗑️ Smazání položky:", ingredient);
+                        
+                        // Potvrzení smazání
+                        window.showCustomNotification(
+                            `Opravdu smazat "${ingredient.foodName}" z receptu?`,
+                            'confirmDeleteRecipeItem',
+                            async () => {
+                                try {
+                                    // Načteme recept znovu
+                                    const { data: recipeData, error: fetchError } = await window.supabaseClient
+                                        .from('recipes')
+                                        .select('*')
+                                        .eq('id', recipeId)
+                                        .single();
+                                    
+                                    if (fetchError) throw fetchError;
+                                    
+                                    // Odstraníme ingredienci
+                                    const currentIngredients = recipeData.ingredients || [];
+                                    currentIngredients.splice(index, 1);
+                                    
+                                    // Uložíme zpět
+                                    const { error: updateError } = await window.supabaseClient
+                                        .from('recipes')
+                                        .update({
+                                            ingredients: currentIngredients,
+                                            updated_at: new Date().toISOString()
+                                        })
+                                        .eq('id', recipeId);
+                                    
+                                    if (updateError) throw updateError;
+                                    
+                                    window.showCustomNotification(`"${ingredient.foodName}" bylo smazáno`, 'success');
+                                    
+                                    // Znovu načteme detail
+                                    await showRecipeDetailsModal(recipeId, recipeName);
+                                } catch (error) {
+                                    console.error("❌ Chyba při mazání:", error);
+                                    window.showCustomNotification(`Chyba: ${error.message}`, 'error');
+                                }
+                            },
+                            true
+                        );
+                    });
+                });
+                
+                // Event listenery pro tlačítka
+                addMealBtn.onclick = () => {
+                    // Nastavíme foodItem do globální proměnné
+                    window.currentFoodItemForRecipe = {
+                        recipeId: recipeId,
+                        foodName: recipeName,
+                        isRecipe: true,
+                        ingredients: ingredients
+                    };
+                    
+                    // Zavřeme detail modal
+                    modal.style.display = 'none';
+                    
+                    // Otevřeme výběr jídla
+                    openSelectMealModal();
+                };
+                
+                if (isCustomRecipe) {
+                    editBtn.onclick = async () => {
+                        modal.style.display = 'none';
+                        // Použijeme existující funkci pro editaci
+                        await openCustomRecipeModalForEdit(recipeId);
+                    };
+                }
+                
+                // Zobrazíme tlačítka "Uložit změny" a "Uložit jako..." pokud:
+                // 1. NENÍ to vlastní recept
+                // 2. Existují neuložené změny v cache
+                if (!isCustomRecipe && window.recipeHasUnsavedChanges && window.recipeEditCache && window.recipeEditCache[recipeId]) {
+                    console.log("📝 Běžný recept má neuložené změny, zobrazuji tlačítka");
+                    showRecipeSaveButtonsInDetail(recipeId, recipeName);
+                }
+                
             } catch (error) {
-                console.error("Error loading recipe details:", error);
-                modalDetailsContent.innerHTML = `< p class= "error-details" > Došlo k chybě při načítání detailů receptu: ${error.message}</p > `;
+                console.error("❌ Chyba při načítání receptu:", error);
+                nutrientsListEl.innerHTML = `<p>Chyba: ${error.message}</p>`;
             }
         }
+        
+        // Funkce pro zobrazení tlačítek Uložit/Uložit jako v detailu receptu
+        function showRecipeSaveButtonsInDetail(recipeId, recipeName) {
+            console.log("🔍 showRecipeSaveButtonsInDetail called:", { recipeId, recipeName });
+            
+            const actionsContainer = document.querySelector('#recipeDetailModal .recipe-detail-actions');
+            console.log("🔍 actionsContainer:", actionsContainer);
+            
+            if (!actionsContainer) {
+                console.error("❌ actionsContainer not found!");
+                return;
+            }
+            
+            // Zkontrolujeme jestli už tlačítka nejsou zobrazena
+            if (document.getElementById('saveRecipeChangesInDetailBtn')) {
+                console.log("⚠️ Tlačítka už jsou zobrazena");
+                return;
+            }
+            
+            // Vytvoříme tlačítka
+            const saveBtn = document.createElement('button');
+            saveBtn.id = 'saveRecipeChangesInDetailBtn';
+            saveBtn.className = 'btn-primary';
+            saveBtn.style.backgroundColor = '#28a745';
+            saveBtn.textContent = '✓ Uložit změny';
+            saveBtn.onclick = async () => {
+                await saveRecipeChangesToDB(recipeId);
+            };
+            
+            const saveAsBtn = document.createElement('button');
+            saveAsBtn.id = 'saveRecipeAsInDetailBtn';
+            saveAsBtn.className = 'btn-secondary';
+            saveAsBtn.textContent = '💾 Uložit jako...';
+            saveAsBtn.onclick = async () => {
+                await saveRecipeAsNew(recipeId, recipeName);
+            };
+            
+            // Přidáme tlačítka
+            actionsContainer.appendChild(saveBtn);
+            actionsContainer.appendChild(saveAsBtn);
+            
+            console.log("✅ Tlačítka Uložit/Uložit jako přidána");
+        }
+        
+        // Funkce pro uložení změn do DB
+        async function saveRecipeChangesToDB(recipeId) {
+            if (!window.recipeEditCache || !window.recipeEditCache[recipeId]) {
+                window.showCustomNotification('Žádné neuložené změny', 'info');
+                return;
+            }
+            
+            const cache = window.recipeEditCache[recipeId];
+            console.log("💾 Ukládám změny do DB:", cache);
+            
+            // OKAMŽITĚ zavřeme detail receptu
+            document.getElementById('recipeDetailModal').style.display = 'none';
+            
+            // Zobrazíme seznam receptů
+            document.getElementById('selectRecipeModal').style.display = 'flex';
+            
+            try {
+                // Uložíme PŘÍMO do DB (bez volání updateFoodItemInRecipe)
+                const { data: recipeData, error: fetchError } = await window.supabaseClient
+                    .from('recipes')
+                    .select('*')
+                    .eq('id', recipeId)
+                    .single();
 
-        // =============================================
-        // SPRÁVA MODALŮ
-        // =============================================
+                if (fetchError) throw fetchError;
+
+                const currentIngredients = recipeData.ingredients || [];
+                if (cache.ingredientIndex >= 0 && cache.ingredientIndex < currentIngredients.length) {
+                    currentIngredients[cache.ingredientIndex] = cache.newData;
+
+                    const { error: updateError } = await window.supabaseClient
+                        .from('recipes')
+                        .update({
+                            ingredients: currentIngredients,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', recipeId);
+
+                    if (updateError) throw updateError;
+                }
+                
+                // Vymažeme cache
+                delete window.recipeEditCache[recipeId];
+                window.recipeHasUnsavedChanges = false;
+                
+                // Přenačteme seznam receptů
+                await loadUserRecipes();
+                
+                // Zobrazíme potvrzení
+                window.showCustomNotification('Změny uloženy!', 'success');
+                
+            } catch (error) {
+                console.error("❌ Chyba při ukládání:", error);
+                window.showCustomNotification('Chyba: ' + error.message, 'error');
+            }
+        }
+        
+        // Funkce pro Uložit jako... (nový recept)
+        async function saveRecipeAsNew(recipeId, recipeName) {
+            // Nastavíme kontext pro běžný recept
+            window.saveAsContext = {
+                type: 'regular_recipe',
+                recipeId: recipeId,
+                recipeName: recipeName
+            };
+            
+            // Otevřeme modal pro zadání názvu
+            const saveAsModal = document.getElementById('saveAsModal');
+            const saveAsInput = document.getElementById('saveAsRecipeName');
+            const errorEl = document.getElementById('saveAsErrorMessage');
+            
+            // Vyčistíme error
+            errorEl.style.display = 'none';
+            errorEl.textContent = '';
+            
+            // Vyšší z-index než detail receptu
+            saveAsModal.style.zIndex = '1200';
+            
+            saveAsInput.value = recipeName;
+            saveAsModal.style.display = 'flex';
+            
+            setTimeout(() => {
+                saveAsInput.focus();
+                saveAsInput.setSelectionRange(recipeName.length, recipeName.length);
+            }, 100);
+        }
+
+        // FUNKCE PRO EDITACI INGREDIENCE V RECEPTU
+        async function openEditIngredientModal(context) {
+            console.log("🔧 Otevírám editační modal:", context);
+            
+            // Uložíme kontext pro pozdější použití
+            window.editIngredientContext = context;
+            
+            const modal = document.getElementById('editIngredientModal');
+            const { ingredient } = context;
+            const details = ingredient.nutritionalDetails || {};
+            const amount = parseFloat(ingredient.amount) || 100;
+            
+            console.log("🔍 DEBUG - Ingredient data:", {
+                foodName: ingredient.foodName,
+                amount: amount,
+                unit: ingredient.unit,
+                nutritionalDetails: details,
+                imageUrl: ingredient.imageUrl
+            });
+            
+            // Obrázek
+            const imageUrl = ingredient.imageUrl || 'static/icon/potravina.png';
+            document.getElementById('editIngredientImage').src = imageUrl;
+            
+            // Název
+            document.getElementById('editIngredientName').textContent = ingredient.foodName;
+            
+            // Kalorie
+            const kcal = Math.round((details.total_kcal || 0) * amount / 100);
+            const kj = Math.round(kcal * 4.184);
+            document.getElementById('editIngredientKcal').textContent = `${kcal} kcal`;
+            document.getElementById('editIngredientKj').textContent = `${kj} kJ`;
+            
+            // Množství
+            document.getElementById('editIngredientAmount').value = amount;
+            document.getElementById('editIngredientUnit').value = ingredient.unit || 'g';
+            
+            // Nutrienty - stejný styl jako v detailu potraviny
+            const nutrientsHTML = renderNutrientsForAmount(details, amount);
+            document.getElementById('editIngredientNutrientsSection').innerHTML = nutrientsHTML;
+            
+            // Otevřeme modal
+            modal.style.display = 'flex';
+            
+            // Scroll na začátek
+            const scrollContainer = modal.querySelector('.modal-recipe-scroll-container');
+            if (scrollContainer) scrollContainer.scrollTop = 0;
+            
+            // Focus na množství
+            setTimeout(() => {
+                const amountInput = document.getElementById('editIngredientAmount');
+                amountInput.focus();
+                amountInput.select();
+            }, 100);
+            
+            // Přidáme listener pro živý přepočet
+            updateNutrientsOnAmountChange();
+        }
+        
+        // Pomocná funkce pro renderování nutrientů
+        function renderNutrientsForAmount(details, amount) {
+            const factor = amount / 100;
+            
+            return `
+                <div class="nutrient-list">
+                    <div class="nutrient-item">
+                        <span class="nutrient-label">Bílkoviny</span>
+                        <span class="nutrient-value">${((details.protein || 0) * factor).toFixed(2)} g</span>
+                    </div>
+                    <div class="nutrient-item">
+                        <span class="nutrient-label">Sacharidy</span>
+                        <span class="nutrient-value">${((details.carbs || 0) * factor).toFixed(2)} g</span>
+                    </div>
+                    <div class="nutrient-item">
+                        <span class="nutrient-label">Tuky</span>
+                        <span class="nutrient-value">${((details.fat || 0) * factor).toFixed(2)} g</span>
+                    </div>
+                    <div class="nutrient-item">
+                        <span class="nutrient-label">Vláknina</span>
+                        <span class="nutrient-value">${((details.fiber || 0) * factor).toFixed(2)} g</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Živý přepočet při změně množství
+        function updateNutrientsOnAmountChange() {
+            const amountInput = document.getElementById('editIngredientAmount');
+            const context = window.editIngredientContext;
+            
+            if (!context) return;
+            
+            const updateDisplay = () => {
+                const newAmount = parseFloat(amountInput.value) || 0;
+                const details = context.ingredient.nutritionalDetails || {};
+                
+                // Aktualizujeme kalorie
+                const kcal = Math.round((details.total_kcal || 0) * newAmount / 100);
+                const kj = Math.round(kcal * 4.184);
+                document.getElementById('editIngredientKcal').textContent = `${kcal} kcal`;
+                document.getElementById('editIngredientKj').textContent = `${kj} kJ`;
+                
+                // Aktualizujeme nutrienty
+                const nutrientsHTML = renderNutrientsForAmount(details, newAmount);
+                document.getElementById('editIngredientNutrientsSection').innerHTML = nutrientsHTML;
+            };
+            
+            // Odebereme staré listenery
+            const newInput = amountInput.cloneNode(true);
+            amountInput.parentNode.replaceChild(newInput, amountInput);
+            
+            // Přidáme nový
+            newInput.addEventListener('input', updateDisplay);
+        }
+
         function initializeDetailsModalListeners() {
             const closeButton = detailsModal.querySelector('.close-button');
             if (closeButton) {
@@ -4776,9 +5104,11 @@
 
                 newCloseButton.addEventListener('click', function (e) {
                     e.stopPropagation();
-                    console.log("❌ Kliknuto na zavírací křížek");
-                    // VŽDY použijeme closeDetailsModalAndRestoreRecipe - ta se postará o obnovení receptu pokud je to editace
-                    closeDetailsModalAndRestoreRecipe();
+                    console.log("❌ Kliknuto na zavírací křížek editace");
+                    
+                    // Prostě zavřeme modal editace bez dialogu
+                    // (dialog je jen pro zavření DETAILU receptu, ne editace)
+                    detailsModal.style.display = 'none';
                 });
             }
 
@@ -4786,16 +5116,10 @@
                 if (event.target.classList.contains('close-button') || event.target.closest('.close-button')) return;
 
                 if (event.target === detailsModal) {
-                    console.log("❌ Kliknuto mimo modal");
-                    if (isEditingRecipeItem) {
-                        console.log("📝 Editace - speciální zavírání");
-                        // Pro editaci použijeme naši speciální funkci
-                        closeDetailsModalAndRestoreRecipe();
-                    } else {
-                        // Pro normální zobrazení jednoduše zavřeme
-                        detailsModal.style.display = 'none';
-                        window.isOpeningDetailsModal = false;
-                    }
+                    console.log("❌ Kliknuto mimo modal editace");
+                    
+                    // Prostě zavřeme bez dialogu
+                    detailsModal.style.display = 'none';
                 }
             });
         }
@@ -6264,14 +6588,24 @@
         // Funkce pro zavření modalu vlastního receptu
         function closeCustomRecipeModal() {
             document.getElementById('customRecipeModal').style.display = 'none';
+            
+            // RESET název pole - znovu povolit
+            const nameField = document.getElementById('customRecipeName');
+            if (nameField) {
+                nameField.disabled = false;
+            }
+            
             // RESET editace
             window.editingCustomRecipeId = null;
+            window.editingFromDailyIntake = false;
+            window.editingMealItemId = null;
         }
 
         // =============================================
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
+            console.log("🚀 Aplikace verze: KOLO 81");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
@@ -6423,6 +6757,70 @@
 
             document.getElementById('closeSelectRecipeModal').addEventListener('click', function () {
                 document.getElementById('selectRecipeModal').style.display = 'none';
+            });
+
+            // NOVÝ MODAL - Detail receptu
+            document.getElementById('closeRecipeDetailModal').addEventListener('click', function () {
+                // Zkontrolujeme jestli existují neuložené změny
+                const hasUnsavedChanges = window.recipeHasUnsavedChanges && 
+                                         window.recipeEditCache && 
+                                         Object.keys(window.recipeEditCache).length > 0;
+                
+                if (hasUnsavedChanges) {
+                    console.log("⚠️ Existují neuložené změny při zavírání detailu receptu");
+                    
+                    // Použijeme stejný dialog jako pro smazání
+                    window.showCustomNotification(
+                        'Opravdu chcete <strong>zahodit neuložené změny</strong>?',
+                        'confirmDiscardRecipeChanges',
+                        () => {
+                            // Ano - zahodit změny
+                            console.log("✓ Zahazuji změny");
+                            window.recipeEditCache = {};
+                            window.recipeHasUnsavedChanges = false;
+                            
+                            document.getElementById('recipeDetailModal').style.display = 'none';
+                            document.getElementById('selectRecipeModal').style.display = 'flex';
+                        },
+                        true  // Potřebujeme potvrzení (zobrazí "Ano" a "Ne")
+                    );
+                } else {
+                    // Normální zavření
+                    document.getElementById('recipeDetailModal').style.display = 'none';
+                    document.getElementById('selectRecipeModal').style.display = 'flex';
+                }
+            });
+
+            // Kliknutí mimo detail receptu
+            document.getElementById('recipeDetailModal').addEventListener('click', function (event) {
+                if (event.target === this) {
+                    // Zkontrolujeme cache
+                    const hasUnsavedChanges = window.recipeHasUnsavedChanges && 
+                                             window.recipeEditCache && 
+                                             Object.keys(window.recipeEditCache).length > 0;
+                    
+                    if (hasUnsavedChanges) {
+                        console.log("⚠️ Existují neuložené změny (klik mimo)");
+                        
+                        window.showCustomNotification(
+                            'Opravdu chcete <strong>zahodit neuložené změny</strong>?',
+                            'confirmDiscardRecipeChanges',
+                            () => {
+                                // Ano - zahodit
+                                window.recipeEditCache = {};
+                                window.recipeHasUnsavedChanges = false;
+                                
+                                document.getElementById('recipeDetailModal').style.display = 'none';
+                                document.getElementById('selectRecipeModal').style.display = 'flex';
+                            },
+                            true  // Potřebujeme potvrzení
+                        );
+                    } else {
+                        // Normální zavření
+                        document.getElementById('recipeDetailModal').style.display = 'none';
+                        document.getElementById('selectRecipeModal').style.display = 'flex';
+                    }
+                }
             });
 
             document.getElementById('closeCreateProfileModal').addEventListener('click', function () {
@@ -6633,6 +7031,32 @@
             document.getElementById('addCustomRecipeBtn').addEventListener('click', openCustomRecipeModal);
             document.getElementById('closeCustomRecipeModal').addEventListener('click', closeCustomRecipeModal);
             document.getElementById('saveCustomRecipeBtn').addEventListener('click', saveCustomRecipe);
+            document.getElementById('saveAsCustomRecipeBtn').addEventListener('click', saveRecipeAs);
+            
+            // Event listenery pro Save As modal
+            document.getElementById('closeSaveAsModal').addEventListener('click', function() {
+                document.getElementById('saveAsModal').style.display = 'none';
+            });
+            document.getElementById('confirmSaveAsBtn').addEventListener('click', confirmSaveAs);
+            document.getElementById('saveAsModal').addEventListener('click', function(event) {
+                if (event.target === this) {
+                    this.style.display = 'none';
+                }
+            });
+            
+            // Event listenery pro Edit Ingredient modal
+            document.getElementById('closeEditIngredientModal').addEventListener('click', function() {
+                document.getElementById('editIngredientModal').style.display = 'none';
+            });
+            document.getElementById('saveIngredientChangesBtn').addEventListener('click', saveIngredientChanges);
+            document.getElementById('cancelIngredientChangesBtn').addEventListener('click', function() {
+                document.getElementById('editIngredientModal').style.display = 'none';
+            });
+            document.getElementById('editIngredientModal').addEventListener('click', function(event) {
+                if (event.target === this) {
+                    this.style.display = 'none';
+                }
+            });
 
             // Event listener pro kliknutí mimo modal
             document.getElementById('customRecipeModal').addEventListener('click', function (event) {
@@ -6682,7 +7106,20 @@
         // Funkce pro otevření modalu vlastního receptu
         function openCustomRecipeModal() {
             document.getElementById('selectRecipeModal').style.display = 'none';
-            document.getElementById('customRecipeModal').style.display = 'flex';
+            const modal = document.getElementById('customRecipeModal');
+            modal.style.display = 'flex';
+            
+            // SCROLL NA ZAČÁTEK
+            const modalContent = modal.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.scrollTop = 0;
+            }
+
+            // RESET nadpisu a tlačítek pro VYTVOŘENÍ
+            document.getElementById('customRecipeModalTitle').textContent = 'Vytvořit vlastní recept';
+            document.getElementById('saveCustomRecipeBtn').textContent = 'Uložit';
+            document.getElementById('saveAsCustomRecipeBtn').style.display = 'none';
+            window.editingCustomRecipeId = null; // Není editace
 
             // Vyčistíme všechny pole formuláře
             const fields = [
@@ -6704,8 +7141,9 @@
         }
 
         // NOVÁ FUNKCE: Otevření modalu pro editaci vlastního receptu
-        async function openCustomRecipeModalForEdit(recipeId) {
-            console.log("✏️ Otevírám modal pro editaci vlastního receptu:", recipeId);
+        // source: 'daily_intake' nebo 'recipe_list'
+        async function openCustomRecipeModalForEdit(recipeId, source = 'recipe_list', mealItemId = null) {
+            console.log("✏️ Otevírám modal pro editaci vlastního receptu:", recipeId, "Zdroj:", source);
             
             // ZAVŘÍT VŠECHNY OSTATNÍ MODALY
             const detailsModal = document.getElementById('detailsModal');
@@ -6713,60 +7151,159 @@
                 detailsModal.style.display = 'none';
             }
             
+            const dailyModal = document.getElementById('dailyIntakeSection');
+            if (dailyModal && source === 'daily_intake') {
+                dailyModal.style.display = 'none';
+            }
+            
             try {
-                // Načteme data receptu z databáze
-                const { data: recipeData, error } = await window.supabaseClient
-                    .from('recipes')
-                    .select('*')
-                    .eq('id', recipeId)
-                    .single();
+                let recipeData, ingredient, nutritionalDetails;
                 
-                if (error) throw error;
-                
-                if (!recipeData || !recipeData.ingredients || recipeData.ingredients.length === 0) {
-                    window.showCustomNotification('Nepodařilo se načíst data receptu', 'error');
-                    return;
+                // ROZLIŠENÍ: odkud načítáme data?
+                if (source === 'daily_intake' && mealItemId) {
+                    // NAČTEME Z DENNÍHO PŘÍJMU (meal_items)
+                    console.log("📥 Načítám data Z DENNÍHO PŘÍJMU (meal_item):", mealItemId);
+                    
+                    const { data: mealItemData, error: mealError } = await window.supabaseClient
+                        .from('meal_items')
+                        .select('*')
+                        .eq('id', mealItemId)
+                        .single();
+                    
+                    if (mealError) throw mealError;
+                    
+                    // Vytvoříme strukturu - VŠECHNO Z meal_items!
+                    recipeData = {
+                        name: mealItemData.food_name,  // ✅ Název Z meal_items!
+                        portions: 1 // Z denního příjmu = vždy 1 porce
+                    };
+                    
+                    ingredient = {
+                        calories: mealItemData.calories
+                    };
+                    
+                    nutritionalDetails = mealItemData.nutritional_data || {
+                        total_kcal: mealItemData.calories,
+                        protein: mealItemData.protein,
+                        carbs: mealItemData.carbs,
+                        fat: mealItemData.fat,
+                        fiber: mealItemData.fiber
+                    };
+                    
+                    console.log("✅ Data z denního příjmu načtena (včetně názvu):", {
+                        name: recipeData.name,
+                        calories: ingredient.calories,
+                        nutritionalData: nutritionalDetails
+                    });
+                    
+                } else {
+                    // NAČTEME Z RECEPTŮ (recipes)
+                    console.log("📥 Načítám data Z RECEPTŮ:", recipeId);
+                    
+                    const { data: recipeDataFromDB, error } = await window.supabaseClient
+                        .from('recipes')
+                        .select('*')
+                        .eq('id', recipeId)
+                        .single();
+                    
+                    if (error) throw error;
+                    
+                    if (!recipeDataFromDB || !recipeDataFromDB.ingredients || recipeDataFromDB.ingredients.length === 0) {
+                        window.showCustomNotification('Nepodařilo se načíst data receptu', 'error');
+                        return;
+                    }
+                    
+                    recipeData = recipeDataFromDB;
+                    ingredient = recipeData.ingredients[0];
+                    nutritionalDetails = ingredient.nutritionalDetails || {};
+                    
+                    console.log("✅ Data z receptů načtena:", {
+                        name: recipeData.name,
+                        calories: ingredient.calories,
+                        nutritionalDetails: nutritionalDetails
+                    });
                 }
-                
-                // Získáme nutriční data z první ingredience (vlastní recept má jen 1 položku)
-                const ingredient = recipeData.ingredients[0];
-                const nutritionalDetails = ingredient.nutritionalDetails || {};
-                
-                console.log("📊 Načtená data receptu:", {
-                    name: recipeData.name,
-                    calories: ingredient.calories,
-                    nutritionalDetails: nutritionalDetails
-                });
                 
                 // Otevřeme modal
                 const customModal = document.getElementById('customRecipeModal');
                 if (customModal) {
                     customModal.style.display = 'flex';
-                    console.log("✅ Custom recipe modal otevřen");
+                    
+                    // SCROLL NA ZAČÁTEK
+                    const modalContent = customModal.querySelector('.modal-content');
+                    if (modalContent) {
+                        modalContent.scrollTop = 0;
+                    }
+                    
+                    // NASTAVÍME NADPIS A TLAČÍTKA PRO EDITACI
+                    document.getElementById('customRecipeModalTitle').textContent = 'Úprava vlastního receptu';
+                    document.getElementById('saveCustomRecipeBtn').textContent = 'Uložit změny';
+                    document.getElementById('saveAsCustomRecipeBtn').style.display = 'inline-block';
+                    
+                    console.log("✅ Custom recipe modal otevřen v režimu EDITACE");
                 } else {
                     console.error("❌ customRecipeModal element neexistuje!");
                     return;
                 }
                 
-                // Vyplníme formulář hodnotami
-                document.getElementById('customRecipeName').value = recipeData.name || '';
-                document.getElementById('customRecipeCalories').value = ingredient.calories || nutritionalDetails.total_kcal || '';
-                document.getElementById('customRecipeProtein').value = nutritionalDetails.protein || '';
-                document.getElementById('customRecipeCarbs').value = nutritionalDetails.carbs || '';
-                document.getElementById('customRecipeSugar').value = nutritionalDetails.sugar || '';
-                document.getElementById('customRecipeFat').value = nutritionalDetails.fat || '';
-                document.getElementById('customRecipeSaturatedFat').value = nutritionalDetails.saturated_fat || '';
-                document.getElementById('customRecipeTransFat').value = nutritionalDetails.trans_fat || '';
-                document.getElementById('customRecipeMonoFat').value = nutritionalDetails.monounsaturated_fat || '';
-                document.getElementById('customRecipePolyFat').value = nutritionalDetails.polyunsaturated_fat || '';
-                document.getElementById('customRecipeCholesterol').value = nutritionalDetails.cholesterol || '';
-                document.getElementById('customRecipeFiber').value = nutritionalDetails.fiber || '';
-                document.getElementById('customRecipeSalt').value = nutritionalDetails.salt || '';
-                document.getElementById('customRecipeCalcium').value = nutritionalDetails.calcium || '';
-                document.getElementById('customRecipeSodium').value = nutritionalDetails.sodium || '';
-                document.getElementById('customRecipeWater').value = nutritionalDetails.water || '';
-                document.getElementById('customRecipePhe').value = nutritionalDetails.phe || '';
-                document.getElementById('customRecipePortions').value = recipeData.portions || 1;
+                const nameField = document.getElementById('customRecipeName');
+                const portionsField = document.getElementById('customRecipePortions');
+                const currentPortions = recipeData.portions || 1;
+                
+                // ROZLIŠENÍ podle zdroje
+                if (source === 'daily_intake') {
+                    // Z DENNÍHO PŘÍJMU - přepočítat na 1 porci, disable název
+                    nameField.value = recipeData.name || '';
+                    nameField.disabled = true; // NELZE EDITOVAT NÁZEV
+                    
+                    // Přepočítáme hodnoty na 1 porci
+                    const portionFactor = 1 / currentPortions;
+                    document.getElementById('customRecipeCalories').value = Math.round((ingredient.calories || nutritionalDetails.total_kcal || 0) * portionFactor);
+                    document.getElementById('customRecipeProtein').value = ((nutritionalDetails.protein || 0) * portionFactor).toFixed(2);
+                    document.getElementById('customRecipeCarbs').value = ((nutritionalDetails.carbs || 0) * portionFactor).toFixed(2);
+                    document.getElementById('customRecipeSugar').value = ((nutritionalDetails.sugar || 0) * portionFactor).toFixed(2);
+                    document.getElementById('customRecipeFat').value = ((nutritionalDetails.fat || 0) * portionFactor).toFixed(2);
+                    document.getElementById('customRecipeSaturatedFat').value = ((nutritionalDetails.saturated_fat || 0) * portionFactor).toFixed(2);
+                    document.getElementById('customRecipeTransFat').value = ((nutritionalDetails.trans_fat || 0) * portionFactor).toFixed(2);
+                    document.getElementById('customRecipeMonoFat').value = ((nutritionalDetails.monounsaturated_fat || 0) * portionFactor).toFixed(2);
+                    document.getElementById('customRecipePolyFat').value = ((nutritionalDetails.polyunsaturated_fat || 0) * portionFactor).toFixed(2);
+                    document.getElementById('customRecipeCholesterol').value = ((nutritionalDetails.cholesterol || 0) * portionFactor).toFixed(2);
+                    document.getElementById('customRecipeFiber').value = ((nutritionalDetails.fiber || 0) * portionFactor).toFixed(2);
+                    document.getElementById('customRecipeSalt').value = ((nutritionalDetails.salt || 0) * portionFactor).toFixed(2);
+                    document.getElementById('customRecipeCalcium').value = ((nutritionalDetails.calcium || 0) * portionFactor).toFixed(2);
+                    document.getElementById('customRecipeSodium').value = ((nutritionalDetails.sodium || 0) * portionFactor).toFixed(2);
+                    document.getElementById('customRecipeWater').value = ((nutritionalDetails.water || 0) * portionFactor).toFixed(2);
+                    document.getElementById('customRecipePhe').value = ((nutritionalDetails.phe || 0) * portionFactor).toFixed(2);
+                    portionsField.value = 1; // VŽDY 1 porce
+                    
+                    // Uložíme info o editaci z denního příjmu
+                    window.editingFromDailyIntake = true;
+                    window.editingMealItemId = mealItemId;
+                } else {
+                    // Z RECEPTŮ - normální editace
+                    nameField.value = recipeData.name || '';
+                    nameField.disabled = false; // MŮŽEME EDITOVAT
+                    
+                    document.getElementById('customRecipeCalories').value = ingredient.calories || nutritionalDetails.total_kcal || '';
+                    document.getElementById('customRecipeProtein').value = nutritionalDetails.protein || '';
+                    document.getElementById('customRecipeCarbs').value = nutritionalDetails.carbs || '';
+                    document.getElementById('customRecipeSugar').value = nutritionalDetails.sugar || '';
+                    document.getElementById('customRecipeFat').value = nutritionalDetails.fat || '';
+                    document.getElementById('customRecipeSaturatedFat').value = nutritionalDetails.saturated_fat || '';
+                    document.getElementById('customRecipeTransFat').value = nutritionalDetails.trans_fat || '';
+                    document.getElementById('customRecipeMonoFat').value = nutritionalDetails.monounsaturated_fat || '';
+                    document.getElementById('customRecipePolyFat').value = nutritionalDetails.polyunsaturated_fat || '';
+                    document.getElementById('customRecipeCholesterol').value = nutritionalDetails.cholesterol || '';
+                    document.getElementById('customRecipeFiber').value = nutritionalDetails.fiber || '';
+                    document.getElementById('customRecipeSalt').value = nutritionalDetails.salt || '';
+                    document.getElementById('customRecipeCalcium').value = nutritionalDetails.calcium || '';
+                    document.getElementById('customRecipeSodium').value = nutritionalDetails.sodium || '';
+                    document.getElementById('customRecipeWater').value = nutritionalDetails.water || '';
+                    document.getElementById('customRecipePhe').value = nutritionalDetails.phe || '';
+                    portionsField.value = currentPortions;
+                    
+                    window.editingFromDailyIntake = false;
+                }
                 
                 // Uložíme ID receptu pro pozdější update
                 window.editingCustomRecipeId = recipeId;
@@ -6791,15 +7328,67 @@
                 const portions = parseInt(document.getElementById('customRecipePortions').value) || 1;
                 recipeData.portions = portions;
 
-                // KONTROLA: Jsme v režimu editace?
-                if (window.editingCustomRecipeId) {
-                    // UPDATE existujícího receptu
+                // KONTROLA: Editace Z DENNÍHO PŘÍJMU?
+                if (window.editingFromDailyIntake && window.editingMealItemId) {
+                    console.log("💾 Ukládám změny DO DENNÍHO PŘÍJMU (ne do receptů!)");
+                    
+                    // Připravíme nutritional_data object s VŠEMI daty
+                    const nutritionalData = {
+                        total_kcal: recipeData.calories,
+                        protein: recipeData.protein,
+                        carbs: recipeData.carbs,
+                        sugar: recipeData.sugar || 0,
+                        fat: recipeData.fat,
+                        saturated_fat: recipeData.saturated_fat || 0,
+                        trans_fat: recipeData.trans_fat || 0,
+                        monounsaturated_fat: recipeData.monounsaturated_fat || 0,
+                        polyunsaturated_fat: recipeData.polyunsaturated_fat || 0,
+                        cholesterol: recipeData.cholesterol || 0,
+                        fiber: recipeData.fiber,
+                        salt: recipeData.salt || 0,
+                        calcium: recipeData.calcium || 0,
+                        sodium: recipeData.sodium || 0,
+                        water: recipeData.water || 0,
+                        phe: recipeData.phe || 0
+                    };
+                    
+                    // UPDATE meal_item - SPRÁVNÁ STRUKTURA (bez updated_at)
+                    const { error } = await window.supabaseClient
+                        .from('meal_items')
+                        .update({
+                            calories: recipeData.calories,
+                            protein: recipeData.protein,
+                            carbs: recipeData.carbs,
+                            fat: recipeData.fat,
+                            fiber: recipeData.fiber,
+                            nutritional_data: nutritionalData
+                        })
+                        .eq('id', window.editingMealItemId);
+                    
+                    if (error) throw error;
+                    
+                    // Reset flags
+                    window.editingFromDailyIntake = false;
+                    window.editingMealItemId = null;
+                    window.editingCustomRecipeId = null;
+                    
+                    closeCustomRecipeModal();
+                    
+                    // PŘENAČTEME data a OTEVŘEME denní příjem
+                    await loadDailyIntakeData(currentDailyIntakeDate);
+                    document.getElementById('dailyIntakeSection').style.display = 'block';
+                    
+                    window.showCustomNotification('Změny uloženy do denního příjmu!', 'success');
+                    
+                } else if (window.editingCustomRecipeId) {
+                    // UPDATE receptu v databázi receptů
+                    console.log("💾 Ukládám změny DO RECEPTŮ");
                     await updateCustomRecipe(window.editingCustomRecipeId, recipeData);
-                    window.editingCustomRecipeId = null; // Reset
+                    window.editingCustomRecipeId = null;
                     closeCustomRecipeModal();
                     window.showCustomNotification('Recept byl úspěšně aktualizován!', 'success');
                     await loadUserRecipes();
-                    await loadDailyIntakeData(currentDailyIntakeDate); // Reload denního příjmu
+                    await loadDailyIntakeData(currentDailyIntakeDate);
                 } else {
                     // CREATE nového receptu
                     const recipeId = await createCustomRecipe(recipeData);
@@ -6812,6 +7401,264 @@
             } catch (error) {
                 console.error('Chyba při ukládání receptu:', error);
                 window.showCustomNotification('Chyba při ukládání: ' + error.message, 'error');
+            }
+        }
+
+        // NOVÁ FUNKCE: Uložit jako... (vytvoří nový recept s novým názvem)
+        async function saveRecipeAs() {
+            // Zkusíme vzít název z customRecipeName (vlastní recept) nebo z recipeDetailName (běžný recept)
+            let currentName = '';
+            const customNameInput = document.getElementById('customRecipeName');
+            const recipeDetailName = document.getElementById('recipeDetailName');
+            
+            if (customNameInput && customNameInput.value) {
+                currentName = customNameInput.value.trim();
+            } else if (recipeDetailName && recipeDetailName.textContent) {
+                currentName = recipeDetailName.textContent.trim();
+            }
+            
+            // Otevřeme modal
+            const saveAsModal = document.getElementById('saveAsModal');
+            const saveAsInput = document.getElementById('saveAsRecipeName');
+            const errorEl = document.getElementById('saveAsErrorMessage');
+            
+            // Vyčistíme error
+            errorEl.style.display = 'none';
+            errorEl.textContent = '';
+            
+            saveAsInput.value = currentName;
+            saveAsModal.style.display = 'flex';
+            
+            // Focus a kurzor na konec
+            setTimeout(() => {
+                saveAsInput.focus();
+                saveAsInput.setSelectionRange(currentName.length, currentName.length);
+            }, 100);
+        }
+        
+        // Funkce pro uložení změn ingredience
+        async function saveIngredientChanges() {
+            const context = window.editIngredientContext;
+            if (!context) {
+                console.error("❌ Chybí kontext editace!");
+                return;
+            }
+            
+            const newAmount = parseFloat(document.getElementById('editIngredientAmount').value);
+            const newUnit = document.getElementById('editIngredientUnit').value;
+            
+            if (!newAmount || newAmount <= 0) {
+                window.showCustomNotification('Zadejte platné množství', 'error');
+                return;
+            }
+            
+            console.log("✓ Potvrzuji změny ingredience:", {
+                amount: newAmount,
+                unit: newUnit,
+                context: context
+            });
+            
+            // Uložíme změny do kontextu (zatím jen lokálně)
+            context.ingredient.amount = newAmount;
+            context.ingredient.unit = newUnit;
+            
+            // Označíme že recept byl změněn
+            window.recipeHasChanges = true;
+            
+            // Zavřeme edit modal
+            document.getElementById('editIngredientModal').style.display = 'none';
+            
+            // Znovu otevřeme detail receptu
+            await showRecipeDetailsModal(context.recipeId, context.ingredient.recipeName || 'Recept');
+            
+            // Zobrazíme tlačítka pro uložení v detailu receptu
+            showRecipeSaveButtons();
+        }
+        
+        // Funkce pro zobrazení tlačítek Uložit změny a Uložit jako
+        function showRecipeSaveButtons() {
+            // Najdeme kontejner s tlačítky v detailu receptu
+            const actionsContainer = document.querySelector('#recipeDetailModal .recipe-detail-actions');
+            if (!actionsContainer) return;
+            
+            // Zkontrolujeme jestli už tlačítka nejsou zobrazena
+            if (document.getElementById('saveRecipeChangesBtn')) return;
+            
+            // Vytvoříme tlačítka
+            const saveBtn = document.createElement('button');
+            saveBtn.id = 'saveRecipeChangesBtn';
+            saveBtn.className = 'btn-primary';
+            saveBtn.style.backgroundColor = '#28a745';
+            saveBtn.textContent = '✓ Uložit změny';
+            saveBtn.onclick = async () => {
+                await saveRecipeChangesToDB(recipeId);
+            };
+            
+            const saveAsBtn = document.createElement('button');
+            saveAsBtn.id = 'saveRecipeAsBtn';
+            saveAsBtn.className = 'btn-secondary';
+            saveAsBtn.textContent = '💾 Uložit jako...';
+            saveAsBtn.onclick = async () => {
+                await saveRecipeAsNew(recipeId, recipeName);
+            };
+            
+            // Přidáme tlačítka
+            actionsContainer.appendChild(saveBtn);
+            actionsContainer.appendChild(saveAsBtn);
+        }
+        
+        // Funkce pro uložení změn receptu
+        async function saveRecipeChanges() {
+            const context = window.editIngredientContext;
+            if (!context) {
+                window.showCustomNotification('Chyba: Chybí kontext', 'error');
+                return;
+            }
+            
+            // TODO: Implementace ukládání změn do receptu
+            console.log("💾 Ukládám změny receptu:", context);
+            window.showCustomNotification('Uložení bude implementováno v dalším kole', 'info');
+        }
+        
+        // Funkce pro potvrzení "Uložit jako..."
+        async function confirmSaveAs() {
+            const newName = document.getElementById('saveAsRecipeName').value.trim();
+            const errorEl = document.getElementById('saveAsErrorMessage');
+            
+            // Skryjeme předchozí chyby
+            errorEl.style.display = 'none';
+            errorEl.textContent = '';
+            
+            if (!newName) {
+                errorEl.textContent = 'Zadejte název receptu';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            try {
+                // Zkontrolujeme duplicity
+                const { data: existingRecipes, error: checkError } = await window.supabaseClient
+                    .from('recipes')
+                    .select('id')
+                    .eq('user_id', window.currentUser.id)
+                    .eq('name', newName);
+                
+                if (checkError) throw checkError;
+                
+                if (existingRecipes && existingRecipes.length > 0) {
+                    errorEl.textContent = `Recept s názvem "${newName}" již existuje!`;
+                    errorEl.style.display = 'block';
+                    return;
+                }
+                
+                // Rozlišíme typ receptu
+                if (window.saveAsContext && window.saveAsContext.type === 'regular_recipe') {
+                    // BĚŽNÝ RECEPT - načteme z DB a aplikujeme změny z cache
+                    console.log("💾 Ukládám běžný recept jako nový");
+                    
+                    const { recipeId, recipeName } = window.saveAsContext;
+                    
+                    try {
+                        // 1. Načteme původní recept z DB
+                        const { data: originalRecipe, error: fetchError } = await window.supabaseClient
+                            .from('recipes')
+                            .select('*')
+                            .eq('id', recipeId)
+                            .single();
+                        
+                        if (fetchError) throw fetchError;
+                        
+                        // 2. Vytvoříme kopii ingrediencí
+                        let newIngredients = JSON.parse(JSON.stringify(originalRecipe.ingredients || []));
+                        
+                        // 3. Aplikujeme změny z cache pokud existují
+                        if (window.recipeEditCache && window.recipeEditCache[recipeId]) {
+                            const cache = window.recipeEditCache[recipeId];
+                            console.log("📦 Aplikuji změny z cache:", cache);
+                            
+                            if (cache.ingredientIndex >= 0 && cache.ingredientIndex < newIngredients.length) {
+                                newIngredients[cache.ingredientIndex] = cache.newData;
+                            }
+                        }
+                        
+                        // 4. Vytvoříme nový recept
+                        const { data: newRecipe, error: insertError } = await window.supabaseClient
+                            .from('recipes')
+                            .insert([{
+                                user_id: window.currentUser.id,
+                                profile_id: window.currentProfileId,
+                                name: newName,
+                                ingredients: newIngredients,
+                                portions: originalRecipe.portions || 1,
+                                created_at: new Date().toISOString(),
+                                updated_at: new Date().toISOString()
+                            }])
+                            .select()
+                            .single();
+                        
+                        if (insertError) throw insertError;
+                        
+                        console.log("✅ Nový recept vytvořen:", newRecipe);
+                        
+                        // 5. Vymažeme cache
+                        delete window.recipeEditCache[recipeId];
+                        window.recipeHasUnsavedChanges = false;
+                        window.saveAsContext = null;
+                        
+                        // 6. Zavřeme modaly
+                        document.getElementById('saveAsModal').style.display = 'none';
+                        document.getElementById('recipeDetailModal').style.display = 'none';
+                        
+                        // 7. Přenačteme seznam
+                        await loadUserRecipes();
+                        
+                        // 8. Zobrazíme seznam
+                        document.getElementById('selectRecipeModal').style.display = 'flex';
+                        
+                        // 9. Zobrazíme potvrzení
+                        window.showCustomNotification(`Nový recept "${newName}" byl úspěšně vytvořen!`, 'success');
+                        
+                    } catch (error) {
+                        console.error("❌ Chyba při vytváření nového receptu:", error);
+                        errorEl.textContent = 'Chyba: ' + error.message;
+                        errorEl.style.display = 'block';
+                    }
+                    
+                } else {
+                    // VLASTNÍ RECEPT - původní logika
+                    console.log("💾 Ukládám vlastní recept jako nový");
+                    
+                    const recipeData = getCustomRecipeData();
+                    if (!recipeData) {
+                        errorEl.textContent = 'Zadejte název receptu';
+                        errorEl.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Změníme název na nový
+                    recipeData.name = newName;
+                    recipeData.portions = parseInt(document.getElementById('customRecipePortions').value) || 1;
+                    
+                    // Vytvoříme NOVÝ recept
+                    const recipeId = await createCustomRecipe(recipeData);
+                    if (recipeId) {
+                        // Reset flags
+                        window.editingFromDailyIntake = false;
+                        window.editingMealItemId = null;
+                        window.editingCustomRecipeId = null;
+                        
+                        // Zavřeme oba modaly
+                        document.getElementById('saveAsModal').style.display = 'none';
+                        closeCustomRecipeModal();
+                        
+                        window.showCustomNotification(`Nový recept "${newName}" byl úspěšně uložen!`, 'success');
+                        await loadUserRecipes();
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Chyba při ukládání nového receptu:', error);
+                window.showCustomNotification('Chyba: ' + error.message, 'error');
             }
         }
 
@@ -7615,7 +8462,7 @@
                                 isRecipe: true,
                                 recipeId: recipeId,
                                 recipeName: recipeName,
-                                recipeExists: !!recipeId && recipeId !== 'null', // recipe_id existuje = recept existuje
+                                recipeExists: true, // VŽDY TRUE - data jsou nezávislá na receptu
                                 items: [],
                                 mealId: meal.id,
                                 mealType: meal.meal_type,
@@ -7823,20 +8670,31 @@
 
             toggleBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const isNowExpanded = !ingredientsContainer.classList.contains('expanded');
-                ingredientsContainer.classList.toggle('expanded', isNowExpanded);
-                recipeHeader.classList.toggle('expanded', isNowExpanded);
-                toggleIcon.classList.toggle('expanded', isNowExpanded);
+                handleRecipeToggle(ingredientsContainer, recipeHeader, toggleIcon);
             });
 
             recipeHeader.addEventListener('click', (e) => {
                 if (!e.target.closest('.recipe-actions')) {
-                    const isNowExpanded = !ingredientsContainer.classList.contains('expanded');
-                    ingredientsContainer.classList.toggle('expanded', isNowExpanded);
-                    recipeHeader.classList.toggle('expanded', isNowExpanded);
-                    toggleIcon.classList.toggle('expanded', isNowExpanded);
+                    handleRecipeToggle(ingredientsContainer, recipeHeader, toggleIcon);
                 }
             });
+            
+            // FUNKCE PRO JEDNODUCHÝ TOGGLE
+            function handleRecipeToggle(ingredientsContainer, recipeHeader, toggleIcon) {
+                const isExpanded = ingredientsContainer.classList.contains('expanded');
+                
+                if (isExpanded) {
+                    // Je rozbaleno → SBALÍME
+                    ingredientsContainer.classList.remove('expanded');
+                    recipeHeader.classList.remove('expanded');
+                    toggleIcon.classList.remove('expanded');
+                } else {
+                    // Je sbaleno → ROZBALÍME
+                    ingredientsContainer.classList.add('expanded');
+                    recipeHeader.classList.add('expanded');
+                    toggleIcon.classList.add('expanded');
+                }
+            }
 
             const deleteBtn = groupDiv.querySelector('.delete-recipe-group-btn');
             deleteBtn.addEventListener('click', (e) => {
@@ -7856,14 +8714,9 @@
                     console.log("🔍 DEBUG - dataset.isCustomRecipe:", groupDiv.dataset.isCustomRecipe);
                     
                     if (isCustom && group.recipeId) {
-                        console.log("🔧 Otevírám editaci vlastního receptu:", group.recipeId);
-                        // Zavřeme denní příjem modal pokud je otevřený
-                        const dailyModal = document.getElementById('dailyIntakeSection');
-                        if (dailyModal) {
-                            dailyModal.style.display = 'none';
-                        }
-                        // Otevři modal pro editaci vlastního receptu
-                        await openCustomRecipeModalForEdit(group.recipeId);
+                        console.log("🔧 Otevírám editaci vlastního receptu z denního příjmu:", group.recipeId);
+                        // Otevři modal pro editaci vlastního receptu Z DENNÍHO PŘÍJMU
+                        await openCustomRecipeModalForEdit(group.recipeId, 'daily_intake', itemId);
                     } else {
                         console.log("🔧 Běžná editace ingredience:", itemId);
                         // Běžná editace ingredience
