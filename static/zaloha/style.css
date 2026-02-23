@@ -3253,9 +3253,8 @@ select.form-input {
 }
 
 .chart-label {
-    font-size: .7em;
-    color: #6c757d;
-    white-space: nowrap;
+    font-size: .75em;
+    color: #6c757d
 }
 
 @keyframes progress {
@@ -5906,10 +5905,4 @@ select.form-input {
     background-color: #c82333 !important;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
-}
-
-/* Remove border from macros h3 */
-.macros-section h3 {
-    border-bottom: none !important;
-    padding-bottom: 0 !important;
 }

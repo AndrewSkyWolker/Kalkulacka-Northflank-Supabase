@@ -96,7 +96,7 @@
             </div>
 
             <div class="nastavení-tlacitek-profil"
-                style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 15px;">
+                style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
                 <div style="display: flex; flex-direction: column; flex: 1;">
                     <span class="setting-label">Osobní karta a cíle</span>
                     <button id="personalCardButton" class="btn-small"
@@ -110,19 +110,6 @@
                         Odhlásit se
                     </button>
                 </div>
-            </div>
-            
-            <div style="margin: 15px 0; padding: 15px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 8px;">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <span style="font-size: 1.5rem;">⚠️</span>
-                    <span style="font-weight: 600; color: #856404;">Nebezpečná zóna</span>
-                </div>
-                <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #856404;">
-                    Trvale odstraní veškerá vaše data včetně profilů, receptů a denního příjmu.
-                </p>
-                <button id="deleteAccountButton" class="btn-small" style="background-color: #dc3545; color: white; width: 100%;">
-                    🗑️ Odstranit účet
-                </button>
             </div>
 
             <div class="form-group" style="margin: 20px 0;">
@@ -286,17 +273,19 @@
 
                 <!-- MAKROŽIVINY -->
                 <div class="personal-card-section macros-section">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px;">
-                        <h3 style="margin: 0;">💪 Makroživiny</h3>
-                        <label class="toggle-switch-label" style="margin-top: 2px;">
-                            <span id="customMacrosLabel" style="color: #999; font-weight: 600; font-size: 0.9rem; margin-right: 8px;">vlastní</span>
-                            <div class="toggle-switch">
-                                <input type="checkbox" id="customMacrosToggle">
-                                <span class="toggle-slider"></span>
-                            </div>
-                        </label>
+                    <div style="padding-bottom: 8px; border-bottom: 1px solid #e0e0e0; margin-bottom: 5px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3px;">
+                            <h3 style="margin: 0;">💪 Makroživiny</h3>
+                            <label class="toggle-switch-label" style="margin-top: 2px;">
+                                <span id="customMacrosLabel" style="color: #999; font-weight: 600; font-size: 0.9rem; margin-right: 8px;">vlastní</span>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="customMacrosToggle">
+                                    <span class="toggle-slider"></span>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="macros-subtitle" id="macrosSubtitle" style="margin-top: 5px;">Doporučená denní dávka</div>
                     </div>
-                    <div class="macros-subtitle" id="macrosSubtitle" style="margin-bottom: 10px;">Doporučená denní dávka</div>
                     <div class="macros-grid-2rows">
                         <div class="macro-row">
                             <div class="macro-item protein clickable-macro" data-macro="protein">
@@ -346,18 +335,18 @@
     
     <!-- MODAL PRO ÚPRAVU MAKROŽIVINY -->
     <div id="editMacroModal" class="modal-overlay" style="display: none;">
-        <div class="modal-content" style="max-width: 400px; padding: 30px;">
+        <div class="modal-content" style="max-width: 450px;">
             <span class="close-button" id="closeEditMacroModal">&times;</span>
-            <h3 id="editMacroTitle" style="margin-bottom: 5px; padding-left: 0;">Upravit hodnotu</h3>
-            <p id="editMacroSubtitle" style="color: #666; font-size: 0.9rem; margin-bottom: 25px; padding-left: 0;">Vlastní denní dávka</p>
+            <h3 id="editMacroTitle" style="margin-bottom: 5px;">Upravit hodnotu</h3>
+            <p id="editMacroSubtitle" style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">Vlastní denní dávka</p>
             
-            <div style="margin: 20px 0; display: flex; flex-direction: column; align-items: center;">
-                <label style="display: block; margin-bottom: 15px; font-weight: 600; color: #333; align-self: flex-start;" id="editMacroLabel">
+            <div style="margin: 20px 0;">
+                <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;" id="editMacroLabel">
                     Bílkoviny (g)
                 </label>
-                <input type="number" id="editMacroInput" min="0" max="999" step="1" 
+                <input type="number" id="editMacroInput" min="0" step="1" 
                        class="form-input"
-                       style="width: 120px; padding: 15px; font-size: 1.5rem; border: 2px solid #4caf50; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-weight: 600;"
+                       style="width: 100%; padding: 15px; font-size: 1.3rem; border: 2px solid #4caf50; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                        placeholder="0">
             </div>
             
@@ -1222,15 +1211,15 @@
             // Výpočty
             const calculations = performCalculations(formData);
 
-            // Uložení kompletních dat PŘED zobrazením
+            // Zobrazení výsledků - DŮLEŽITÉ: zobrazit NOVÉ výsledky
+            displayResults(calculations);
+
+            // Uložení kompletních dat pro pozdější uložení
             personalCardData = {
                 formData: formData,
                 calculations: calculations,  // NOVÉ VÝPOČTY
                 timestamp: new Date().toISOString()
             };
-
-            // Zobrazení výsledků - TEĎ updateMacroDisplays má data
-            displayResults(calculations);
 
             // Povolení tlačítka Uložit pouze pokud jsou změny
             checkPersonalCardChanges();
@@ -1869,94 +1858,6 @@
         });
         document.getElementById('saveProfileNameBtn')?.addEventListener('click', saveProfileName);
         
-        // Event listener pro odstranění účtu
-        document.getElementById('deleteAccountButton')?.addEventListener('click', async () => {
-            // Dvojí potvrzení kvůli nebezpečnosti operace
-            window.showCustomNotification(
-                '⚠️ VAROVÁNÍ: Opravdu chcete TRVALE odstranit váš účet a VŠECHNA data? Tuto akci NELZE vrátit zpět!',
-                'deleteAccountConfirm1',
-                async () => {
-                    // První ANO - druhé potvrzení
-                    window.showCustomNotification(
-                        '🚨 POSLEDNÍ VAROVÁNÍ: Veškeré recepty, denní příjmy, profily a osobní data budou NAVŽDY smazány. Jste si ZCELA jisti?',
-                        'deleteAccountConfirm2',
-                        async () => {
-                            // Druhé ANO - proveď smazání
-                            console.log("🗑️ Odstraňuji účet a všechna data...");
-                            
-                            try {
-                                const userId = window.currentUser.id;
-                                
-                                // Smazat všechno v pořadí (kvůli foreign keys)
-                                // 1. Meal items
-                                await window.supabaseClient.from('meal_items').delete().eq('user_id', userId);
-                                console.log("✅ Smazány meal_items");
-                                
-                                // 2. Daily meals
-                                await window.supabaseClient.from('daily_meals').delete().eq('user_id', userId);
-                                console.log("✅ Smazány daily_meals");
-                                
-                                // 3. Daily intakes
-                                await window.supabaseClient.from('daily_intakes').delete().eq('user_id', userId);
-                                console.log("✅ Smazány daily_intakes");
-                                
-                                // 4. Recipe items
-                                const { data: recipes } = await window.supabaseClient
-                                    .from('recipes')
-                                    .select('id')
-                                    .eq('user_id', userId);
-                                
-                                if (recipes && recipes.length > 0) {
-                                    const recipeIds = recipes.map(r => r.id);
-                                    await window.supabaseClient.from('recipe_items').delete().in('recipe_id', recipeIds);
-                                    console.log("✅ Smazány recipe_items");
-                                }
-                                
-                                // 5. Recipes
-                                await window.supabaseClient.from('recipes').delete().eq('user_id', userId);
-                                console.log("✅ Smazány recipes");
-                                
-                                // 6. Personal cards
-                                await window.supabaseClient.from('personal_cards').delete().eq('user_id', userId);
-                                console.log("✅ Smazány personal_cards");
-                                
-                                // 7. Profiles
-                                await window.supabaseClient.from('profiles').delete().eq('user_id', userId);
-                                console.log("✅ Smazány profiles");
-                                
-                                // 8. Smazat samotný účet z auth (včetně emailu)
-                                // Poznámka: auth.users se smaže automaticky CASCADE při smazání profiles
-                                // Ale pro jistotu zavoláme také signOut který vyčistí session
-                                console.log("✅ Účet bude smazán automaticky (CASCADE)");
-                                
-                                // Odhlásit a reload
-                                await window.supabaseClient.auth.signOut();
-                                window.showCustomNotification("Váš účet byl úspěšně odstraněn. Děkujeme za používání aplikace.", 'success');
-                                
-                                setTimeout(() => {
-                                    location.reload();
-                                }, 2000);
-                                
-                            } catch (error) {
-                                console.error("❌ Chyba při mazání účtu:", error);
-                                window.showCustomNotification("Chyba při mazání účtu: " + error.message, 'error');
-                            }
-                        },
-                        true, // showConfirmButtons
-                        () => {
-                            // Druhé NE - zrušit
-                            console.log("❌ Mazání účtu zrušeno (2. potvrzení)");
-                        }
-                    );
-                },
-                true, // showConfirmButtons
-                () => {
-                    // První NE - zrušit
-                    console.log("❌ Mazání účtu zrušeno (1. potvrzení)");
-                }
-            );
-        });
-        
         // Event listener pro odhlášení
         document.getElementById('logoutButton')?.addEventListener('click', async () => {
             console.log("🚪 Odhlašuji uživatele...");
@@ -2388,13 +2289,6 @@
                     console.log("💪 Ukládám vlastní makra:", customMacrosData);
                 } else {
                     dataToSave.calculations.customMacros = false;
-                    
-                    // VRÁTIT původní vypočítané hodnoty do macros
-                    if (dataToSave.calculations.originalMacros) {
-                        dataToSave.calculations.macros = { ...dataToSave.calculations.originalMacros };
-                        console.log("✅ Vracím doporučené makra do denního příjmu:", dataToSave.calculations.macros);
-                    }
-                    
                     // Zachovat customMacrosValues pro příště
                     if (personalCardData.calculations.customMacrosValues) {
                         dataToSave.calculations.customMacrosValues = personalCardData.calculations.customMacrosValues;
@@ -2411,16 +2305,6 @@
                 // DŮLEŽITÉ: Refreshnout zobrazení denního příjmu
                 console.log("🔄 Refreshuji zobrazení denního příjmu");
                 updateDailyIntakeDisplay();
-                
-                // EXPLICITNĚ odstranit varování pokud existuje
-                const warning = document.querySelector('.goals-warning');
-                if (warning) {
-                    console.log("🗑️ Odstraňuji varování o osobní kartě");
-                    warning.remove();
-                }
-                
-                // Malé zpoždění aby se stihlo updatnout UI před zavřením
-                await new Promise(resolve => setTimeout(resolve, 100));
                 
                 // Zavřít okno osobní karty
                 document.getElementById('personalCardModal').style.display = 'none';
@@ -7116,7 +7000,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: KOLO 150 - FINAL LINE FIX + AUTH DELETE");
+            console.log("🚀 Aplikace verze: KOLO 144 - LOGOUT + MODAL DESIGN");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
@@ -7596,6 +7480,24 @@
             } else {
                 console.log("ℹ️ settingsIcon neexistuje - pravděpodobně byl odstraněn z HTML");
             }
+
+            document.getElementById('switchAccountBtn').addEventListener('click', async function () {
+                // Nejprve sbalíme všechny otevřené sekce v nastavení
+                const hadOpenSections = collapseAllSettingsSections();
+
+                // Počkáme chvíli na animaci sbalení (pokud jsou nějaké sekce otevřené)
+                const delay = hadOpenSections ? 150 : 0;
+
+                setTimeout(() => {
+                    // Zavřeme modal nastavení
+                    document.getElementById('settingsModal').style.display = 'none';
+
+                    // Po další krátké chvíli zobrazíme přihlašovací okno
+                    setTimeout(() => {
+                        showLoginModal();
+                    }, 50);
+                }, delay);
+            });
 
             // Event listenery pro přepínače nastavení
             const toggleIds = [
@@ -8860,22 +8762,19 @@
             updateCircularChart('fiberChart', totals.fiber, goals.fiber, 'fiber');
         }
 
-        // Aktualizace jednoho kruhového grafu (UPRAVENO PRO PROCENTA NAD 100%)
+        // Aktualizace jednoho kruhového grafu (UPRAVENO PRO DYNAMICKOU BARVU PROCENT)
         function updateCircularChart(chartId, current, goal, type = '') {
             const chartElement = document.getElementById(chartId);
             if (!chartElement) return;
 
-            // Procenta BEZ omezení na 100% - pro zobrazení
-            const percentage = goal > 0 ? (current / goal) * 100 : 0;
-            // Procenta PRO GRAF - omezeno na 100%
-            const displayPercentage = Math.min(percentage, 100);
-            
+            // Zajištění, že procenta nepřekročí 100 (pro barvu a dasharray)
+            const percentage = goal > 0 ? Math.min((current / goal) * 100, 100) : 0;
             const circle = chartElement.querySelector('.circle');
             const percentageText = chartElement.querySelector('.percentage');
 
             // Původní barvy pro Makroživiny
             const originalColors = {
-                protein: '#f44336',
+                protein: '#f44336', // Příklad barvy
                 carbs: '#2196f3',
                 fats: '#ffc107',
                 fiber: '#28a745'
@@ -8883,36 +8782,21 @@
             const defaultMacroColor = originalColors[type] || '#007bff';
 
             if (circle && percentageText) {
-                // Graf zaplněn max na 100%
-                circle.style.strokeDasharray = `${displayPercentage}, 100`;
-                // Text zobrazí i nad 100%
+                circle.style.strokeDasharray = `${percentage}, 100`;
                 percentageText.textContent = `${Math.round(percentage)}%`;
 
-                // Speciální logika pro bílkoviny a vlákninu - zelená při překročení
-                const isProteinOrFiber = type === 'protein' || type === 'fiber';
-                const isCaloriesChart = chartId === 'caloriesChart';
-                
-                if (percentage > 100) {
-                    if (isProteinOrFiber) {
-                        // Zelená při překročení pro protein/fiber
-                        percentageText.style.fill = '#28a745';
-                    } else {
-                        // Červená při překročení pro ostatní
-                        percentageText.style.fill = '#dc3545';
-                    }
-                } else {
-                    // Normální dynamická barva
-                    const color = percentageToColor(displayPercentage);
-                    percentageText.style.fill = color;
-                }
+                // --- DYNAMICKÁ ZMĚNA BARVY TEXTU PROCENT (Platí pro VŠECHNY grafy) ---
+                const color = percentageToColor(percentage);
+                percentageText.style.fill = color; // Barva textu procent se mění vždy dynamicky
 
-                // Barva kruhu
+                // --- LOGIKA PRO BARVU KRUHU (STROKE) ---
+                const isCaloriesChart = chartId === 'caloriesChart';
+
                 if (isCaloriesChart) {
-                    // Kalorie: dynamická barva
-                    const color = percentageToColor(displayPercentage);
+                    // Kalorie: Barva kruhu se mění dynamicky (stejně jako text procent)
                     circle.style.stroke = color;
                 } else {
-                    // Makroživiny: původní barva
+                    // Makroživiny: Barva kruhu je VŽDY původní, bez dynamické změny (při překročení cíle zůstane původní)
                     circle.style.stroke = defaultMacroColor;
                 }
             }
@@ -8929,9 +8813,8 @@
 
         // Aktualizace jednoho detailu
         function updateChartDetail(type, current, goal, unit) {
-            const remaining = goal - current;
-            const exceeded = current > goal;
-            const isProteinOrFiber = type === 'protein' || type === 'fiber';
+            const remaining = goal - current; // BEZ Math.max - chceme vidět záporné hodnoty
+            const exceeded = current > goal; // JE PŘEKROČENO?
 
             const valueElement = document.getElementById(`${type}Value`);
             const labelElement = document.getElementById(`${type}Label`);
@@ -8942,24 +8825,14 @@
 
             if (labelElement) {
                 if (exceeded) {
-                    // PŘEKROČENO
-                    const overAmount = Math.abs(remaining);
+                    // PŘEKROČENO - zobraz v kladných číslech červeně
+                    const overAmount = Math.abs(remaining); // Absolutní hodnota
                     labelElement.textContent = `Překročeno o ${Math.round(overAmount)} ${unit}`;
-                    
-                    if (isProteinOrFiber) {
-                        // Zelená pro bílkoviny a vlákninu
-                        labelElement.classList.remove('exceeded');
-                        labelElement.style.color = '#28a745';
-                    } else {
-                        // Červená pro ostatní
-                        labelElement.classList.add('exceeded');
-                        labelElement.style.color = '#dc3545';
-                    }
+                    labelElement.classList.add('exceeded'); // PŘIDÁME TŘÍDU PRO ČERVENOU
                 } else {
                     // NORMÁLNÍ - zbývá
                     labelElement.textContent = `Zbývá ${Math.round(remaining)} ${unit}`;
-                    labelElement.classList.remove('exceeded');
-                    labelElement.style.color = '';
+                    labelElement.classList.remove('exceeded'); // ODSTRANÍME TŘÍDU
                 }
             }
         }
