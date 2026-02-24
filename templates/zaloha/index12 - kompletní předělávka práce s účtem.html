@@ -76,18 +76,12 @@
         </div>
     </header>
 
-    <!-- HLAVNÍ KONTEJNER - NOVÝ LAYOUT JAKO RECIPE DETAIL -->
-    <div class="container main-page-container">
-        <!-- STATICKÁ HLAVIČKA (tlačítka + datum) -->
-        <div class="main-page-header">
-            <!-- Tlačítka zůstávají v <header> nahoře -->
-        </div>
+    <!-- HLAVNÍ KONTEJNER -->
+    <div class="container">
 
-        <!-- SKROLOVACÍ OBLAST - DENNÍ PŘÍJEM -->
-        <div class="main-page-scroll-container">
-            <div id="mainContent">
-                <!-- DENNÍ PŘÍJEM SE ZDE ZOBRAZUJE JAKO HLAVNÍ OBSAH -->
-            </div>
+        <!-- HLAVNÍ OBSAH - DENNÍ PŘÍJEM -->
+        <div id="mainContent">
+            <!-- DENNÍ PŘÍJEM SE ZDE ZOBRAZUJE JAKO HLAVNÍ OBSAH -->
         </div>
     </div>
 
@@ -2478,20 +2472,6 @@
 
                 if (loadedData && loadedData.formData) {
                     console.log("✅ Data načtena z DB");
-                    
-                    // MIGRACE pro staré profily: Vytvoř originalMacros pokud neexistuje
-                    if (loadedData.calculations && loadedData.calculations.macros && !loadedData.calculations.originalMacros) {
-                        console.log("🔄 Migrace starého profilu - vytvářím originalMacros");
-                        loadedData.calculations.originalMacros = { ...loadedData.calculations.macros };
-                        
-                        // Uložit opravu do databáze
-                        try {
-                            await saveToSupabase(loadedData);
-                            console.log("✅ Opravený profil uložen do databáze");
-                        } catch (saveError) {
-                            console.error("⚠️ Nepodařilo se uložit opravu:", saveError);
-                        }
-                    }
 
                     // Uložíme původní data pro sledování změn
                     personalCardOriginalData = { ...loadedData.formData };
@@ -2632,13 +2612,6 @@
             const { formData, calculations } = loadedData;
 
             console.log("🔄 Plním formulář daty:", formData);
-            
-            // FALLBACK pro staré profily: Pokud neexistuje originalMacros, vytvoř z macros
-            if (calculations && calculations.macros && !calculations.originalMacros) {
-                console.log("⚠️ Starý profil - vytvářím originalMacros z macros");
-                calculations.originalMacros = { ...calculations.macros };
-                loadedData.calculations.originalMacros = { ...calculations.macros };
-            }
 
             // Naplníme formulář
             if (formData.gender) document.getElementById('gender').value = formData.gender;
@@ -7143,7 +7116,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: KOLO 158 - COMPACT NUTRIENTS DISPLAY");
+            console.log("🚀 Aplikace verze: KOLO 150 - FINAL LINE FIX + AUTH DELETE");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
@@ -9003,8 +8976,6 @@
 
                 const meals = currentDailyIntakeData.daily_meals?.filter(meal => meal.meal_type === mealType) || [];
 
-                console.log(`🍽️ ${mealType}: ${meals.length} jídel`);
-
                 if (meals.length === 0) {
                     container.innerHTML = '<div class="empty-meal-message">Žádná jídla</div>';
                     continue;
@@ -9017,30 +8988,25 @@
 
                 console.log(`📊 ${mealType}: ${groupedItems.length} skupin (recepty: ${groupedItems.filter(g => g.isRecipe).length})`);
 
-                // Pokud meal existuje ale nemá žádné položky, zobraz "Žádná jídla"
-                let hasItems = false;
-                
                 // Zbytek funkce zůstává stejný...
                 groupedItems.forEach(group => {
                     if (group.isRecipe) {
                         const recipeElement = createRecipeGroupElement(group, mealType);
                         container.appendChild(recipeElement);
                         console.log(`✅ Přidána skupina receptu: ${group.recipeName}`);
-                        hasItems = true;
                     } else {
                         group.items.forEach(item => {
                             const foodItemElement = createFoodItemElement(item, group.mealId);
                             container.appendChild(foodItemElement);
                             console.log(`✅ Přidána samostatná potravina: ${item.food_name}`);
-                            hasItems = true;
                         });
                     }
                 });
 
-                // Pokud se nic nevykreslilo, zobraz "Žádná jídla"
-                if (!hasItems || container.children.length === 0) {
-                    console.log(`📭 ${mealType} je prázdný - zobrazuji "Žádná jídla"`);
-                    container.innerHTML = '<div class="empty-meal-message">Žádná jídla</div>';
+                // Pokud se nic nevykreslilo, zobrazte původní zobrazení
+                if (container.children.length === 0) {
+                    console.log(`🔄 Používám fallback zobrazení pro ${mealType}`);
+                    renderMealItemsFallbackForMeal(mealType, meals);
                 }
             }
         }
@@ -9271,13 +9237,14 @@
             <div class="recipe-main-info">
                 <div class="recipe-icon">${group.recipeExists ? '📋' : '🗑️'}</div>
                 <div class="recipe-details">
-                    <div class="recipe-name">
+  <div class="recipe-name">
                         ${group.recipeName}
                         ${!group.recipeExists ? '<span class="deleted-badge">(smazáno)</span>' : ''}
                     </div>
-                    <!-- DVOUŘÁDKOVÝ LAYOUT PRO VŠECHNY RECEPTY -->
+                    <!-- OBA TYPY - DVOUŘÁDKOVÝ LAYOUT -->
                     <div class="recipe-totals-row main-highlight-row">
                         <span class="calorie-highlight">${smartRound(group.totalCalories)} kcal</span>
+                        <span class="total-amount-display">${smartRound(totalAmount)} ${mainUnit}</span>
                     </div>
                     <div class="recipe-totals-row macro-stats-row">
                         <span style="color: #f44336; font-weight: 600;">B: ${smartRound(group.totalProtein)}g</span>
