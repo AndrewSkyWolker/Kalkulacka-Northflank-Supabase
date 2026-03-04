@@ -6057,12 +6057,4 @@ button:focus-visible,
     background-color: #28a745 !important; /* Zachovat stejnou barvu */
     transform: none !important;
     box-shadow: none !important;
-    -webkit-tap-highlight-color: transparent !important;
-    outline: none !important;
-}
-
-/* Vypnout všechny vizuální efekty */
-#recipesButton::before,
-#recipesButton::after {
-    display: none !important;
 }
