@@ -7497,7 +7497,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: KOLO 202 - RECIPES BUTTON FIXED, REMOVED DEBUG");
+            console.log("🚀 Aplikace verze: KOLO 201 - DEBUG RECIPES BUTTON WITH MUTATION OBSERVER");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
@@ -8063,6 +8063,29 @@
                     window.showCustomNotification("Chyba při načítání receptů: " + error.message, 'error');
                 }
             });
+            
+            // DEBUG: Sleduj co se děje s tlačítkem Recepty
+            const recipesBtn = document.getElementById('recipesButton');
+            if (recipesBtn) {
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.type === 'attributes') {
+                            console.log('🔍 Tlačítko Recepty - změna attributu:', mutation.attributeName);
+                            console.log('  - style:', recipesBtn.style.cssText);
+                            console.log('  - class:', recipesBtn.className);
+                            console.log('  - display:', window.getComputedStyle(recipesBtn).display);
+                            console.log('  - visibility:', window.getComputedStyle(recipesBtn).visibility);
+                        }
+                    });
+                });
+                
+                observer.observe(recipesBtn, {
+                    attributes: true,
+                    attributeFilter: ['style', 'class']
+                });
+                
+                console.log('🔍 MutationObserver aktivován pro tlačítko Recepty');
+            }
 
             // Event listenery pro nastavení
             const settingsIcon = document.getElementById('settingsIcon');
