@@ -6808,19 +6808,25 @@
 
                 await startCamera(video);
 
+                // AUTOMATICKY SPUSTÍME SKENOVÁNÍ hned po startu kamery!
                 if (isIPhone) {
                     status.innerHTML = `
                         ✅ <strong>iPhone kamera připravena</strong><br>
-                        <small>Klikněte na "Skenovat (iPhone)"</small>
+                        <small>Skenování spuštěno automaticky...</small>
                     `;
+                    // Spustíme iPhone skenování
+                    startIPhoneBarcodeDetection();
                 } else {
                     status.innerHTML = `
                         ✅ <strong>Kamera připravena</strong><br>
-                        <small>Klikněte na "Skenovat"</small>
+                        <small>Skenování spuštěno automaticky...</small>
                     `;
+                    // Spustíme běžné skenování
+                    startBarcodeDetection();
                 }
 
-                addBarcodeActionButton();
+                // NEPŘIDÁVÁME tlačítko - skenování běží automaticky!
+                // addBarcodeActionButton(); ← ODSTRANĚNO!
 
             } catch (error) {
                 console.error("❌ Chyba:", error);
@@ -7656,7 +7662,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.4.5 - SET FLAG BEFORE SHOW MODAL");
+            console.log("🚀 Aplikace verze: 0.2.5.0 - AUTO START BARCODE SCAN");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS

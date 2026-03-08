@@ -5116,12 +5116,14 @@
         async function showRecipeDetailsModal(recipeId, recipeName) {
             console.log("🔍 showRecipeDetailsModal volána pro:", recipeName, "ID:", recipeId);
             
-            // VYPNEME přepínač pro normální recepty
-            // (showRecipeDetailsModalFromMeal ho zapne PŘED voláním této funkce)
+            // KONTROLA: Byl tento modal otevřen z denního příjmu?
+            // Možná už je fromMeal nastavený z předchozího volání
             const wasSetJustNow = window.shouldShowCreateRecipeButton === true;
+            const alreadyFromMeal = window.recipeDetailFromMeal !== undefined;
             
-            if (!wasSetJustNow) {
+            if (!wasSetJustNow && !alreadyFromMeal) {
                 console.log("🔄 Mažu příznak fromMeal - normální recept");
+                console.trace("📍 STACK TRACE - mazání v showRecipeDetailsModal");
                 window.recipeDetailFromMeal = undefined;
                 window.shouldShowCreateRecipeButton = false;
             } else {
@@ -5670,6 +5672,9 @@
         
         // OPTIMALIZOVANÁ FUNKCE - řídí všechna tlačítka v detailu receptu
         function updateRecipeDetailButtons(recipeId, recipeName) {
+            console.log("🔘 updateRecipeDetailButtons START");
+            console.log("   - window.recipeDetailFromMeal:", window.recipeDetailFromMeal);
+            console.log("   - window.shouldShowCreateRecipeButton:", window.shouldShowCreateRecipeButton);
             console.log("🔘 updateRecipeDetailButtons:", {recipeId, hasChanges: window.recipeHasUnsavedChanges});
             
             const addMealBtn = document.getElementById('addRecipeAsMealBtn');
@@ -5695,7 +5700,19 @@
                     saveBtn.className = 'btn-primary';
                     saveBtn.style.backgroundColor = '#28a745';
                     saveBtn.textContent = '✓ Uložit změny';
-                    saveBtn.onclick = async () => await saveRecipeChangesToDB(recipeId);
+                    saveBtn.onclick = async () => {
+                        console.log("🔘 KLIK NA ULOŽIT");
+                        console.log("   - PŘED voláním save:");
+                        console.log("     * window.recipeDetailFromMeal:", window.recipeDetailFromMeal);
+                        console.log("     * window.shouldShowCreateRecipeButton:", window.shouldShowCreateRecipeButton);
+                        console.trace("📍 STACK TRACE - klik na Uložit");
+                        
+                        console.log("   - VOLÁME saveRecipeChangesToDB s recipeId:", recipeId);
+                        await saveRecipeChangesToDB(recipeId);
+                        
+                        console.log("   - PO volání save:");
+                        console.log("     * window.recipeDetailFromMeal:", window.recipeDetailFromMeal);
+                    };
                     
                     const saveAsBtn = document.createElement('button');
                     saveAsBtn.id = 'saveRecipeAsInDetailBtn';
@@ -5741,37 +5758,21 @@
                 return;
             }
             
-            const cache = window.recipeEditCache[recipeId];
+            // UCHOVÁME PŘÍZNAK HNED NA ZAČÁTKU (předtím než cokoliv jiného!)
             const isFromMeal = window.recipeDetailFromMeal !== undefined;
+            const mealData = isFromMeal ? {...window.recipeDetailFromMeal} : null;
+            
+            console.log("💾 ZAČÁTEK saveRecipeChangesToDB - isFromMeal:", isFromMeal, "mealData:", mealData);
+            
+            const cache = window.recipeEditCache[recipeId];
             
             console.log("💾 Ukládám změny do DB:", cache, "isFromMeal:", isFromMeal);
-            
-            // OKAMŽITĚ zavřeme detail receptu
-            document.getElementById('recipeDetailModal').style.display = 'none';
-            
-            // VŽDY VYČISTÍME příznaky
-            window.recipeDetailFromMeal = undefined;
-            window.shouldShowCreateRecipeButton = false; // Vypneme přepínač!
-            
-            // OBNOVÍME PŮVODNÍ TEXT TLAČÍTEK
-            const addMealBtn = document.getElementById('addRecipeAsMealBtn');
-            if (addMealBtn && addMealBtn.innerHTML.includes('Vytvořit recept')) {
-                addMealBtn.innerHTML = '🍽️ Přidat jako jídlo';
-                addMealBtn.onclick = null;
-                console.log("🔄 Obnoveno tlačítko 'Přidat jako jídlo'");
-            }
-            
-            console.log("🧹 Vyčištěny příznaky při zavření recipe detail modalu");
-            
-            // Zobrazíme seznam receptů JEN pokud NENÍ z jídla
-            if (!isFromMeal) {
-                document.getElementById('selectRecipeModal').style.display = 'flex';
-            }
             
             try {
                 if (isFromMeal) {
                     // ULOŽIT DO DENNÍHO PŘÍJMU
-                    await saveMealChangesToDailyIntake(window.recipeDetailFromMeal, cache);
+                    await saveMealChangesToDailyIntake(mealData, cache);
+                    await loadDailyIntakeData(currentDailyIntakeDate);
                 } else {
                     // BĚŽNÝ RECEPT - uložit do recipes
                     const { data: recipeData, error: fetchError } = await window.supabaseClient
@@ -5817,14 +5818,28 @@
                 // Vymažeme cache
                 delete window.recipeEditCache[recipeId];
                 window.recipeHasUnsavedChanges = false;
-                window.recipeDetailFromMeal = undefined;
                 
                 // Zobrazíme potvrzení
                 window.showCustomNotification('Změny uloženy!', 'itemEditSuccess');
                 
-                // Pokud je z jídla, přenačteme denní příjem
+                // ZAVŘEME PODLE TYPU (přímo, bez .click())
+                console.log("✅ Uloženo → zavírám podle typu, isFromMeal:", isFromMeal);
+                
+                // Vyčistíme příznaky
+                window.recipeDetailFromMeal = undefined;
+                window.shouldShowCreateRecipeButton = false;
+                
+                // Zavřeme modal
+                document.getElementById('recipeDetailModal').style.display = 'none';
+                
+                // Zobrazíme správnou stránku
                 if (isFromMeal) {
-                    await loadDailyIntakeData(currentDailyIntakeDate);
+                    console.log("🏠 Editace z jídla → hlavní stránka");
+                    showDailyIntakeAsMainContent();
+                    document.getElementById('selectRecipeModal').style.display = 'none';
+                } else {
+                    console.log("📋 Běžný recept → seznam receptů");
+                    document.getElementById('selectRecipeModal').style.display = 'flex';
                 }
                 
             } catch (error) {
@@ -6064,9 +6079,9 @@
                     e.stopPropagation();
                     console.log("❌ Kliknuto na zavírací křížek editace");
                     
-                    // Vyčistíme příznak fromMeal
-                    window.recipeDetailFromMeal = undefined;
-                    console.log("🧹 Vyčištěn příznak fromMeal při zavření editace položky");
+                    // NEBUDEME mazat příznak - nechť se maže až při zavření HLAVNÍHO modalu!
+                    // window.recipeDetailFromMeal = undefined;  ← ODSTRANĚNO!
+                    console.log("🧹 Zavírám editaci ingredience (NEMAZEME fromMeal příznak)");
                     
                     // Prostě zavřeme modal editace bez dialogu
                     // (dialog je jen pro zavření DETAILU receptu, ne editace)
@@ -7641,7 +7656,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: KOLO 228 - RESET TEXT IN UPDATE BUTTONS");
+            console.log("🚀 Aplikace verze: 0.2.4.5 - SET FLAG BEFORE SHOW MODAL");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
@@ -8006,8 +8021,8 @@
 
             // NOVÝ MODAL - Detail receptu
             document.getElementById('closeRecipeDetailModal').addEventListener('click', function () {
-                // Vymažeme příznak fromMeal
-                window.recipeDetailFromMeal = undefined;
+                // UCHOVÁME příznak PŘED vymazáním!
+                const wasFromMeal = window.recipeDetailFromMeal !== undefined;
                 
                 // Zkontrolujeme jestli existují neuložené změny
                 const hasUnsavedChanges = window.recipeHasUnsavedChanges && 
@@ -8024,62 +8039,54 @@
                         () => {
                             // Ano - zahodit změny
                             console.log("✓ Zahazuji změny");
+                            
                             window.recipeEditCache = {};
                             window.recipeHasUnsavedChanges = false;
-                            window.recipeDetailFromMeal = undefined; // VYMAZAT PŘÍZNAK
+                            window.recipeDetailFromMeal = undefined;
+                            window.shouldShowCreateRecipeButton = false;
                             
                             document.getElementById('recipeDetailModal').style.display = 'none';
-                            document.getElementById('selectRecipeModal').style.display = 'flex';
                             
-                            // Reload seznamu receptů
-                            loadUserRecipes();
+                            if (wasFromMeal) {
+                                // Editace z jídla → zobrazíme hlavní stránku
+                                console.log("🏠 Zahazuji změny v jídle → zobrazuji hlavní stránku");
+                                showDailyIntakeAsMainContent();
+                                document.getElementById('selectRecipeModal').style.display = 'none';
+                            } else {
+                                // Běžný recept → seznam receptů
+                                document.getElementById('selectRecipeModal').style.display = 'flex';
+                                loadUserRecipes();
+                            }
                         },
                         true  // Potřebujeme potvrzení (zobrazí "Ano" a "Ne")
                     );
                 } else {
                     // Normální zavření
+                    window.recipeDetailFromMeal = undefined;
+                    window.shouldShowCreateRecipeButton = false;
                     document.getElementById('recipeDetailModal').style.display = 'none';
                     
-                    // Zobrazit seznam receptů JEN pokud NENÍ z jídla
-                    const isFromMeal = window.recipeDetailFromMeal !== undefined;
-                    if (!isFromMeal) {
+                    if (wasFromMeal) {
+                        // Editace z jídla → zobrazíme hlavní stránku
+                        console.log("🏠 Zavírám editaci jídla → zobrazuji hlavní stránku");
+                        showDailyIntakeAsMainContent();
+                        document.getElementById('selectRecipeModal').style.display = 'none';
+                    } else {
+                        // Běžný recept → seznam receptů
                         document.getElementById('selectRecipeModal').style.display = 'flex';
-                        // Reload seznamu receptů (pro aktualizaci porcí)
                         loadUserRecipes();
                     }
-                    
-                    window.recipeDetailFromMeal = undefined; // VYMAZAT PŘÍZNAK
                 }
             });
 
             // Kliknutí mimo detail receptu
             document.getElementById('recipeDetailModal').addEventListener('click', function (event) {
                 if (event.target === this) {
-                    // Zkontrolujeme cache
-                    const hasUnsavedChanges = window.recipeHasUnsavedChanges && 
-                                             window.recipeEditCache && 
-                                             Object.keys(window.recipeEditCache).length > 0;
-                    
-                    if (hasUnsavedChanges) {
-                        console.log("⚠️ Existují neuložené změny (klik mimo)");
-                        
-                        window.showCustomNotification(
-                            'Opravdu chcete <strong>zahodit neuložené změny</strong>?',
-                            'confirmDiscardRecipeChanges',
-                            () => {
-                                // Ano - zahodit
-                                window.recipeEditCache = {};
-                                window.recipeHasUnsavedChanges = false;
-                                
-                                document.getElementById('recipeDetailModal').style.display = 'none';
-                                document.getElementById('selectRecipeModal').style.display = 'flex';
-                            },
-                            true  // Potřebujeme potvrzení
-                        );
-                    } else {
-                        // Normální zavření
-                        document.getElementById('recipeDetailModal').style.display = 'none';
-                        document.getElementById('selectRecipeModal').style.display = 'flex';
+                    // Simuluj klik na křížek (master close handler)
+                    console.log("🖱️ Klik mimo → simuluji klik na křížek");
+                    const closeBtn = document.getElementById('closeRecipeDetailModal');
+                    if (closeBtn) {
+                        closeBtn.click();
                     }
                 }
             });
@@ -10320,6 +10327,10 @@
         // Zobrazení detailu receptu Z JÍDLA (s tlačítkem "Vytvořit recept")
         async function showRecipeDetailsModalFromMeal(recipeData) {
             console.log("🔍 showRecipeDetailsModalFromMeal:", recipeData);
+            
+            // NEJDŘÍV nastavíme příznak aby showRecipeDetailsModal věděl že je to z jídla!
+            window.recipeDetailFromMeal = recipeData;
+            console.log("✅ Nastaven window.recipeDetailFromMeal před voláním showRecipeDetailsModal");
             
             // Otevřeme normální detail (použijeme existující funkci)
             await showRecipeDetailsModal(recipeData.id, recipeData.name);
