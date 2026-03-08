@@ -1,0 +1,6068 @@
+body,
+html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+body::-webkit-scrollbar,
+html::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/Opera */
+}
+
+/* Skrytí posuvníků GLOBÁLNĚ - zachovává možnost scrollování */
+* {
+    scrollbar-width: none !important; /* Firefox */
+    -ms-overflow-style: none !important; /* IE/Edge */
+}
+
+*::-webkit-scrollbar {
+    display: none !important; /* Chrome/Safari/Opera */
+    width: 0 !important;
+    height: 0 !important;
+}
+
+body {
+    font-family: Lora, 'Times New Roman', serif;
+    background-color: #f4f4f4
+}
+
+.container {
+    max-width: 700px;
+    margin: 20px auto;
+    background-color: #fff;
+    padding: 0;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 40px);
+    overflow: hidden; /* Změněno z overflow-y: auto */
+}
+
+/* Nový layout - statická hlavička */
+.main-page-header {
+    flex-shrink: 0;
+    /* Header tlačítka jsou v <header> nahoře, takže toto je prázdné */
+}
+
+/* Scrollovací oblast pro hlavní obsah */
+.main-page-scroll-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 3px; /* JEŠTĚ MENŠÍ - 3px pro maximální šířku */
+    padding-top: 140px; /* ZVĚTŠENO aby byl vidět celý graf pod headerem */
+}
+
+.settings-icon {
+    position: static !important;
+    top: 10px !important;
+    right: 10px !important;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    z-index: 10
+}
+
+.settings-icon:hover {
+    opacity: .7
+}
+
+form {
+    display: flex;
+    flex-grow: 1;
+    justify-content: flex-start;
+    gap: 10px;
+    flex-wrap: wrap
+}
+
+input[type=text] {
+    padding: 10px;
+    flex-grow: 1;
+    width: auto;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-size: 16px;
+    min-width: 150px
+}
+
+button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 0;
+    flex-shrink: 0
+}
+
+/* ODSTRANĚNO GLOBÁLNÍ button:hover - způsobovalo mizení tlačítek */
+/* Každé tlačítko má vlastní hover styl */
+
+.main-fixed-header {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 700px;
+    width: 100%;
+    background-color: #fff;
+    padding: 10px 15px 5px 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+    z-index: 1000;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 8px
+}
+
+.header-button-group {
+    display: flex;
+    align-items: center;
+    gap: 8px
+}
+
+.header-row {
+    width: 100%;
+    display: flex;
+    align-items: center
+}
+
+.top-row {
+    justify-content: space-between
+}
+
+.profile-icon-header {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: auto;
+    height: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 6px 0 !important;
+    border-radius: 0 !important;
+    background: 0 0 !important;
+    border: none !important;
+    z-index: 10;
+    transition: opacity .2s
+}
+
+.current-profile-info {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: transparent;
+    border-radius: 12px
+}
+
+.current-profile-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #495057;
+    margin-top: 5px;
+    justify-content: center; /* Zarovnat na střed */
+}
+
+.profile-icon-header:hover {
+    background: 0 0 !important;
+    opacity: .7
+}
+
+.profile-header-icon {
+    width: 24px !important;
+    height: 24px !important
+}
+
+.profile-name-header {
+    font-size: .9rem;
+    font-weight: 500;
+    color: #495057;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px
+}
+
+.profile-icon-header.has-profile .profile-name-header {
+    color: #000;
+    font-weight: 600
+}
+
+#results {
+    margin-top: 20px;
+    padding: 0 20px
+}
+
+/* FOOD-ITEM - definice přesunuta níže s !important */
+
+.food-item-info {
+    flex: 1
+}
+
+.food-item-details {
+    font-size: .85em;
+    color: #6c757d
+}
+
+.recipe-actions button {
+    background: 0 0 !important;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    transition: background-color .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center
+}
+
+.recipe-actions button:hover {
+    background: rgba(255, 255, 255, .3) !important
+}
+
+.recipe-actions button img {
+    width: 20px !important;
+    height: 20px !important;
+    opacity: .7
+}
+
+.recipe-actions button:hover img {
+    opacity: 1
+}
+
+.food-item-actions {
+    display: flex;
+    gap: 8px
+}
+
+.food-item-name {
+    font-weight: 600;
+    color: #11225a;
+    margin-bottom: 4px;
+    /* Zkrácení dlouhého názvu */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: calc(100% - 80px); /* Prostor pro ikonky */
+}
+
+.food-item:hover {
+    background-color: #e0e0e0
+}
+
+.food-item h3 {
+    margin: 0;
+    color: #007bff;
+    font-size: 1em;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.food-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border-radius: 12px;
+    flex-shrink: 0;
+    margin-right: 10px
+}
+
+.image-wrapper {
+    flex-shrink: 0;
+    margin-top: -5px
+}
+
+.calories-display {
+    margin: 0;
+    font-size: .85em;
+    text-align: left;
+    color: #000;
+    font-weight: 700;
+    white-space: nowrap
+}
+
+.food-details {
+    flex-grow: 1;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%
+}
+
+.calories-and-type-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 5px
+}
+
+#loading {
+    display: none;
+    text-align: center;
+    color: #888
+}
+
+.error {
+    color: red;
+    text-align: center;
+    margin-top: 10px
+}
+
+.warning {
+    color: orange;
+    text-align: center;
+    margin-top: 10px;
+    font-size: .9em
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, .4);
+    justify-content: center;
+    align-items: center
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 15px;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 450px;
+    border-radius: 12px;
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, .2);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    overflow-y: auto
+}
+
+#loginModal .modal-content {
+    max-width: 450px !important;
+    width: 90% !important
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 7px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 10;
+    background-color: transparent;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0
+}
+
+.close-button:focus,
+.close-button:hover {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer
+}
+
+.modal-details {
+    font-size: .95em;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1
+}
+
+.modal-details h3 {
+    margin-top: 15px;
+    margin-bottom: 5px;
+    color: #333;
+    font-size: 1.1em
+}
+
+.modal-details p {
+    margin-bottom: 3px
+}
+
+.modal-details strong {
+    color: #333
+}
+
+.modal-details .error-details,
+.modal-details .loading-details {
+    text-align: center;
+    color: #888;
+    margin-top: 10px
+}
+
+.modal-details .error-details {
+    color: red
+}
+
+.nutrient-section {
+    margin-bottom: 10px;
+    padding-bottom: 5px
+}
+
+.nutrient-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2px
+}
+
+.nutrient-label {
+    display: flex;
+    align-items: center;
+    font-weight: 700
+}
+
+.nutrient-label.main {
+    font-size: 1.2em
+}
+
+.nutrient-value {
+    font-weight: 700
+}
+
+.nutrient-value.main-value {
+    font-size: 1.2em
+}
+
+.nutrient-sub-label {
+    margin-left: 20px;
+    font-size: .9em;
+    color: #555
+}
+
+.nutrient-sub-value {
+    font-size: .9em;
+    color: #555
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    display: inline-block
+}
+
+.dot.red {
+    background-color: #f44336
+}
+
+.dot.blue {
+    background-color: #2196f3
+}
+
+.dot.orange {
+    background-color: #ff9800
+}
+
+.dot.green {
+    background-color: #4caf50
+}
+
+.energy-header {
+    font-size: 1.4em; /* ZMENŠENO z 1.8em */
+    font-weight: 700;
+    margin-bottom: 2px; /* ZMENŠENO z 5px */
+}
+
+.energy-sub-header {
+    font-size: 0.8em; /* ZMENŠENO z 0.9em */
+}
+
+.modal-header-content {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px
+}
+
+.modal-header-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    margin-right: 15px;
+    border-radius: 8px;
+    flex-shrink: 0
+}
+
+.interactive-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 15px;
+    padding-left: 10px;
+    padding-right: 0
+}
+
+.amount-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    flex-shrink: 0
+}
+
+.amount-input,
+.unit-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-family: 'Dutch801 Rm BT', serif;
+    box-sizing: border-box
+}
+
+.amount-input {
+    width: 100px;
+    font-size: 1.3em;
+    text-align: left
+}
+
+.unit-select {
+    width: 60px;
+    font-size: .8em;
+    appearance: none;
+    background-image: url(data:image/svg+xml;utf8,SVG_REPLACED);
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 8px;
+    margin: 0
+}
+
+.energy-display-group {
+    flex-grow: 1;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end
+}
+
+.nutrient-line-separator {
+    border-top: 1px solid #eee;
+    margin-top: 10px;
+    margin-bottom: 10px
+}
+
+.search-results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px
+}
+
+.food-item-potravina {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 15px;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: all .2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+    cursor: pointer
+}
+
+.food-item-potravina:hover {
+    border-color: #007bff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .15)
+}
+
+#results .food-item-potravina {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 15px;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+    margin-bottom: 10px;
+    min-height: 70px
+}
+
+#results .food-item-potravina:hover {
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, .15)
+}
+
+.search-results-container:empty::before {
+    content: "Zadejte hledaný výraz...";
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    padding: 40px 20px
+}
+
+.food-item-potravina .image-wrapper {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #f8f9fa;
+    margin-right: 12px
+}
+
+.food-item-potravina .image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover
+}
+
+.food-item-potravina .food-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: .85rem;
+    color: #666;
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* Extra specific selector for search results */
+#results .food-item-potravina .food-details {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+#results .food-item-potravina .food-details h3 {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100%;
+}
+
+.food-item-potravina .food-item-actions button {
+    background: 0 0;
+    border: none;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color .2s
+}
+
+.food-item-potravina .food-item-actions button:hover {
+    background: #f8f9fa
+}
+
+.food-item-potravina .food-item-actions img {
+    width: 18px;
+    height: 18px;
+    opacity: .7
+}
+
+.food-item-potravina .food-item-actions button:hover img {
+    opacity: 1
+}
+
+.food-item-potravina .food-item-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: 15px
+}
+
+.food-item-potravina .food-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px
+}
+
+.food-item-potravina .food-item-name {
+    font-size: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+    line-height: 1.3
+}
+
+.food-item-potravina .food-item-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: .85rem;
+    color: #666
+}
+
+.food-item-potravina .food-details h3 {
+    margin: 0 0 5px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.food-item-potravina .calories-and-type-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: .85rem;
+    color: #666
+}
+
+.food-item-potravina .calories-display {
+    font-weight: 500;
+    color: #e74c3c
+}
+
+.food-item.food-item-potravina {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .1)
+}
+
+.modal-action-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap
+}
+
+.modal-action-buttons button {
+    padding: 8px 12px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: .8em;
+    transition: background-color .3s ease;
+    flex-grow: 1;
+    max-width: 150px;
+    margin-left: 0
+}
+
+.modal-action-buttons button:hover {
+    background-color: #218838
+}
+
+#createRecipeModal .modal-content {
+    max-width: 450px !important;
+    width: 90% !important;
+    text-align: center;
+    overflow: hidden !important;
+    max-height: none !important;
+    padding: 20px;
+    height: auto
+}
+
+#createRecipeModal input[type=text] {
+    width: calc(100% - 20px);
+    margin-bottom: 15px
+}
+
+.create-recipe-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 15px
+}
+
+#createRecipeModal .create-recipe-buttons button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    flex-grow: 1;
+    margin: 0
+}
+
+#confirmCreateRecipeButton {
+    background-color: #007bff;
+    color: #fff
+}
+
+#confirmCreateRecipeButton:hover {
+    background-color: #0056b3
+}
+
+#cancelCreateRecipeButton {
+    background-color: #f44336;
+    color: #fff;
+    flex-basis: 40%;
+    max-width: 100px;
+    flex-grow: 0
+}
+
+#cancelCreateRecipeButton:hover {
+    background-color: #d32f2f
+}
+
+.recipes-list-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden
+}
+
+#selectRecipeModal .modal-content {
+    max-width: 450px !important;
+    width: 90% !important;
+    overflow-x: hidden;
+    max-height: 80vh;
+    overflow-y: auto
+}
+
+#existingRecipesList {
+    overflow-x: hidden;
+    padding-left: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    list-style: none
+}
+
+#selectRecipeModal ul {
+    list-style: none;
+    padding: 0;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    width: 100%
+}
+
+#selectRecipeModal li {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer
+}
+
+#selectRecipeModal li:last-child {
+    border-bottom: none
+}
+
+#selectRecipeModal li:hover {
+    background-color: #f0f0f0
+}
+
+.recipe-list-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 15px
+}
+
+#selectRecipeModal .recipe-list-actions button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    flex-grow: 1;
+    margin: 0
+}
+
+#customNotificationModal {
+    background-color: rgba(0, 0, 0, .6) !important;
+    z-index: 2000 !important; /* Nad všemi modaly */
+}
+
+#customNotificationModal .modal-content {
+    width: 350px !important;
+    max-width: 350px !important;
+    margin: 20px auto;
+    padding: 25px
+}
+
+#customNotificationMessage {
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: #333;
+    font-size: 1.1em;
+    line-height: 1.5;
+    text-align: center;
+    font-weight: 500
+}
+
+.notification-controls {
+    display: flex;
+    flex-direction: column; /* SVISLÝ LAYOUT */
+    align-items: center; /* VŠECHNO NA STŘED */
+    width: 100%;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    gap: 15px; /* MEZERA MEZI TLAČÍTKY A TOGGLEM */
+}
+
+.notification-toggle-container {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* NA STŘED */
+    gap: 8px;
+}
+
+.notification-buttons-container {
+    display: flex;
+    gap: 12px;
+    justify-content: center; /* TLAČÍTKA NA STŘED */
+    align-items: center;
+}
+
+.notification-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all .3s ease;
+    font-family: 'Dutch801 Rm BT', serif;
+    min-width: 80px;
+    font-weight: 500;
+}
+
+.notification-button.no-button {
+    background-color: #dc3545; /* ČERVENÉ */
+    color: #fff;
+}
+
+.notification-button.no-button:hover {
+    background-color: #c82333;
+}
+
+.notification-button.yes-button {
+    background-color: #28a745; /* ZELENÉ */
+    color: #fff;
+}
+
+.notification-button.yes-button:hover {
+    background-color: #218838;
+}
+
+.notification-button.ok-button {
+    background-color: #28a745; /* ZELENÉ */
+    color: #fff;
+}
+
+.notification-button.ok-button:hover {
+    background-color: #218838;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 32px; /* ZMENŠENO z 34px */
+    height: 15px; /* ZMENŠENO z 18px na 15px */
+    flex-shrink: 0
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    outline: none; /* Žádný focus obdélník */
+}
+
+/* Odstranit VŠECHNY focus/active efekty */
+.toggle-switch input:focus,
+.toggle-switch input:focus-visible,
+.toggle-switch input:active,
+.toggle-switch:focus,
+.toggle-switch:focus-visible,
+.toggle-switch:active,
+.toggle-switch-label:focus,
+.toggle-switch-label:focus-visible,
+.toggle-switch-label:active {
+    outline: none !important;
+    box-shadow: none !important;
+    background: none !important;
+}
+
+.toggle-switch .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 15px /* UPRAVENO */
+}
+
+.toggle-switch .slider:before {
+    position: absolute;
+    content: "";
+    height: 11px; /* ZMENŠENO z 14px na 11px */
+    width: 11px; /* ZMENŠENO z 14px na 11px */
+    left: 2px;
+    bottom: 2px;
+    background-color: #fff;
+    transition: .4s;
+    border-radius: 50%
+}
+
+.toggle-switch input:checked+.slider {
+    background-color: #2196f3 /* MODRÁ */
+}
+
+.toggle-switch input:focus+.slider {
+    outline: none; /* Žádný obdélník */
+    box-shadow: none; /* Žádný stín */
+}
+
+.toggle-switch input:checked+.slider:before {
+    transform: translateX(17px) /* UPRAVENO */
+}
+
+.toggle-label {
+    font-size: .8em; /* ZMENŠENO z .85em */
+    color: #555;
+    user-select: none;
+    white-space: nowrap
+}
+
+
+.toggle-label {
+    font-size: .8em !important;
+    color: #555;
+    user-select: none;
+    white-space: nowrap
+}
+
+#settingsModal .modal-content {
+    max-width: 450px !important;
+    width: 90% !important;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start
+}
+
+#settingsModal h2 {
+    text-align: center !important;
+    margin-top: -5px;
+    width: 100%
+}
+
+#settingsModal h3 {
+    margin-top: 5px;
+    margin-bottom: 20px;
+    color: #555;
+    width: 100%;
+    text-align: left
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 5px;
+    padding: 5px 0;
+    border-bottom: 1px solid #eee
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0
+}
+
+.setting-label {
+    font-size: .9em;
+    color: #333;
+    flex-grow: 1;
+    white-space: nowrap
+}
+
+.recipe-list-item {
+    display: grid !important;
+    grid-template-columns: 30px 1fr auto !important;
+    grid-template-areas: "number name calories" !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 12px 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* REŽIM S MAZACÍ IKONKOU (Prohlížení receptů) */
+.recipe-list-item.with-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 12px 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.recipe-list-item.with-actions .recipe-number {
+    flex: 0 0 25px !important;
+    text-align: center !important;
+    font-weight: bold !important;
+    color: #666 !important;
+}
+
+.recipe-list-item.with-actions .recipe-name {
+    flex: 1 !important;
+    text-align: left !important;
+    min-width: 0 !important;
+    font-weight: 600 !important;
+    color: #2c5aa0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.recipe-list-item.with-actions .recipe-calories {
+    flex: 0 0 auto !important;
+    text-align: right !important;
+    margin-right: -20px !important; 
+    min-width: 70px !important;
+    color: #4caf50 !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+}
+
+.recipe-list-item.with-actions .recipe-actions {
+    flex: 0 0 auto !important;
+    margin-right: -5px !important; 
+}
+
+.recipe-list-item.with-actions .recipe-delete-icon {
+    width: 15px !important;
+    height: 15px !important;
+    opacity: 0.7 !important;
+    transition: opacity 0.2s ease !important;
+    cursor: pointer !important;
+}
+
+.recipe-list-item.with-actions .recipe-delete-icon:hover {
+    opacity: 1 !important;
+}
+
+.recipe-list-item:hover {
+    background-color: #f5f5f5 !important;
+    border-radius: 8px !important;
+}
+
+.recipe-list-item:focus {
+    outline: none !important;
+    background-color: transparent !important; /* Žádné tmavší pozadí */
+}
+
+.recipe-list-item:not(.with-actions) {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 12px 15px !important;
+}
+
+.recipe-list-item:not(.with-actions) .recipe-number {
+    flex: 0 0 25px !important;
+    text-align: center !important;
+}
+
+.recipe-list-item:not(.with-actions) .recipe-name {
+    flex: 1 !important;
+    text-align: left !important;
+    min-width: 0 !important;
+    font-weight: 600 !important;
+    color: #2c5aa0 !important; /* STEJNÁ BARVA JAKO V RECEPTECH */
+}
+
+.recipe-list-item:not(.with-actions) .recipe-calories {
+    flex: 0 0 auto !important;
+    text-align: right !important;
+    margin-right: 15px !important; /* Kalorie u pravého okraje */
+    min-width: 70px !important;
+}
+
+.recipe-number {
+    grid-area: number !important;
+    text-align: center !important;
+    font-weight: bold !important;
+    color: #666 !important;
+    min-width: 30px !important;
+}
+
+.recipe-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1
+}
+
+.recipe-totals-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap
+}
+
+.main-highlight-row {
+    margin-top: 0
+}
+
+.calorie-highlight {
+    background-color: #2c5aa0;
+    color: #fff;
+    padding: 2px 5px;
+    border-radius: 5px;
+    font-weight: 700;
+    font-size: .85em;
+    flex-shrink: 0
+}
+
+.total-amount-display {
+    font-weight: 500;
+    color: #495057;
+    font-size: .75em
+}
+
+.macro-stats-row {
+    font-size: .75em;
+    /* Barvy se nastavují inline per-span */
+}
+
+.recipe-name {
+    grid-area: name !important;
+    text-align: left !important;
+    font-weight: 600 !important;
+    color: #2c5aa0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.recipe-calories {
+    grid-area: calories !important;
+    text-align: right !important;
+    color: #4caf50 !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    min-width: 80px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Když NENÍ ikonka smazání - kalorie na pravý kraj */
+.recipe-list-item:not(.with-actions) .recipe-calories {
+    text-align: right !important;
+    padding-right: 0px !important; /* Více od pravého okraje */
+    margin-right: 0 !important;
+}
+
+.total-amount {
+    background: #2c5aa0;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: .75em;
+    font-weight: 500
+}
+
+.recipe-actions {
+    grid-area: actions !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    min-width: 40px !important;
+}
+
+.recipe-calories:empty::before {
+    content: "-" !important;
+    color: #ccc !important;
+}
+
+.delete-recipe-group-btn,
+.toggle-recipe-btn {
+    background: 0 0;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color .2s
+}
+
+.delete-recipe-group-btn:hover,
+.toggle-recipe-btn:hover {
+    background: rgba(255, 255, 255, .7)
+}
+
+.toggle-icon {
+    width: 16px !important;
+    height: 16px !important;
+    transition: transform .3s ease
+}
+
+.toggle-icon.expanded {
+    transform: rotate(180deg)
+}
+
+.recipe-ingredients {
+    display: none;
+    background: #f8fbff
+}
+
+.recipe-ingredients.expanded {
+    display: block;
+}
+
+.recipe-ingredient-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 10px;
+    background: #f3f9ff;
+    border: 1px solid #72b1f5;
+    border-radius: 12px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    margin-left: 5px;
+    margin-right: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+    cursor: pointer;
+    position: relative;
+}
+
+.recipe-ingredient-item:hover {
+    border-color: #72b1f5;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .15)
+}
+
+/* HLAVNÍ OBSAH - LEVÁ ČÁST */
+.ingredient-main-content {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 0;
+}
+
+/* AKCE - PRAVÁ ČÁST */
+.ingredient-actions-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 4px; /* ZMENŠENO z 8px */
+    align-items: center;
+    flex-shrink: 0;
+    margin-top: 0;
+}
+
+.ingredient-actions-vertical button {
+    background: transparent;
+    border: none;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ingredient-actions-vertical img {
+    width: 18px;
+    height: 18px;
+    opacity: .7;
+}
+
+.ingredient-actions-vertical button:hover img {
+    opacity: 1;
+}
+
+.recipe-ingredient-item .ingredient-main-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1
+}
+
+.recipe-ingredient-item .ingredient-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0
+}
+
+.recipe-ingredient-item .ingredient-details {
+    flex: 1;
+    min-width: 0
+}
+
+.recipe-ingredient-item .ingredient-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2c5aa0;
+    margin: 0;
+    line-height: 1.2;
+    text-align: left;
+    /* PŘIDÁNO: Zajištění zkrácení dlouhých názvů */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 65%;
+    min-width: 0; /* Důležité pro flexbox */
+}
+
+.recipe-ingredient-item .ingredient-totals {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: .85rem;
+    color: #666
+}
+
+.recipe-ingredient-item .total-amount {
+    background: transparent;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: .75rem;
+    font-weight: 500
+}
+
+.recipe-ingredient-item .ingredient-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: 15px;
+    left: 10;
+    bottom: 2;
+}
+
+.recipe-ingredient-item .ingredient-actions button {
+    background: 0 0;
+    border: none;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color .2s
+}
+/*
+.recipe-ingredient-item .ingredient-actions button:hover {
+    background: #f8f9fa
+}*/
+
+.recipe-ingredient-item .ingredient-actions img {
+    width: 18px;
+    height: 18px;
+    opacity: .7
+}
+
+.recipe-ingredient-item .ingredient-actions button:hover img {
+    opacity: 1
+}
+
+.recipe-ingredient-item:last-child {
+    border-bottom: none
+}
+
+.ingredient-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px
+}
+
+.ingredient-basic-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ingredient-nutrition-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.ingredient-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #eba611;
+    margin: 0;
+    line-height: 1.2;
+    text-align: left;
+}
+
+.ingredient-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: .85rem;
+    color: #272727
+}
+
+.calorie-badge {
+    background: #2c5aa0;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.amount-badge {
+    background: transparent;
+    color: #272727;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.recipe-delete-icon {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 3px;
+    opacity: .7;
+    transition: opacity .2s ease
+}
+
+.recipe-delete-icon:hover {
+    opacity: 1
+}
+
+#results .food-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color .2s
+}
+
+#results .food-item:hover {
+    background-color: #f5f5f5
+}
+
+#results .image-wrapper {
+    flex-shrink: 0
+}
+
+#results .image-wrapper img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px
+}
+
+#results .food-details {
+    flex: 1;
+    min-width: 0; /* Umožní truncate v flex containeru */
+}
+
+#results .food-details h3 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#results .calories-display {
+    margin: 0;
+    font-size: 14px;
+    color: #4caf50;
+    font-weight: 700
+}
+
+#results .food-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px
+}
+
+.recipe-icon {
+    font-size: 1.5em;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: 0 0;
+    border-radius: 8px;
+    flex-shrink: 0
+}
+
+.recipe-icon:hover {
+    opacity: 1
+}
+
+.modal-details .food-item .food-details h3 {
+    color: #007bff
+}
+
+.user-info-header {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    text-align: center;
+    border-left: 4px solid #007bff
+}
+
+.no-profiles {
+    text-align: center;
+    padding: 30px 20px;
+    color: #666
+}
+
+.no-profiles-icon {
+    font-size: 3em;
+    margin-bottom: 15px
+}
+
+.no-profiles-title {
+    font-size: 1.2em;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333
+}
+
+.no-profiles-text {
+    margin-bottom: 20px;
+    line-height: 1.5
+}
+
+.create-first-profile-btn {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color .2s
+}
+
+.create-first-profile-btn:hover {
+    background-color: #218838
+}
+
+.current-profile-badge {
+    background-color: #28a745;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: .7em;
+    margin-left: 8px
+}
+
+.profile-instruction {
+    font-size: .8em;
+    color: #888;
+    margin-top: 5px;
+    font-style: italic
+}
+
+.user-email {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px
+}
+
+.profile-count {
+    font-size: .9em;
+    color: #666
+}
+
+.recipe-count-display {
+    text-align: left;
+    margin-bottom: 10px;
+    font-weight: 700;
+    color: #333;
+    width: 100%;
+    padding-left: 10px
+}
+
+.modal-recipe-content {
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-recipe-scroll-container {
+    height: 100%;
+    overflow-y: auto;
+    background-color: #fefefe;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+.modal-recipe-scroll-container::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/Opera */
+}
+
+#detailsModal .modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    max-width: 500px !important;
+    width: 90% !important;
+    border-radius: 12px;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto
+}
+
+#detailsModal .nutrient-section {
+    margin-bottom: 10px;
+    padding-bottom: 5px
+}
+
+#detailsModal .nutrient-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2px;
+    padding: 0 10px
+}
+
+#detailsModal .modal-details {
+    font-size: .95em;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1
+}
+
+#detailsModal .close-button {
+    cursor: pointer;
+    line-height: 1;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 850;
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none !important;
+    font-size: 28px;
+    font-weight: 700;
+    color: #aaa;
+    transition: color .2s ease
+}
+
+#detailsModal .close-button:hover {
+    background-color: transparent !important;
+    color: #000;
+    box-shadow: none !important
+}
+
+#detailsModal.modal-recipe-open .modal-recipe-scroll-container {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: #fefefe;
+    width: 100%
+}
+
+#detailsModal.modal-recipe-open .modal-scrollable-container {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 10px 15px 20px 15px;
+    background-color: #fefefe;
+    z-index: 10;
+    position: relative;
+    margin-top: 5
+}
+
+#detailsModal.modal-recipe-open .modal-recipe-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #fefefe !important;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 15px;
+    border-bottom: 1px solid #f0f0f0;
+    margin: 0;
+    border-radius: 12px 12px 0 0;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 240px
+}
+
+#detailsModal.modal-recipe-open .modal-content {
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+}
+
+#detailsModal.modal-recipe-open .energy-display-group {
+    z-index: 30;
+    position: relative;
+    min-height: 160px
+}
+
+#detailsModal.modal-recipe-open .modal-header-image {
+    z-index: 30;
+    position: relative;
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+    min-height: 80px
+}
+
+#detailsModal.modal-recipe-open .modal-recipe-header::after {
+    content: none
+}
+
+#barcodeModal .modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 450px !important;
+    width: 90% !important
+}
+
+@keyframes barcodeFound {
+    0% {
+        border-color: #4caf50
+    }
+
+    50% {
+        border-color: #ffeb3b
+    }
+
+    100% {
+        border-color: #4caf50
+    }
+}
+
+.barcode-found {
+    animation: barcodeSuccess 1s ease-in-out;
+    border-color: #4caf50 !important;
+    box-shadow: 0 0 20px rgba(76, 175, 80, .5)
+}
+
+@keyframes barcodeSuccess {
+    0% {
+        border-color: #4caf50;
+        box-shadow: 0 0 0 rgba(76, 175, 80, 0)
+    }
+
+    50% {
+        border-color: #4caf50;
+        box-shadow: 0 0 20px rgba(76, 175, 80, .8)
+    }
+
+    100% {
+        border-color: #4caf50;
+        box-shadow: 0 0 0 rgba(76, 175, 80, 0)
+    }
+}
+
+#barcodeStatus {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+#barcodeOverlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    height: 30%;
+    border: 2px solid #4caf50;
+    border-radius: 8px;
+    pointer-events: none;
+    display: none;
+    opacity: .7;
+    box-shadow: 0 0 10px rgba(76, 175, 80, .3)
+}
+
+@keyframes pulse {
+    0% {
+        opacity: .6
+    }
+
+    50% {
+        opacity: 1
+    }
+
+    100% {
+        opacity: .6
+    }
+}
+
+#profileList {
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 15px 0
+}
+
+.profile-name {
+    font-weight: 700
+}
+
+.profile-delete {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    opacity: .7;
+    flex-shrink: 0
+}
+
+.profile-delete:hover {
+    opacity: 1
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0)
+    }
+
+    100% {
+        transform: rotate(360deg)
+    }
+}
+
+#currentProfileDisplay {
+    margin: 5px 0 !important
+}
+
+#currentProfileName {
+    font-weight: 600;
+    color: #333;
+    font-size: .9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+#closeProfileModal {
+    cursor: pointer !important;
+    pointer-events: all !important;
+    z-index: 1001 !important
+}
+
+.profile-email {
+    text-align: center !important;
+    width: 100%;
+    font-size: .75em;
+    color: #666;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500
+}
+
+.profile-item.active {
+    background-color: #e0f2f7;
+    border-color: #a7d9ed
+}
+
+.profile-item {
+    background-color: #e9e9e9;
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer
+}
+
+.profile-item:hover {
+    background-color: #e0e0e0
+}
+
+.profile-item.active {
+    background-color: #e0f2f7;
+    border-color: #a7d9ed
+}
+
+.profile-item.active .profile-name {
+    color: #007bff;
+    font-weight: 700;
+    margin-left: 8px
+}
+
+.profile-name-container {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    padding-left: 8px
+}
+
+#createProfileModal .modal-content {
+    max-width: 450px !important;
+    width: 90% !important;
+    text-align: center;
+    padding: 20px;
+    overflow: hidden !important;
+    max-height: none !important;
+    padding: 20px;
+    height: auto
+}
+
+#profileModal .modal-content {
+    max-width: 450px !important;
+    width: 90% !important
+}
+
+#createProfileModal,
+#profileModal {
+    z-index: 1000 !important
+}
+
+#settingsModal {
+    z-index: 1001 !important;
+}
+
+#createNewProfileBtn {
+    background-color: #007bff !important;
+    color: #fff !important;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color .3s ease;
+    font-family: 'Dutch801 Rm BT', serif;
+    width: 100%;
+    margin-top: 10px
+}
+
+#createNewProfileBtn:hover {
+    background-color: #0056b3 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, .3)
+}
+
+#createNewProfileBtn:active {
+    transform: translateY(0)
+}
+
+#createNewProfileBtn.btn-primary {
+    background-color: #007bff !important;
+    color: #fff !important
+}
+
+#createNewProfileBtn.btn-primary:hover {
+    background-color: #0056b3 !important
+}
+
+#createProfileModal h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+    font-size: 1.3em
+}
+
+#newProfileName {
+    width: calc(100% - 20px);
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    font-family: 'Dutch801 Rm BT', serif;
+    text-align: center
+}
+
+.create-profile-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    margin-top: 15px
+}
+
+.btn-cancel {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+    border: 1px solid #dc3545 !important;
+    padding: 10px 20px !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    font-size: .9rem !important;
+    transition: background-color .2s !important
+}
+
+.btn-cancel:hover {
+    background-color: #c82333 !important;
+    border-color: #c82333 !important
+}
+
+.btn-cancel:active {
+    background-color: #bd2130 !important
+}
+
+#newProfileName:focus {
+    outline: 0;
+    border-color: #000;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, .1);
+    transform: translateY(-1px)
+}
+
+#cancelCreateProfile {
+    order: 2;
+    flex: 1;
+    padding: 10px 15px;
+    background-color: #f44336;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 0
+}
+
+#cancelCreateProfile:hover {
+    background-color: #d32f2f
+}
+
+#cancelCreateProfile:active {
+    transform: translateY(0)
+}
+
+#confirmCreateProfile {
+    order: 1;
+    flex: 2;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 0
+}
+
+#confirmCreateProfile:hover {
+    background-color: #0056b3
+}
+
+#confirmCreateProfile:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed
+}
+
+#loginMenuBtn {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 6px 12px
+}
+
+#loginMenuBtn:hover {
+    background-color: #0056b3
+}
+
+.setting-section {
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+    width: 100%
+}
+
+.setting-section:last-child {
+    border-bottom: none
+}
+
+.setting-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color .2s ease;
+    border-radius: 6px;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box
+}
+
+.setting-section-header:hover {
+    background-color: #f5f5f5
+}
+
+.setting-section-arrow {
+    font-size: 12px;
+    color: #666;
+    transition: transform .3s ease;
+    margin-left: 10px
+}
+
+.setting-section-header.active .setting-section-arrow {
+    transform: rotate(180deg)
+}
+
+.setting-section-content {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height .3s ease, opacity .3s ease, padding .3s ease;
+    padding: 0 15px
+}
+
+.setting-section-header.active+.setting-section-content {
+    max-height: 1000px;
+    opacity: 1;
+    padding: 10px 15px
+}
+
+.setting-section-content .setting-item {
+    border-bottom: none !important;
+    margin-bottom: 8px;
+    padding-bottom: 0
+}
+
+#settingsModal .toggle-switch {
+    width: 32px; /* ZMENŠENO z 36px */
+    height: 15px; /* ZMENŠENO z 20px */
+    flex-shrink: 0;
+    margin-right: 10px
+}
+
+#settingsModal .toggle-switch .slider {
+    border-radius: 15px /* UPRAVENO z 20px */
+}
+
+#settingsModal .toggle-switch .slider:before {
+    height: 11px; /* ZMENŠENO z 16px */
+    width: 11px; /* ZMENŠENO z 16px */
+    left: 2px;
+    bottom: 2px
+}
+
+#settingsModal .toggle-switch input:checked+.slider:before {
+    transform: translateX(17px) /* UPRAVENO z 16px */
+}
+
+.setting-section-content .setting-label {
+    flex-grow: 1;
+    margin-right: 10px
+}
+
+#settingsModal .setting-section-content .setting-item .setting-label {
+    margin-left: 15px;
+    flex-grow: 1
+}
+
+#settingsModal .setting-section-content .setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: none !important;
+    margin-bottom: 8px;
+    padding-bottom: 0
+}
+
+#settingsModal .setting-section-content .setting-item:last-child {
+    border-bottom: none !important;
+    margin-bottom: 0
+}
+
+#settingsModal .setting-section-header .setting-label {
+    font-weight: 700 !important;
+    color: #333;
+    font-size: 1em
+}
+
+.modal-scrollable-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px 20px 20px 20px;
+}
+
+#recipeIngredientsList {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #fefefe
+}
+
+#nutrientDetailsSection {
+    background-color: #fefefe
+}
+
+.modal-header-text {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px
+}
+
+.food-item .food-details {
+    flex-grow: 1;
+    text-align: left;
+    display: flex;
+    flex-direction: column
+}
+
+#loginModal .modal-action-buttons button {
+    padding: 12px 15px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color .3s ease;
+    flex: 1;
+    margin: 0;
+    color: #fff;
+    font-family: 'Dutch801 Rm BT', serif
+}
+
+#loginModal #loginBtn {
+    background-color: #28a745
+}
+
+#loginModal #loginBtn:hover {
+    background-color: #218838
+}
+
+#loginModal #registerBtn {
+    background-color: #007bff
+}
+
+#loginModal #registerBtn:hover {
+    background-color: #0056b3
+}
+
+#loginModal .modal-action-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    width: 100%;
+    margin-top: 20px;
+    justify-content: space-between
+}
+
+#loginModal input[type=email],
+#loginModal input[type=password] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-size: 16px;
+    font-family: 'Dutch801 Rm BT', serif;
+    box-sizing: border-box
+}
+
+#loginModal input[type=email]:focus,
+#loginModal input[type=password]:focus {
+    outline: 0;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, .25)
+}
+
+#switchAccountBtn {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color .3s ease
+}
+
+#switchAccountBtn:hover {
+    background-color: #0056b3
+}
+
+#detailsModal .modal-action-buttons button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color .3s ease;
+    flex-grow: 1;
+    margin: 5px;
+    color: #fff;
+    font-family: 'Dutch801 Rm BT', serif
+}
+
+#detailsModal #addToRecipeButton {
+    background-color: #28a745
+}
+
+#detailsModal #addToRecipeButton:hover {
+    background-color: #218838
+}
+
+#detailsModal #createAndAddRecipeButton {
+    background-color: #007bff
+}
+
+#detailsModal #createAndAddRecipeButton:hover {
+    background-color: #0056b3
+}
+
+#detailsModal .modal-action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap; /* Umožní zalomení třetího tlačítka */
+}
+
+.registration-info {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 15px;
+    text-align: center;
+    font-style: italic;
+    padding: 5px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #007bff
+}
+
+#confirmCreateProfile,
+#confirmCreateRecipeButton,
+#createAndAddRecipeButton,
+#registerBtn,
+#switchAccountBtn {
+    background-color: #007bff !important;
+    color: #fff !important
+}
+
+#confirmCreateProfile:hover,
+#confirmCreateRecipeButton:hover,
+#createAndAddRecipeButton:hover,
+#registerBtn:hover,
+#switchAccountBtn:hover {
+    background-color: #0056b3 !important
+}
+
+#personalCardModal .modal-content {
+    max-width: 595px !important;
+    width: 85% !important
+}
+
+.personal-card-modal {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .15)
+}
+
+.personal-card-modal .modal-content {
+    max-width: 95vw !important; /* Místo 90% šířky viewportu */
+    width: 400px !important; /* Pevná šířka pro mobily */
+    margin: 20px auto;
+    height: 90vh;
+    max-height: 700px;
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+.personal-card-content-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.personal-card-header {
+    background: #fff;
+    padding: 20px 20px 15px 20px !important;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    margin: 0 !important;
+    flex-shrink: 0;
+}
+
+.personal-card-header h2 {
+    color: #000 !important
+}
+
+.personal-card-subtitle {
+    color: #000 !important;
+    opacity: .8 !important
+}
+
+.gender-group {
+    flex: .6 !important
+}
+
+.gender-group .form-input {
+    width: 100px !important;
+    align-self: flex-start
+}
+
+.macros-grid-2rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.macro-row {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.macro-row .macro-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 5px;
+    background: #fff;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    min-height: 60px; /* Stejná výška pro všechny */
+    min-width: 0; /* Zajistí stejnou šířku */
+}
+
+.macro-row .macro-item.protein {
+    border-color: #f44336
+}
+
+.macro-row .macro-item.carbs {
+    border-color: #007bff
+}
+
+.macro-row .macro-item.fats {
+    border-color: #ffc107
+}
+
+.macro-row .macro-item.fiber {
+    border-color: #28a745
+}
+
+.macro-row .macro-icon {
+    font-size: 1.2em;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 5px;
+    flex-shrink: 0;
+}
+
+.macro-row .macro-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.macro-row .macro-label {
+    font-weight: 600;
+    color: #495057;
+    font-size: .75em;
+}
+
+.macro-row .macro-value {
+    font-weight: 700;
+    color: #333;
+    font-size: .9em;
+}
+
+.macros-subtitle {
+    font-size: .8em;
+    color: #666;
+    text-align: center;
+    margin-bottom: 0;
+    font-style: italic;
+}
+
+.results-grid-single-line {
+    display: flex;
+    flex-direction: column;
+    gap: 8px
+}
+
+.result-item-single {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    min-height: 44px
+}
+
+.result-item-single.highlight {
+    background: linear-gradient(135deg, #28a745 0, #20c997 100%);
+    color: #fff;
+    border: none
+}
+
+.result-item-single.highlight .result-label,
+.result-item-single.highlight .result-value {
+    color: #fff
+}
+
+.result-item-single .result-label {
+    font-weight: 600;
+    color: #495057;
+    font-size: .85em
+}
+
+.result-item-single .result-value {
+    font-weight: 700;
+    color: #007bff;
+    font-size: .9em;
+    white-space: nowrap
+}
+
+#gender option[value=""] {
+    color: #999
+}
+
+#gender option:not([value=""]) {
+    color: #000
+}
+
+/* STYLY PRO JEDNOSLOUPCVOU OSOBNÍ KARTU */
+
+.personal-card-section {
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.personal-card-section:last-child {
+    margin-bottom: 0;
+}
+
+.personal-card-section h3 {
+    font-size: 1.1em;
+    margin-bottom: 15px;
+    color: #333;
+    padding-bottom: 0;
+}
+
+
+
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px
+}
+
+.form-row .form-group {
+    flex: 1
+}
+
+.form-group {
+    margin-bottom: 18px
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #495057;
+    font-size: .9em
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Dutch801 Rm BT', serif;
+    transition: all .3s ease;
+    background: #fff
+}
+
+.form-input:focus {
+    outline: 0;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, .1)
+}
+
+select.form-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px
+}
+
+.results-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column
+}
+
+.macros-section {
+    flex: 1
+}
+
+.result-label {
+    font-size: .8em
+}
+
+.result-value {
+    font-size: .9em
+}
+
+.macro-item {
+    padding: 10px
+}
+
+.macro-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .1)
+}
+
+.macro-item.protein {
+    border-color: #f44336
+}
+
+.macro-item.protein,
+.macro-item.carbs,
+.macro-item.fats,
+.macro-item.fiber {
+    min-height: 60px;
+    align-items: center;
+}
+
+.macro-item.carbs {
+    border-color: #007bff
+}
+
+.macro-item.fats {
+    border-color: #ffc107
+}
+
+.macro-item.fiber {
+    border-color: #28a745
+}
+
+.macro-icon {
+    font-size: 1.5em;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 8px
+}
+
+.macro-info {
+    flex: 1
+}
+
+.macro-label {
+    font-weight: 600;
+    color: #495057;
+    font-size: .85em;
+    margin-bottom: 4px
+}
+
+.macro-value {
+    font-weight: 700;
+    color: #333;
+    font-size: 1em
+}
+
+/* Upravte pozici křížku */
+.personal-card-header .close-button {
+    position: absolute !important;
+    top: -3px !important;
+    right: -7px !important;    background: transparent !important;
+    border: none !important;
+    font-size: 24px !important;
+    color: #aaa !important;
+    cursor: pointer !important;
+    width: 30px !important;
+    height: 30px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.personal-card-header .close-button:hover {
+    color: #000 !important;
+    background: transparent !important;
+}
+
+.personal-card-footer button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    flex: 1;
+    margin: 0; /* Žádné další okraje */
+}
+
+.personal-card-footer {
+    background: #fff;
+    padding: 15px 15px !important;
+    border-top: none !important;
+    border-top-width: 0 !important;
+    border-top-style: none !important;
+    border-top-color: transparent !important;
+    margin-top: -15px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#calculatePersonalCard {
+    background-color: #007bff !important;
+    color: #fff !important;
+}
+
+#savePersonalCard {
+    background-color: #28a745 !important;
+    color: #fff !important;
+}
+
+#calculatePersonalCard:hover {
+    background-color: #0056b3 !important;
+}
+
+#savePersonalCard:hover {
+    background-color: #218838 !important;
+}
+
+#savePersonalCard:disabled {
+    background-color: #6c757d !important;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.personal-card-section .form-row {
+    display: flex;
+    gap: 10px; /* Menší mezera mezi poli */
+    margin-bottom: 15px;
+    align-items: flex-start; /* Zarovnání na začátek */
+    min-height: 80px; /* Minimální výška řádku */
+}
+
+.personal-card-section .form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.personal-card-section .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #495057;
+    font-size: .9em;
+    min-height: 40px; /* Stejná výška pro všechny popisky */
+    display: flex;
+    align-items: flex-end; /* Text zarovnaný dolů */
+}
+
+.personal-card-section .form-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Dutch801 Rm BT', serif;
+    transition: all .3s ease;
+    background: #fff;
+    height: 44px; /* Pevná výška pro všechna vstupní pole */
+    box-sizing: border-box;
+}
+
+/* Speciální úpravy pro select elementy */
+.personal-card-section select.form-input {
+    height: 44px;
+    line-height: 44px;
+    padding: 0 15px !important;
+}
+
+/* Speciální úpravy pro číselná pole */
+.personal-card-section input[type="number"].form-input {
+    height: 44px;
+    text-align: center;
+}
+
+/* Upravíme specifické skupiny pro konzistentní šířku */
+.personal-card-section .gender-group {
+    flex: 0.8 !important;
+}
+
+.personal-card-section .body-fat-group {
+    flex: 0.8 !important;
+}
+
+.personal-card-section .weight-group,
+.personal-card-section .activity-level-group {
+    flex: 1.2 !important;
+}
+
+/* Zajistíme stejné zarovnání pro všechny formulářové skupiny */
+.personal-card-section .form-group:nth-child(1),
+.personal-card-section .form-group:nth-child(2) {
+    align-items: flex-start !important;
+}
+
+#closePersonalCard {
+    background-color: #6c757d;
+    color: #fff
+}
+
+#closePersonalCard:hover {
+    background-color: #5a6268
+}
+
+#personalCardButton {
+    background-color: #6f42c1 !important;
+    color: #fff !important;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all .3s ease
+}
+
+#personalCardButton:hover {
+    background-color: #5a32a3 !important
+}
+
+#age,
+#bodyFat,
+#height,
+#targetWeight,
+#weight {
+    width: 45px !important;
+    text-align: center;
+    padding: 8px 5px !important
+}
+
+.form-group:has(#activityLevel),
+.form-group:has(#weight) {
+    flex: 1.2
+}
+
+.form-group:has(#bodyFat),
+.form-group:has(#gender) {
+    flex: .8
+}
+
+#age,
+#bodyFat,
+#height,
+#targetWeight,
+#weight {
+    width: 80px !important;
+    text-align: center;
+    padding: 8px 5px !important;
+    align-self: flex-start
+}
+
+.activity-level-group,
+.weight-group {
+    flex: 1.2 !important
+}
+
+.body-fat-group,
+.gender-group {
+    flex: .8 !important
+}
+
+#dailyIntakeSection {
+    margin-top: 20px;
+    padding: 0 20px;
+    display: none
+}
+
+.daily-intake-header {
+    padding: 10px 15px 8px 15px !important;
+    margin-bottom: 10px !important
+}
+
+.daily-intake-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 1.5em
+}
+
+.date-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* ZPĚT UPROSTŘED */
+    gap: 15px; /* VĚTŠÍ MEZERA */
+}
+
+.date-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.current-date {
+    font-size: 1rem !important;
+    font-weight: 500;
+    color: #333;
+    text-align: center
+}
+
+.date-nav-btn {
+    padding: 8px 14px !important; /* ZVĚTŠENO - přesahuje datum */
+    font-size: 1rem !important; /* STEJNÁ VELIKOST JAKO DATUM */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.today-text-btn {
+    background: none !important;
+    border: none !important;
+    color: #333 !important; /* STEJNÁ BARVA JAKO DATUM */
+    font-size: 1rem !important; /* STEJNÁ VELIKOST JAKO DATUM */
+    font-weight: 500 !important; /* STEJNÁ TLOUŠŤKA JAKO DATUM */
+    cursor: pointer !important;
+    padding: 2px 8px !important;
+    transition: all 0.2s !important;
+    text-decoration: none !important; /* BEZ PODTRŽENÍ */
+    margin-top: 4px !important; /* POSUN DOLŮ */
+}
+
+.today-text-btn:hover {
+    color: #000 !important;
+    font-weight: 600 !important;
+}
+
+.date-nav-btn:hover {
+    background: #0056b3
+}
+
+.intake-overview {
+    background: #fff;
+    border-radius: 0 0 12px 12px;
+    padding: 20px;
+    margin-bottom: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .1)
+}
+
+.chart-container {
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 15px 5px;
+    text-align: center;
+    box-shadow: none;
+    width: 100%;
+    height: auto
+}
+
+.charts-grid-main {
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+    padding: 0 15px
+}
+
+.chart-container.large-chart {
+    width: 160px;
+    height: 190px;
+    max-width: 100%
+}
+
+.charts-grid-macros {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    padding: 0 15px
+}
+
+.charts-grid-macros .chart-container {
+    padding: 10px;
+    width: auto;
+    height: auto
+}
+
+.charts-grid-macros .circular-chart {
+    max-width: 120px;
+    margin: 0 auto
+}
+
+.circular-chart text.percentage {
+    dominant-baseline: central;
+    text-anchor: middle;
+    font-size: .5em
+}
+
+.chart-container.large-chart .circular-chart text.percentage {
+    font-size: .57em
+}
+
+.chart-container.large-chart .circular-chart {
+    max-width: 100%;
+    width: 75%;
+    height: auto;
+    margin: 0 auto
+}
+
+.chart-container.large-chart .chart-title {
+    font-size: 1.3em
+}
+
+.chart-title {
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 10px
+}
+
+.circular-chart {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 10px;
+}
+
+.circular-chart-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.circle-bg {
+    fill: none;
+    stroke: #e9ecef;
+    stroke-width: 3.8;
+}
+
+.circle {
+    fill: none;
+    stroke-width: 3.8;
+    stroke-linecap: round;
+    animation: progress 1s ease-out forwards;
+    transition: stroke-dasharray .5s ease;
+}
+
+.circle {
+    stroke: #007bff
+}
+
+.circle.protein {
+    stroke: #f44336
+}
+
+.circle.carbs {
+    stroke: #2196f3
+}
+
+.circle.fats {
+    stroke: #ffc107
+}
+
+.circle.fiber {
+    stroke: #28a745
+}
+
+.percentage {
+    fill: #333;
+    font-size: .5em;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: central
+}
+
+.chart-details {
+    margin-top: 8px
+}
+
+.chart-value {
+    font-weight: 700;
+    color: #333;
+    font-size: .85em;
+    margin-bottom: 2px
+}
+
+.chart-label {
+    font-size: .7em;
+    color: #6c757d;
+    white-space: nowrap;
+}
+
+@keyframes progress {
+    0% {
+        stroke-dasharray: 0 100
+    }
+}
+
+.meals-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px
+}
+
+.meal-category {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .1)
+}
+
+.meal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef
+}
+
+.meal-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.2em
+}
+
+.add-meal-btn {
+    background: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: .9em;
+    transition: background-color .3s ease
+}
+
+.add-meal-btn:hover {
+    background: #218838
+}
+
+.meal-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px
+}
+
+.meal-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px; /* ZMENŠENO z 12px */
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef
+}
+
+.meal-item-info {
+    flex: 1
+}
+
+.meal-item-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px
+}
+
+.meal-item-details {
+    font-size: .85em;
+    color: #6c757d
+}
+
+.meal-item-actions {
+    display: flex;
+    gap: 8px
+}
+
+.meal-item-action {
+    background: 0 0;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color .2s
+}
+
+.meal-item-action:hover {
+    background: #e9ecef
+}
+
+.meal-item-action img {
+    width: 18px;
+    height: 18px;
+    opacity: .7
+}
+
+.meal-item-action:hover img {
+    opacity: 1
+}
+
+.empty-meal-message {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px dashed #dee2e6
+}
+
+#dailyIntakeSection,
+#results {
+    transition: opacity .3s ease
+}
+
+#recipesButton {
+    background-color: #28a745;
+    color: #fff
+}
+
+#searchModalButton {
+    background-color: #17a2b8;
+    color: #fff
+}
+
+#mainContent {
+    padding: 0 20px;
+    min-height: 400px
+}
+
+.search-modal-content {
+    max-width: 600px !important;
+    width: 90% !important;
+    max-height: 80vh
+}
+
+.search-modal-content h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333
+}
+
+#searchModalForm {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px
+}
+
+#searchModalQuery {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px
+}
+
+#searchModalForm button[type="submit"] {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+}
+
+#searchModalForm button[type="submit"]:focus,
+#searchModalForm button[type="submit"]:active {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    outline: none !important;
+}
+
+.recipe-group {
+    background: #e8f4fd;
+    border-radius: 12px;
+    margin-bottom: 6px; /* DÁLE ZMENŠENO z 10px */
+    border: 2px solid #b8d9f3;
+    overflow: hidden
+}
+
+.recipe-header {
+    padding: 12px; /* ZVĚTŠENO z 10px pro širší modré karty */
+    cursor: pointer;
+    transition: background-color .3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center
+}
+
+.recipe-header:hover {
+    background-color: #d4eafc
+}
+
+.recipe-header.expanded {
+    background-color: #d4eafc;
+    border-bottom: 1px solid #b8d9f3
+}
+
+.recipe-main-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1
+}
+
+.goals-warning {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px
+}
+
+.warning-icon {
+    font-size: 2em;
+    flex-shrink: 0
+}
+
+.warning-content {
+    flex: 1
+}
+
+.warning-content h3 {
+    margin: 0 0 8px 0;
+    color: #856404
+}
+
+.warning-content p {
+    margin: 0 0 15px 0;
+    color: #856404
+}
+
+#openPersonalCardBtn {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px
+}
+
+#openPersonalCardBtn:hover {
+    background: #0056b3
+}
+
+.add-food-item-btn {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    margin-right: 5px;
+    flex-shrink: 0
+}
+
+.add-food-item-btn:hover {
+    background: #0056b3
+}
+
+.recipe-header.search-header-custom {
+    display: flex;
+    align-items: center;
+    gap: 15px
+}
+
+.recipe-header .image-wrapper {
+    width: 60px;
+    height: 60px;
+    overflow: hidden;
+    border-radius: 8px;
+    flex-shrink: 0
+}
+
+.recipe-header .image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover
+}
+
+.recipe-header .food-item-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0
+}
+
+.recipe-header .food-item-info .food-item-name {
+    text-align: left;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.recipe-header .recipe-name {
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #007bff;
+    margin-bottom: 4px;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Extra enforcement for search results */
+.search-header-custom .recipe-name {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100%;
+}
+
+.search-header-custom .recipe-name-wrapper {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.recipe-summary-item-search {
+    font-size: .9em;
+    color: #555
+}
+
+/* STYLY PRO NOVÉ TLAČÍTKO A MODÁLNÍ OKNO */
+#addAsMealButton {
+    background-color: #6f42c1 !important;
+    color: white !important;
+    border: none !important;
+    padding: 10px 15px !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    transition: background-color 0.3s ease !important;
+    flex-grow: 1 !important;
+    margin: 5px !important;
+}
+
+#addAsMealButton:hover {
+    background-color: #5a32a3 !important;
+}
+
+/* Tlačítka výběru jídla */
+.meal-type-btn {
+    display: flex !important;
+    align-items: center !important;
+    padding: 15px 20px !important;
+    background-color: #f8f9fa !important;
+    border: 2px solid #e9ecef !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #333 !important;
+    transition: all 0.3s ease !important;
+    width: 100% !important;
+    text-align: left !important;
+}
+
+.meal-type-btn:hover {
+    background-color: #e9ecef !important;
+    border-color: #6f42c1 !important;
+    transform: translateY(-2px) !important;
+}
+
+.meal-type-btn:active {
+    transform: translateY(0) !important;
+}
+
+.meal-type-btn:focus {
+    outline: none !important;
+    border-color: #e9ecef !important; /* Zachovat normální border */
+}
+
+/* Navigační šipky pro datum */
+.date-nav-btn {
+    padding: 8px 12px !important;
+    background-color: #007bff !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+}
+
+.date-nav-btn:hover {
+    background-color: #0056b3 !important;
+}
+
+/* STYLY PRO NOVÝ SKENÉR */
+.barcode-scanner-container {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 15px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#barcodeVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.barcode-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 40%;
+    border: 3px solid #4CAF50;
+    border-radius: 12px;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.barcode-placeholder {
+    text-align: center;
+    color: white;
+    padding: 20px;
+}
+
+.barcode-status {
+    text-align: center;
+    padding: 10px;
+    font-weight: 500;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.barcode-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+.barcode-fallback {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    text-align: center;
+}
+
+.manual-input-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.manual-input-group input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+/* Animace pro skenování */
+@keyframes scan-line {
+    0% { top: 20%; }
+    50% { top: 80%; }
+    100% { top: 20%; }
+}
+
+.scan-line {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: #4CAF50;
+    animation: scan-line 2s ease-in-out infinite;
+}
+
+/* ANIMACE PRO SKENOVÁNÍ */
+@keyframes pulse {
+    0% { border-color: #4CAF50; box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
+    50% { border-color: #FFEB3B; box-shadow: 0 0 20px rgba(255, 235, 59, 0.8); }
+    100% { border-color: #4CAF50; box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
+}
+
+@keyframes scan-line {
+    0% { top: 20%; opacity: 1; }
+    50% { top: 80%; opacity: 0.8; }
+    100% { top: 20%; opacity: 1; }
+}
+
+.barcode-overlay {
+    animation: pulse 3s infinite;
+}
+
+.scan-line {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #4CAF50, transparent);
+    animation: scan-line 2s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* INDIKÁTOR SPOLEHLIVOSTI */
+
+/* ANIMACE PRO STABILNÍ DETEKCI */
+@keyframes pulse-success {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* INGREDIENCE RECEPTU */
+.ingredient-image-wrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.ingredient-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ingredient-calories {
+    font-weight: 600;
+    color: #e74c3c;
+    top: 10px;
+}
+
+/* NÁZEV RECEPTU */
+.header-name-container {
+    position: absolute;
+    left: 20px;
+    top: -45px;
+    height: 150px;
+    display: flex;
+    align-items: center;
+}
+
+.recipe-name-pixel {
+    font-size: 25px;
+    font-weight: 700;
+    color: black;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+/* KALORIE A kJ */
+.header-energy-container {
+    position: absolute;
+    left: 20px;
+    top: 100px;
+    width: 220px;
+    text-align: left;
+}
+
+.energy-main-pixel {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+.energy-sub-pixel {
+    font-size: 14px;
+    color: #666;
+    margin-top: 2px;
+}
+
+/* CELKOVÁ HMOTNOST */
+.header-weight-container {
+    position: absolute;
+    right: 20px;
+    top: 100px;
+    width: 120px;
+    text-align: right;
+}
+
+.weight-value-pixel {
+    font-size: 24px;
+    font-weight: 900;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+.weight-label-pixel {
+    font-size: 12px;
+    color: #777;
+}
+
+/* TLAČÍTKO PŘIDAT JAKO JÍDLO */
+.header-action-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    justify-content: flex-end;
+}
+
+.header-button-container {
+    flex-shrink: 0;
+}
+
+.header-portions-container {
+    flex-shrink: 0;
+}
+
+.add-meal-btn-pixel {
+    padding: 8px 16px;
+    background-color: #6f42c1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.add-meal-btn-pixel:hover {
+    background-color: #5a32a3 !important;
+}
+
+.btn-icon {
+    font-size: 14px;
+    margin-right: 5px;
+}
+
+/* KŘÍŽEK - JEDINÝ */
+.header-close-container {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+}
+
+.close-button-pixel {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.close-button-pixel:hover {
+    color: #000;
+}
+
+/* STATICKÝ KONTEJNER S FIXED POZICÍ - NESCROLLUJE SE */
+#customRecipeModal {
+    z-index: 1500 !important; /* Nad detailem receptu (1000), ale pod notifikacemi (2000) */
+}
+
+#saveAsModal {
+    z-index: 1800 !important; /* Nad editací (1500), pod notifikacemi (2000) */
+}
+
+#customRecipeModal .modal-content {
+    max-width: 400px !important;
+    width: 90vw !important;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 20px !important;
+    margin: 5vh auto !important;
+}
+
+/* ŘÁDEK S ENERGIÍ A POČTEM PORCÍ - UPRAVENO */
+.basic-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.basic-info-row .form-group {
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+}
+
+/* HLAVNÍ ZÁKLADNÍ INFORMACE */
+#customRecipeModal .basic-info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+/* POPISEK POČTU PORCÍ - ZAROVNÁNÍ VPRAVO */
+.basic-info-row .form-group:last-child label {
+    text-align: right;
+    justify-content: flex-end;
+    width: 100%;
+}
+
+/* VĚTŠÍ MEZERA MEZI NÁZVEM A ENERGIÍ */
+#customRecipeModal .form-group:has(#customRecipeName) {
+    margin-bottom: 12px !important; /* Poloviční mezera pod názvem receptu */
+}
+
+#customRecipeModal .form-group:has(#customRecipeCalories) {
+    margin-bottom: 25px !important; /* Velká mezera pod energií (stejná jako nad bílkovinami) */
+}
+
+/* ZÁKLADNÍ INFORMACE - KOMPAKTNĚJŠÍ USPOŘÁDÁNÍ */
+#customRecipeModal .form-group:has(#customRecipeName),
+#customRecipeModal .form-group:has(#customRecipeCalories) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* NÁZEV RECEPTU - SAMOSTATNÝ */
+#customRecipeName {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+/* ENERGIE A POČET PORCÍ - KOMPAKTNĚJŠÍ */
+#customRecipeCalories,
+#customRecipePortions {
+    width: 120px !important;
+    max-width: 120px !important;
+    text-align: center;
+}
+
+/* POČET PORCÍ - ZAROVNÁNÍ VPRAVO */
+#customRecipePortions {
+    margin-left: auto; /* Zarovnání vpravo */
+}
+
+/* POČET PORCÍ - SELECT STYLING */
+#customRecipePortions {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 35px !important;
+    cursor: pointer;
+}
+
+/* KOMPAKTNÍ FORMULÁŘOVÉ ŘÁDKY */
+#customRecipeModal .form-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px !important; /* MENŠÍ MEZERA MEZI ŘÁDKY */
+    align-items: flex-start;
+}
+
+/* ZADÁVACÍ POLE HNED POD POPISKEM - HLAVNÍ ZMĚNA */
+#customRecipeModal .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px !important;
+}
+
+/* ZÁKLADNÍ STYL PRO VŠECHNA POLE */
+#customRecipeModal .form-input {
+    width: 100%;
+    padding: 11px 12px !important;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 18px !important;
+    height: 44px !important;
+    box-sizing: border-box;
+    margin-top: 0 !important;
+}
+
+#customRecipeModal .form-group label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 13px !important;
+}
+
+#customRecipeModal label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: block;
+}
+
+/* SPECIÁLNÍ ÚPRAVY PRO SEKCE */
+/* Základní informace - kompaktnější */
+#customRecipeModal .form-group:first-child {
+    margin-bottom: 8px;
+}
+
+/* TLAČÍTKO - CENTROVANÉ S VĚTŠÍM PÍSMEM */
+#customRecipeModal .modal-action-buttons {
+    justify-content: center;
+    margin-top: 20px; /* Menší mezera nad tlačítkem */
+    margin-bottom: 5px;
+}
+
+/* ÚPRAVA STRUKTURY - CHOLESTEROL PŘESUNUT DO TUKŮ */
+/* Sekce tuků - přidáno místo pro cholesterol */
+.nutrient-section-group:nth-child(4) .form-row:last-child {
+    margin-bottom: 0;
+}
+
+.nutrient-section-group:nth-child(4) .form-row,
+.nutrient-section-group:nth-child(6) .form-row {
+    margin-bottom: 6px !important; /* Menší mezera mezi řádky */
+}
+
+/* Přizpůsobení pro lepší čitelnost malých polí */
+#customRecipeModal .form-input::placeholder {
+    font-size: 11px;
+    color: #999;
+}
+
+/* Zajistíme, že všechny inputy mají stejnou výšku */
+#customRecipeModal input[type="number"],
+#customRecipeModal input[type="text"] {
+    height: 28px !important;
+    line-height: 1.2;
+}
+
+/* Speciální úprava pro select pokud by byl přidán */
+#customRecipeModal select.form-input {
+    height: 28px !important;
+    padding: 4px 8px !important;
+    font-size: 13px;
+}
+
+/* VIZUÁLNÍ VYLEPŠENÍ - VOLITELNÉ */
+#customRecipeModal .form-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+    outline: none;
+}
+
+/* ZVÝRAZNĚNÍ POVINNÝCH POLÍ */
+#customRecipeName:required,
+#customRecipeCalories:required {
+    border-left: 4px solid #007bff;
+    background-color: #f8fbff;
+}
+
+/* PERFEKTNÍ ZAROVNÁNÍ LABELŮ A INPUTŮ */
+#customRecipeModal .nutrient-section-group .form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+/* ZAJIŠTĚNÍ STEJNÉ ÚROVNĚ LABELŮ */
+#customRecipeModal .nutrient-section-group .form-row .form-group label {
+    min-height: 20px;
+    align-items: flex-end;
+    padding-bottom: 2px;
+}
+
+/* ZAJIŠTĚNÍ STEJNÉ ÚROVNĚ INPUTŮ */
+#customRecipeModal .nutrient-section-group .form-row .form-group input {
+    margin-top: auto; /* Posune input dolů */
+}
+
+/* MEZERA NAD PRVNÍ SEKCI (BÍLKOVINY) */
+#customRecipeModal .nutrient-section-group:first-of-type {
+    margin-top: 0; /* Mezera je zajištěna marginem pod energií */
+}
+
+#customRecipeModal .modal-action-buttons button {
+    min-width: 200px;
+    padding: 12px 24px !important;
+    height: 44px !important;
+    font-size: 16px !important;
+    font-weight: 600;
+}
+
+/* SPEICIÁLNĚ PRO SEKCE TUKŮ A MINERÁLŮ - KOMPAKTNĚJŠÍ */
+.nutrient-section-group:nth-child(4), /* Tuky */
+.nutrient-section-group:nth-child(6) { /* Minerály */
+    padding: 8px 15px 20px 15px !important; /* O 4px méně nahoře */
+}
+
+/* STYLY PRO SKUPINY ŽIVIN */
+.nutrient-section-group {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px 15px 20px 15px !important; /* 20px padding dole */
+    margin-bottom: 18px;
+    position: relative;
+}
+
+.nutrient-group-header {
+    font-weight: 700;
+    color: #2c5aa0;
+    margin-bottom: 10px !important; /* Menší mezera pod nadpisem */
+    font-size: 16px;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 6px;
+}
+
+/* MENŠÍ VSTUPNÍ POLE S VĚTŠÍM PÍSMEM */
+.small-input {
+    width: 100% !important;
+    max-width: 80px !important; /* POUZE 80PX ŠÍŘKA */
+    padding: 11px 8px !important; /* Menší padding stran */
+    font-size: 17px !important;
+    height: 44px !important;
+    text-align: center;
+}
+
+/* VELKÁ MEZERA MEZI ENERGIÍ A BÍLKOVINAMI */
+.nutrient-section-group:first-of-type {
+    margin-top: 0; /* První sekce hned pod energií */
+}
+
+/* ZABEZPEČENÍ PROTI ZALAMOVÁNÍ TEXTU V BÍLKOVINÁCH */
+#customRecipeModal .form-group label[for="customRecipeProtein"] {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    min-width: 0;
+}
+
+/* SPECIÁLNÍ ÚPRAVA PRO PRÁZDNÉ POLE V BÍLKOVINÁCH */
+#customRecipeModal .form-row .form-group:empty,
+#customRecipeModal .form-row .form-group:has(input[style*="visibility: hidden"]) {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* SPECIÁLNÍ ÚPRAVA PRO DLOUHÉ LABELY */
+#customRecipeModal .nutrient-section-group .form-group label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 13px !important; /* Mírně menší pro dlouhé texty */
+    line-height: 1.1;
+}
+
+.portions-selector-container {
+    text-align: center;
+}
+
+.header-controls-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-left-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.header-controls-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-calories-container {
+    text-align: left;
+}
+
+.portions-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.portions-select {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    font-size: 14px;
+    min-width: 60px;
+}
+/* ============================================= */
+/* OPRAVY VZHLEDU - LEDEN 2025 */
+/* ============================================= */
+
+/* 1. OPRAVA INGREDIENCÍ V RECEPTU - VŽDY VIDITELNÉ IKONY */
+
+/* OBRÁZEK INGREDIENCE */
+.ingredient-image-wrapper {
+    flex-shrink: 0 !important;
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    background: #fff !important;
+}
+
+.ingredient-image {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+/* ZÁKLADNÍ INFO O INGREDIENCI - OPRAVA ZKRÁCENÍ NÁZVU */
+.ingredient-basic-info {
+    flex: 1 !important;
+    min-width: 0 !important; /* KLÍČOVÉ PRO ELLIPSIS */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    gap: 4px !important;
+}
+
+.ingredient-basic-info .ingredient-name {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    color: #2c5aa0 !important;
+    /* OPRAVA: Zajistíme zkrácení dlouhých názvů */
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* NUTRIČNÍ ŘÁDEK */
+.ingredient-nutrition-row {
+    display: flex !important;
+    gap: 8px !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+}
+
+/* AKCE - VŽDY VIDITELNÉ */
+.ingredient-actions-vertical {
+    flex-shrink: 0 !important; /* ZAJISTÍ VŽDY VIDITELNOST */
+    margin-left: 8px !important;
+}
+
+/* 2. SJEDNOCENÍ STYLU POLOŽEK V DENNÍM PŘÍJMU */
+
+/* Jednotný styl pro všechny položky food-item - SLADĚNO S RECEPTY */
+.food-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: #f3f9ff !important; /* STEJNÁ BARVA JAKO RECEPTY */
+    border: 1px solid #72b1f5 !important; /* STEJNÉ ORÁMOVÁNÍ JAKO RECEPTY */
+    border-radius: 12px !important; /* STEJNÉ ZAOBLENÍ JAKO RECEPTY */
+    margin-bottom: 12px !important;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .1) !important;
+}
+
+.food-item:hover {
+    background: #e3f2fd !important; /* STEJNÝ HOVER JAKO RECIPE-HEADER */
+    border-color: #72b1f5 !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15) !important;
+}
+
+.food-item-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.food-item-name {
+    font-weight: 600;
+    color: #11225a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.food-item-details {
+    font-size: 0.85rem;
+    color: #6c757d;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.food-item-actions {
+    display: flex;
+    flex-direction: column; /* POD SEBOU */
+    gap: 4px; /* ZMENŠENO */
+    flex-shrink: 0;
+    margin-left: 12px;
+    align-items: center; /* ZAROVNÁNÍ */
+}
+
+.food-item-actions button {
+    background: transparent;
+    border: none;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.food-item-actions button:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+.food-item-actions button img {
+    width: 18px;
+    height: 18px;
+    opacity: 0.7;
+}
+
+.food-item-actions button:hover img {
+    opacity: 1;
+}
+
+/* 3. SJEDNOCENÍ STYLU RECEPTŮ V DENNÍM PŘÍJMU */
+
+.recipe-group {
+    background: #f3f9ff;
+    border: 1px solid #72b1f5;
+    border-radius: 12px;
+    margin-bottom: 6px; /* ZMENŠENO z 12px */
+    overflow: hidden;
+    transition: all 0.2s;
+}
+
+.recipe-group:hover {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+.recipe-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    cursor: pointer;
+    background: #f3f9ff;
+    transition: background-color 0.2s;
+}
+
+.recipe-header:hover {
+    background: #e3f2fd;
+}
+
+.recipe-main-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.recipe-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.recipe-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.recipe-name {
+    font-weight: 700;
+    color: #2c5aa0;
+    font-size: 1.05rem;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recipe-totals-row {
+    display: flex;
+    gap: 6px; /* JEŠTĚ MENŠÍ z 8px */
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+.main-highlight-row {
+    font-weight: 600;
+    color: #495057;
+}
+
+.calorie-highlight {
+    color: #000000;
+    font-weight: 700;
+}
+
+.macro-stats-row {
+    font-size: 0.8rem; /* ZMENŠENO z 0.85rem pro lepší vejití */
+    /* Barvy se nastavují inline per-span */
+}
+
+.recipe-actions {
+    display: flex;
+    flex-direction: column; /* POD SEBOU */
+    gap: 4px; /* ZMENŠENO */
+    flex-shrink: 0;
+    margin-left: 20px; /* ZVĚTŠENO z 12px pro více místa na nutrienty */
+    align-items: center; /* ZAROVNÁNÍ */
+}
+
+.recipe-actions button {
+    background: transparent;
+    border: none;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.recipe-actions button:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.recipe-actions button img {
+    width: 20px;
+    height: 20px;
+    opacity: 0.7;
+}
+
+.recipe-actions button:hover img {
+    opacity: 1;
+}
+
+/* ROZBALENÉ INGREDIENCE */
+.recipe-ingredients {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background: #fff;
+}
+
+.recipe-ingredients.expanded {
+    max-height: 1000px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* IKONA ROZBALOVACÍ */
+.toggle-icon {
+    transition: transform 0.3s;
+}
+
+.toggle-icon.expanded {
+    transform: rotate(180deg);
+}
+
+/* 4. BADGE STYLY */
+.deleted-badge {
+    color: #dc3545;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+.total-amount-display {
+    background: #f5f5f5;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #666;
+}
+
+
+/* ============================================= */
+/* OPRAVA HLAVIČKY MODÁLNÍHO OKNA RECEPTU */
+/* ============================================= */
+
+/* HLAVNÍ KONTEJNER HLAVIČKY - NOVÝ DESIGN */
+.modal-recipe-fixed-header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: #fff !important;
+    z-index: 10001 !important; /* ZVÝŠENO - nad vším */
+    border-bottom: 1px solid #e9ecef !important;
+    /* BORDER-RADIUS ODSTRANĚN */
+    width: 100% !important;
+    max-width: 500px !important;
+    padding: 20px 20px 20px 20px !important;
+    padding-right: 50px !important; /* PROSTOR PRO KŘÍŽEK */
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important;
+}
+
+/* HORNÍ ČÁST: OBRÁZEK + NÁZEV */
+/* HORNÍ ŘÁDEK: OBRÁZEK VLEVO + NÁZEV VPRAVO */
+.recipe-header-top {
+    display: flex !important;
+    flex-direction: row !important; /* KLÍČ: ŘÁDEK, NE SLOUPEC */
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+.modal-header-image {
+    width: 60px !important; /* Menší obrázek */
+    height: 60px !important;
+    border-radius: 8px !important;
+    object-fit: cover !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    flex-shrink: 0 !important; /* Zajistí, že se obrázek nezmenší */
+}
+
+.modal-header-name {
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    color: #000000 !important;
+    text-align: left !important;
+    flex: 1 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    word-break: break-word !important;
+    line-height: 1.3 !important;
+}
+
+/* TLAČÍTKO PŘIDAT JAKO JÍDLO */
+.add-meal-btn-full {
+    width: 100% !important;
+    background-color: #6f42c1 !important;
+    color: white !important;
+    border: none !important;
+    padding: 12px 20px !important;
+    border-radius: 8px !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+}
+
+.add-meal-btn-full:hover {
+    background-color: #5a32a3 !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+}
+
+/* VÝBĚR PORCÍ */
+.portions-selector {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+}
+
+.portions-selector label {
+    font-size: 0.95rem !important;
+    color: #666 !important;
+    font-weight: 500 !important;
+}
+
+.portions-select {
+    padding: 6px 12px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 6px !important;
+    background: white !important;
+    font-size: 0.95rem !important;
+    cursor: pointer !important;
+}
+
+/* ENERGIE */
+.energy-display {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+.energy-kcal {
+    font-size: 1.8rem !important;
+    font-weight: 700 !important;
+    color: #08090a !important;
+}
+
+.energy-kj {
+    font-size: 0.9rem !important;
+    color: #6c757d !important;
+}
+
+/* KŘÍŽEK - ABSOLUTNÍ POZICE VPRAVO NAHOŘE */
+.modal-recipe-fixed-header .close-button {
+    position: absolute !important;
+    top: 15px !important;
+    right: 15px !important;
+    color: #666 !important; /* TMAVŠÍ */
+    font-size: 32px !important; /* VĚTŠÍ */
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    background-color: rgba(255, 255, 255, 0.9) !important; /* BÍLÉ POZADÍ */
+    border: 2px solid #ddd !important; /* RÁMEČEK */
+    border-radius: 50% !important; /* KULATÉ */
+    width: 36px !important; /* VĚTŠÍ */
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    padding: 0 !important;
+    transition: all 0.2s !important;
+    z-index: 10002 !important; /* NAD HLAVIČKOU */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important; /* STÍN */
+}
+
+.modal-recipe-fixed-header .close-button:hover {
+    color: #fff !important;
+    background-color: #dc3545 !important; /* ČERVENÉ PŘI HOVERU */
+    border-color: #dc3545 !important;
+    transform: scale(1.1) !important; /* ZVĚTŠENÍ */
+}
+
+/* SCROLLOVATELNÝ OBSAH */
+.modal-scrollable-container-with-header {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    padding: 20px 15px !important;
+    margin-top: 180px !important; /* OPRAVENO - VÝŠKA HLAVIČKY */
+}
+
+/* NÁZEV SEKCE INGREDIENCÍ */
+.ingredients-title {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: #495057 !important;
+    margin: 20px 0 15px 0 !important;
+    padding-bottom: 10px !important;
+    border-bottom: 2px solid #dee2e6 !important;
+}
+
+
+/* ============================================= */
+/* ÚPRAVY RECEPTŮ V DENNÍM PŘÍJMU */
+/* ============================================= */
+
+/* BÍLÁ BARVA PRO KALORIE U VŠECH RECEPTŮ */
+.recipe-group .calorie-highlight {
+    color: #fff !important; /* ZMĚNA Z ZELENÉ NA BÍLOU */
+    font-weight: 700 !important;
+    background: #054097 !important; /* ZELENÉ POZADÍ */
+    padding: 3px 8px !important;
+    border-radius: 4px !important;
+}
+
+/* SKRYTÍ HMOTNOSTI U VLASTNÍCH RECEPTŮ */
+.recipe-group.custom-recipe .total-amount-display {
+    display: none !important;
+}
+
+/* ZAROVNÁNÍ VŠECH HODNOT NA STEJNÝ ŘÁDEK U VYHLEDANÝCH POTRAVIN */
+.food-item .food-item-details {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important; /* ZABRÁNÍME ZALOMENÍ */
+}
+
+.food-item .food-item-details span {
+    white-space: nowrap !important;
+}
+
+/* ZMENŠENÍ IKON EDITACE A SMAZÁNÍ */
+.food-item-actions button img,
+.recipe-actions button img,
+.ingredient-actions-vertical button img {
+    width: 20px !important;
+    height: 20px !important;
+}
+
+/* OPRAVA PRO INGREDIENCE V RECEPTU */
+.recipe-ingredient-item .ingredient-actions button img {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+
+/* ============================================= */
+/* MOBILNÍ ZOBRAZENÍ - IKONY POD SEBOU U PRAVÉHO OKRAJE */
+/* ============================================= */
+
+/* IKONY V RECEPTECH - VŽDY POD SEBOU, ZAROVNANÉ VPRAVO */
+.ingredient-actions-vertical {
+    display: flex !important;
+    flex-direction: column !important; /* POD SEBOU */
+    gap: 8px !important;
+    align-items: center !important; 
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    margin-left: 12px !important;
+    padding: 4px !important;
+}
+
+/* TLAČÍTKA IKON */
+.ingredient-actions-vertical button {
+    background: transparent !important;
+    border: none !important;
+    padding: 6px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background-color 0.2s !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+}
+
+.ingredient-actions-vertical button:hover {
+    background: rgba(0,0,0,0.05) !important;
+}
+
+.ingredient-actions-vertical button img {
+    width: 18px !important;
+    height: 18px !important;
+    opacity: 0.7 !important;
+}
+
+.ingredient-actions-vertical button:hover img {
+    opacity: 1 !important;
+}
+
+/* ROZBALENÉ INGREDIENCE - TAKÉ POD SEBOU */
+.recipe-ingredients .ingredient-actions {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important; /* ZMENŠENO z 8px */
+    align-items: center !important;
+    flex-shrink: 0 !important;
+    margin-left: 12px !important;
+}
+
+.recipe-ingredients .ingredient-actions button {
+    background: transparent !important;
+    border: none !important;
+    padding: 6px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+}
+
+.recipe-ingredients .ingredient-actions button img {
+    width: 18px !important;
+    height: 18px !important;
+    opacity: 0.7 !important;
+}
+
+/* HLAVNÍ KONTEJNER INGREDIENCE - ZAJISTÍ SPRÁVNÉ ROZLOŽENÍ */
+.ingredient-main-content {
+    flex: 1 !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    min-width: 0 !important;
+}
+
+/* CELKOVÁ POLOŽKA INGREDIENCE */
+.recipe-ingredient-item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px !important;
+    background: #f3f9ff !important;
+    border: 1px solid #72b1f5 !important;
+    border-radius: 12px !important;
+    margin: 5px !important;
+    gap: 0 !important; /* ŽÁDNÁ MEZERA - ikony těsně u pravého okraje */
+}
+
+/* MOBILNÍ OPTIMALIZACE */
+@media (max-width: 768px) {
+    .ingredient-actions-vertical button,
+    .recipe-ingredients .ingredient-actions button {
+        min-width: 40px !important; /* VĚTŠÍ PRO DOTEK */
+        min-height: 40px !important;
+        padding: 8px !important;
+    }
+    
+    .ingredient-actions-vertical button img,
+    .recipe-ingredients .ingredient-actions button img {
+        width: 20px !important; /* VĚTŠÍ IKONY */
+        height: 20px !important;
+    }
+}
+
+
+/* ============================================= */
+/* ČERVENÉ UPOZORNĚNÍ PŘI PŘEKROČENÍ HODNOT */
+/* ============================================= */
+
+.chart-label.exceeded {
+    color: #dc3545 !important; /* ČERVENÁ */
+    font-weight: 700 !important;
+}
+
+.chart-label.exceeded::before {
+    content: "⚠️ " !important;
+}
+
+
+/* ============================================= */
+/* NOVÝ LAYOUT HLAVIČKY RECEPTU */
+/* ============================================= */
+
+/* BĚŽNÝ RECEPT - tlačítko vlevo, energie vpravo */
+.normal-recipe-controls {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 15px !important;
+}
+
+/* SPECIFICKÉ OMEZENÍ PRO TLAČÍTKO V BĚŽNÉM RECEPTU */
+.normal-recipe-controls .btn-add-meal-small {
+    max-width: 25% !important; /* MAX 1/4 ŠÍŘKY */
+    width: auto !important; /* PŘEPSAT 100% */
+    min-width: fit-content !important;
+}
+
+.btn-add-meal-small {
+    background-color: #6f42c1 !important; /* FIALOVÁ JAKO PŮVODNĚ */
+    color: white !important;
+    border: none !important;
+    padding: 6px 20px !important; /* VÝŠKA: 10px → 6px (o třetinu menší) */
+    border-radius: 6px !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important; /* NETUČNÉ */
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    width: 50% !important; /* POLOVIČNÍ ŠÍŘKA */
+    max-width: 50% !important;
+    justify-content: center !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.btn-add-meal-small:hover {
+    background-color: #5a32a3 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+}
+
+.energy-display-normal {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important; /* ZAROVNÁNÍ DOPRAVA */
+    gap: 2px !important;
+}
+
+.energy-kcal-normal {
+    font-size: 1.8rem !important; /* STEJNÁ VELIKOST JAKO PŮVODNĚ */
+    font-weight: 700 !important;
+    color: #000000 !important; /* ČERNÁ */
+    text-align: right !important;
+}
+
+.energy-kj-normal {
+    font-size: 0.85rem !important;
+    color: #6c757d !important;
+    text-align: right !important;
+}
+
+/* VLASTNÍ RECEPT - porce vlevo nahoře, energie + tlačítka vpravo */
+.portions-selector-custom {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin-bottom: 10px !important;
+}
+
+.portions-selector-custom label {
+    font-size: 0.9rem !important;
+    color: #666 !important;
+    font-weight: 500 !important;
+}
+
+/* CUSTOM-RECIPE-RIGHT REMOVED - používá se custom-recipe-controls */
+
+.energy-display-custom {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 2px !important;
+}
+
+.energy-kcal-custom {
+    font-size: 1.8rem !important; /* STEJNÁ VELIKOST */
+    font-weight: 700 !important;
+    color: #000000 !important; /* ČERNÁ */
+    text-align: right !important;
+}
+
+.energy-kj-custom {
+    font-size: 0.85rem !important;
+    color: #6c757d !important;
+    text-align: right !important;
+}
+
+.custom-recipe-buttons {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: flex-start !important; /* VLEVO */
+    min-width: 200px !important; /* MINIMÁLNÍ ŠÍŘKA */
+}
+
+.custom-recipe-buttons .btn-add-meal-small,
+.custom-recipe-buttons .btn-edit-custom {
+    max-width: 25% !important; /* MAX 1/4 ŠÍŘKY */
+    width: auto !important;
+}
+
+.btn-edit-custom {
+    background-color: #007bff !important; /* MODRÁ */
+    color: white !important;
+    border: none !important;
+    padding: 6px 20px !important; /* VÝŠKA STEJNÁ JAKO ADD */
+    border-radius: 6px !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important; /* NETUČNÉ */
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    white-space: nowrap !important;
+    width: 50% !important; /* POLOVIČNÍ ŠÍŘKA */
+    max-width: 50% !important;
+    justify-content: center !important;
+}
+
+.btn-edit-custom:hover {
+    background-color: #0056b3 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+}
+
+.btn-edit-custom img {
+    width: 14px !important;
+    height: 14px !important;
+}
+
+
+/* SKRÝT HMOTNOST U INGREDIENCE VLASTNÍHO RECEPTU V DETAILU */
+.recipe-ingredient-item.custom-recipe-ingredient .amount-badge {
+    display: none !important;
+}
+
+
+/* POČET PORCÍ JAKO TEXT NAD NÁZVEM */
+.portions-display-text {
+    text-align: center !important;
+    font-size: 0.9rem !important;
+    color: #666 !important;
+    font-weight: 500 !important;
+    margin-bottom: 8px !important;
+}
+
+/* CUSTOM RECIPE CONTROLS - STEJNÉ ROZLOŽENÍ JAKO NORMAL */
+.custom-recipe-controls {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 15px !important;
+}
+
+
+/* ============================================= */
+/* NOVÝ DVOUŘÁDKOVÝ LAYOUT NUTRIENTŮ */
+/* ============================================= */
+
+.ingredient-details-new {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.85rem;
+}
+
+/* SLOUPEC S HMOTNOSTÍ (pouze u běžného receptu) */
+.amount-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 50px;
+}
+
+.amount-value {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.amount-unit {
+    font-size: 0.75rem;
+    color: #666;
+}
+
+/* MŘÍŽKA S NUTRIENTY */
+.nutrients-grid {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+}
+
+.nutrient-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.nutrient-label {
+    font-size: 0.75rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.nutrient-value {
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.nutrient-unit {
+    font-size: 0.75rem;
+    color: #666;
+}
+
+/* SLOUPEC S KALORIEMI - zvýrazněný */
+.calories-col {
+    background: #f0f9ff;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.calories-col .nutrient-value {
+    font-weight: 700;
+    color: #0066cc;
+}
+
+
+/* ============================================= */
+/* OPRAVY PODLE POŽADAVKŮ - KOLO 13 */
+/* ============================================= */
+
+/* 1. NUTRIENTY V HLAVIČCE - ČERNÉ PÍSMO (ne šedá) */
+.recipe-totals-row span {
+    /* Barva se nastavuje inline per-span - nenastavovat globálně */
+}
+
+/* 2. HODNOTA KALORIÍ V POLOŽKÁCH - ČERNÁ */
+.calorie-value {
+    color: #000000 !important;
+    font-weight: 600;
+}
+
+/* 3. SKRÝT KALORIE U VLASTNÍHO RECEPTU V POLOŽKÁCH */
+.custom-recipe-ingredient .calorie-value {
+    display: none !important;
+}
+
+/* 4. POSUNOUT KALORIE A NUTRIENTY BLÍŽ K HMOTNOSTI */
+.ingredient-details {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important; /* MENŠÍ MEZERA */
+}
+
+/* 5. HMOTNOST V HLAVIČCE - BEZ POZADÍ, ČERNÉ PÍSMO */
+.total-amount-display {
+    background: none !important;
+    color: #000000 !important;
+    padding: 0 !important;
+}
+
+/* 6. OMEZIT DÉLKU NÁZVU POLOŽKY */
+.ingredient-name {
+    max-width: 200px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+
+/* ============================================= */
+/* OPRAVY KOLO 14 - Layout podle požadavků */
+/* ============================================= */
+
+/* HLAVIČKA - Jednořádkový layout pro běžný recept */
+.recipe-single-row {
+    display: flex !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+}
+
+/* POLOŽKY VLASTNÍHO RECEPTU - Dvouřádkový */
+.ingredient-details-custom {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.custom-row-1 {
+    display: flex;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.custom-row-1 span {
+    color: #000000;
+}
+
+
+/* ============================================= */
+/* OPRAVY KOLO 15 - Vertikální zarovnání a úpravy */
+/* ============================================= */
+
+/* VERTIKÁLNÍ ZAROVNÁNÍ POLOŽEK - všechny elementy na střed */
+.ingredient-details,
+.ingredient-details-custom,
+.food-item-details {
+    display: flex !important;
+    align-items: center !important; /* VERTIKÁLNĚ NA STŘED */
+    gap: 6px !important; /* BLÍŽ K SOBĚ */
+}
+
+/* KALORIE TUČNĚ U VLASTNÍHO RECEPTU */
+.custom-recipe-ingredient .calorie-value,
+.ingredient-details-custom span:first-child {
+    font-weight: 700 !important;
+}
+
+/* VYHLEDANÁ POTRAVINA - úpravy */
+.food-item-name {
+    color: #2c3e50 !important; /* STEJNÁ JAKO NÁZEV RECEPTU */
+    font-weight: 600 !important;
+}
+
+.food-item-details span {
+    color: #000000 !important; /* ČERNÁ */
+}
+
+.food-item-details .calorie-value,
+.food-item-details span:nth-child(2) {
+    font-weight: 700 !important; /* KALORIE TUČNĚ */
+}
+
+
+/* ============================================= */
+/* OPRAVY KOLO 16 - Wrap a vertikální zarovnání */
+/* ============================================= */
+
+/* HLAVIČKA - zabránit wrap nutrientů */
+.macro-stats-row {
+    display: flex !important;
+    flex-wrap: nowrap !important; /* ZAKÁZAT WRAP */
+    gap: 8px !important;
+}
+
+.recipe-totals-row {
+    flex-wrap: nowrap !important; /* ZAKÁZAT WRAP */
+}
+
+/* VERTIKÁLNÍ ZAROVNÁNÍ - opravit aby skutečně fungovalo */
+.ingredient-details {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.ingredient-details span {
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1 !important; /* KLÍČ PRO ZAROVNÁNÍ */
+}
+
+.ingredient-details-custom {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+
+.custom-row-1 {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.custom-row-1 span {
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1 !important;
+}
+
+.food-item-details {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.food-item-details span {
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1 !important;
+}
+
+
+/* ============================================= */
+/* KOLO 17 - DVOUŘÁDKOVÝ LAYOUT S CENTROVÁNÍM */
+/* ============================================= */
+
+/* DVOUŘÁDKOVÝ LAYOUT - label NAD hodnotou */
+.ingredient-details-tworow {
+    display: flex !important;
+    gap: 10px !important;
+    align-items: flex-start !important;
+}
+
+/* SLOUPEC PRO JEDEN NUTRIENT */
+.nutrient-column {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important; /* ZAROVNÁNÍ NA STŘED */
+    gap: 2px !important;
+}
+
+/* LABEL NAHOŘE (kcal, B:, S:, T:) */
+.nutrient-label-top {
+    font-size: 0.75rem !important;
+    color: #666 !important;
+    font-weight: 500 !important;
+}
+
+/* HODNOTA DOLE */
+.nutrient-value-bottom {
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    color: #000 !important;
+}
+
+/* SLOUPEC S HMOTNOSTÍ */
+.amount-column-tworow {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 2px !important;
+}
+
+.amount-column-tworow .amount-value {
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    color: #000 !important;
+}
+
+.amount-column-tworow .amount-unit {
+    font-size: 0.75rem !important;
+    color: #666 !important;
+}
+
+/* VLASTNÍ RECEPT - K LEVÉMU OKRAJI */
+.custom-left {
+    justify-content: flex-start !important;
+}
+
+/* VYHLEDANÁ POTRAVINA - Název jako hlavička receptu */
+.food-item-name {
+    color: #2c3e50 !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    margin-bottom: 4px !important;
+}
+
+/* NÁZEV INGREDIENCE ZAROVNANÝ S HMOTNOSTÍ */
+.ingredient-name {
+    margin-bottom: 4px !important;
+}
+
+/* IKONKY - BEZ POZADÍ PŘI HOVER */
+.edit-ingredient-btn:hover,
+.delete-ingredient-btn:hover,
+.edit-food-item:hover,
+.delete-food-item:hover {
+    background: none !important;
+    background-color: transparent !important;
+}
+
+
+/* ============================================= */
+/* KOLO 18 - Opravy podle přesných požadavků */
+/* ============================================= */
+
+/* 1. TUČNÉ POUZE KALORIE */
+.nutrient-bold {
+    font-weight: 700 !important;
+}
+
+.nutrient-value-bottom {
+    font-weight: normal !important; /* DEFAULTNĚ NE TUČNÉ */
+    color: #000 !important;
+}
+
+/* 2. HMOTNOST JEDNOŘÁDKOVÁ, VERTIKÁLNĚ NA STŘED */
+.amount-single {
+    display: flex !important;
+    align-items: center !important;
+    align-self: center !important; /* VERTIKÁLNĚ NA STŘED KONTEJNERU */
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    color: #000 !important;
+    white-space: nowrap !important;
+}
+
+/* 3. NÁZEV VYHLEDANÉ POTRAVINY - STEJNÁ BARVA JAKO HLAVIČKA */
+.food-item-name {
+    color: #2c3e50 !important; /* PŘESNĚ STEJNÁ JAKO .recipe-name */
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+}
+
+/* Zajistit že .recipe-name má tuto barvu */
+.recipe-name {
+    color: #2c3e50 !important;
+}
+
+/* 4. VYHLEDANÁ POTRAVINA - HMOTNOST A NUTRIENTY DOLEVA */
+.food-item-details {
+    display: flex !important;
+    justify-content: flex-start !important; /* DOLEVA */
+    align-items: flex-start !important;
+    gap: 6px !important;
+}
+
+/* 5. SPECIFICKÉ IKONKY - BEZ POZADÍ PŘI HOVER */
+/* ODSTRANĚNO: button:hover, .add-meal-btn:hover, .btn-add-meal-small:hover, .btn-edit-custom:hover */
+.edit-ingredient-btn:hover,
+.delete-ingredient-btn:hover,
+.edit-food-item:hover,
+.delete-food-item:hover,
+.toggle-recipe-btn:hover,
+.delete-recipe-group-btn:hover {
+    background: none !important;
+    background-color: transparent !important;
+}
+
+
+/* ============================================= */
+/* KOLO 19 - Kalorie tučně, barva názvu, zarovnání */
+/* ============================================= */
+
+/* 1. KALORIE - TUČNĚ HODNOTA I JEDNOTKA */
+.nutrient-column:first-of-type .nutrient-label-top,
+.nutrient-column:first-of-type .nutrient-value-bottom {
+    font-weight: 700 !important; /* TUČNĚ */
+}
+
+/* 2. NUTRIENTY - ČERNÉ PÍSMO (labely i hodnoty) */
+.nutrient-label-top,
+.nutrient-value-bottom {
+    color: #000000 !important;
+}
+
+/* 3. HMOTNOST BĚŽNÉHO RECEPTU - NETUČNĚ, MENŠÍ */
+.amount-single {
+    font-weight: normal !important; /* NETUČNĚ */
+    font-size: 0.85rem !important; /* MENŠÍ */
+}
+
+/* 4. VYHLEDANÁ POTRAVINA - BARVA NÁZVU STEJNÁ JAKO RECEPT */
+.food-item-name {
+    color: #2c5aa0 !important; /* PŘESNĚ STEJNÁ JAKO .recipe-name */
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+}
+
+/* 5. VYHLEDANÁ POTRAVINA - HMOTNOST DOLEVA ZAROVNANÁ S NÁZVEM */
+.food-item-details {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+}
+
+.food-item-info {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+}
+
+
+/* ============================================= */
+/* KOLO 20 - Zarovnání a přepočet nutrientů */
+/* ============================================= */
+
+/* 1. VYHLEDANÁ POTRAVINA - ZAROVNÁNÍ DOLEVA */
+/* 2. BARVA NÁZVU V HLAVIČCE JÍDLA NA HLAVNÍ STRÁNCE */
+.recipe-group .recipe-name {
+    color: #2c5aa0 !important;
+}
+
+
+/* ============================================= */
+/* KOLO 36 - Nový detail receptu */
+/* ============================================= */
+
+.recipe-detail-modal-content {
+    max-width: 600px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.recipe-detail-header {
+    flex-shrink: 0;
+    padding: 15px 20px;
+    border-bottom: 1px solid #e0e0e0; /* TENČÍ čára */
+    background: transparent;
+}
+
+.recipe-detail-header h3 {
+    margin: 10px 0;
+    color: #2c5aa0;
+    font-size: 1.4rem;
+}
+
+.recipe-detail-calories {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #000000;
+    margin: 10px 0;
+    text-align: right;
+}
+
+.recipe-detail-actions {
+    display: flex; /* Výchozí pro běžný recept */
+    gap: 8px;
+    margin-top: 10px;
+    justify-content: center; /* Zarovnat na střed */
+}
+
+/* Pro vlastní recept - grid layout když je editRecipeBtn viditelný */
+.recipe-detail-actions:has(#editRecipeBtn[style*="display: block"]),
+.recipe-detail-actions:has(#editRecipeBtn:not([style*="display: none"])) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.recipe-detail-actions button {
+    padding: 8px 6px;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+/* Tlačítka které zabírají celou šířku (jen pro vlastní recept) */
+.recipe-action-full {
+    grid-column: 1 / -1; /* Celá šířka */
+}
+
+/* Tlačítka které zabírají polovinu (pro vlastní recept) */
+.recipe-action-half {
+    grid-column: span 1; /* Polovina šířky */
+}
+
+/* Tlačítko Přidat jako jídlo - FIALOVÉ */
+#addRecipeAsMealBtn {
+    background-color: #6f42c1 !important;
+    color: white !important;
+}
+
+#addRecipeAsMealBtn:hover {
+    background-color: #5a32a3 !important;
+}
+
+.recipe-detail-scroll-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 20px 20px; /* MENŠÍ padding nahoře */
+}
+
+.recipe-detail-nutrients,
+.recipe-detail-items {
+    margin-bottom: 25px;
+}
+
+.recipe-detail-nutrients h4,
+.recipe-detail-items h4 {
+    color: #333;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ddd;
+    font-size: 1.1rem;
+}
+
+.nutrient-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.nutrient-row:last-child {
+    border-bottom: none;
+}
+
+.nutrient-label {
+    color: #666;
+    font-weight: 500;
+}
+
+.nutrient-value {
+    color: #000;
+    font-weight: 600;
+}
+
+.recipe-item-card {
+    background: #f3f9ff;
+    border: 1px solid #72b1f5;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.recipe-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.recipe-item-name {
+    font-weight: 600;
+    color: #2c5aa0;
+    font-size: 1rem;
+}
+
+.recipe-item-amount {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.recipe-item-nutrients {
+    display: flex;
+    gap: 15px;
+    font-size: 0.85rem;
+    color: #444;
+}
+
+.recipe-item-nutrients span {
+    white-space: nowrap;
+}
+
+
+/* ============================================= */
+/* KOLO 38 - Nový vzhled nutrientů a položek */
+/* ============================================= */
+
+/* NUTRIENTY - seznam s odrážkami */
+.nutrients-list-new {
+    padding: 10px 0;
+}
+
+.nutrient-item-new {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 1rem;
+}
+
+.nutrient-bullet {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.nutrient-label-new {
+    font-weight: 600;
+    flex: 1;
+}
+
+.nutrient-value-new {
+    font-weight: 700;
+    margin-left: auto;
+}
+
+/* Podpoložky (např. Cukry pod Sacharidy) */
+.nutrient-item-sub {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0 4px 30px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.nutrient-sublabel {
+    font-weight: normal;
+}
+
+.nutrient-subvalue {
+    font-weight: 600;
+}
+
+/* Další nutrienty (Sůl, Vápník...) */
+.nutrient-item-other {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.nutrient-label-other {
+    font-weight: 500;
+}
+
+.nutrient-value-other {
+    font-weight: 600;
+}
+
+/* POLOŽKY - MODRÉ kartičky PŘESNĚ podle obrázku */
+.recipe-item-card-new {
+    background: #f3f9ff;
+    border: 1px solid #72b1f5;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: 60px 1fr auto;
+    grid-template-rows: auto auto auto;
+    gap: 8px 10px;
+    align-items: start;
+}
+
+.recipe-item-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    grid-row: 1 / 4;
+    grid-column: 1;
+}
+
+.recipe-item-info {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.recipe-item-name-new {
+    font-weight: 600;
+    color: #2c5aa0;
+    font-size: 1rem;
+}
+
+.recipe-item-calories-amount-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.recipe-item-calories-badge {
+    background-color: #0d47a1;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.recipe-item-amount-new {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.recipe-item-actions-new {
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* VĚTŠÍ mezera mezi ikonkami */
+    grid-column: 3;
+    grid-row: 1 / 3;
+    align-items: center;
+    padding-top: 4px; /* Trochu od vrcholu */
+}
+
+.recipe-item-edit-btn,
+.recipe-item-delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+}
+
+.recipe-item-edit-btn img,
+.recipe-item-delete-btn img {
+    width: 20px;
+    height: 20px;
+}
+
+.recipe-item-nutrients-new {
+    grid-column: 2 / 4;
+    grid-row: 3;
+    display: flex;
+    gap: 15px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+
+/* VLASTNÍ MAKROŽIVINY */
+.macro-input {
+    width: 80px;
+    padding: 6px 10px;
+    border: 2px solid #4caf50;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+    background: white;
+}
+
+.macro-input:focus {
+    outline: none;
+    border-color: #45a049;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+#customMacrosLabel.active {
+    color: #2196f3 !important; /* MODRÁ místo zelené */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+#recipeMultiPortionLabel.active {
+    color: #2196f3 !important; /* MODRÁ když zapnuto */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.macro-value-wrapper {
+    position: relative;
+}
+
+/* TOGGLE SWITCH PRO VLASTNÍ MAKROŽIVINY */
+.toggle-switch-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent; /* Žádné modré pozadí na mobile */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.toggle-switch-label .toggle-switch {
+    width: 32px; /* ZMENŠENO z 40px */
+    height: 15px; /* ZMENŠENO z 22px */
+}
+
+.toggle-switch {
+    position: relative;
+    width: 40px;
+    height: 22px;
+}
+
+.toggle-switch input[type="checkbox"] {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .3s;
+    border-radius: 15px; /* UPRAVENO */
+}
+
+/* TOGGLE V NOTIFICATION MODALU - SPECIFICKÝ CSS */
+#customNotificationModal .toggle-switch {
+    width: 32px !important;
+    height: 15px !important;
+}
+
+#customNotificationModal .toggle-slider {
+    border-radius: 15px !important;
+}
+
+#customNotificationModal .toggle-slider:before {
+    height: 11px !important;
+    width: 11px !important;
+    left: 2px !important;
+    bottom: 2px !important;
+}
+
+#customNotificationModal .toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(17px) !important;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 11px; /* ZMENŠENO z 14px na 11px */
+    width: 11px; /* ZMENŠENO z 14px na 11px */
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background-color: #2196f3; /* MODRÁ místo zelené */
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(17px); /* UPRAVENO */
+}
+
+#customMacrosLabel.active {
+    color: #2196f3 !important; /* MODRÁ místo zelené */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* KLIKATELNÉ MAKROŽIVINY KARTY */
+.clickable-macro {
+    cursor: default;
+    transition: all 0.2s;
+}
+
+.clickable-macro.enabled {
+    cursor: pointer;
+}
+
+.clickable-macro.enabled:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.clickable-macro.enabled:active {
+    transform: translateY(0);
+}
+
+/* Edit Macro Modal - Button Hover Effects */
+#editMacroModal .btn-cancel:hover {
+    background-color: #c82333 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+#editMacroModal .btn-primary:hover {
+    background-color: #218838 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+#editMacroModal .btn-cancel:active,
+#editMacroModal .btn-primary:active {
+    transform: translateY(0);
+}
+
+/* Logout Button Hover */
+#logoutButton:hover {
+    background-color: #c82333 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* Remove border from macros h3 */
+.macros-section h3 {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+}
+
+/* Single line nutrients for custom recipes */
+.single-line-nutrients {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.single-line-nutrients .calorie-highlight {
+    margin-right: 4px;
+}
+
+/* Kompaktní zobrazení nutrientů - žádné extra mezery */
+.macro-stats-row span {
+    white-space: nowrap; /* Zabránit zalamování */
+    letter-spacing: -0.02em; /* Mírně zhuštit */
+}
+
+/* Notification modal - extra padding z okrajů */
+#customNotificationModal .modal-content {
+    margin: 15px; /* ODSTUP Z OKRAJŮ */
+    width: calc(100% - 30px); /* 100% mínus 2x15px padding */
+    max-width: 420px; /* O trochu užší než ostatní modaly */
+}
+
+/* GLOBÁLNÍ ODSTRANĚNÍ VŠECH FOCUS EFEKTŮ */
+*:focus,
+*:focus-visible,
+button:focus,
+button:focus-visible,
+.meal-type-btn:focus,
+.meal-type-btn:focus-visible,
+.recipe-list-item:focus,
+.recipe-list-item:focus-visible,
+.clickable-macro:focus,
+.clickable-macro:focus-visible,
+.macro-item:focus,
+.macro-item:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: inherit !important;
+    background-color: inherit !important;
+}
+
+/* Zajistit že tlačítko Recepty NIKDY nezmizí */
+#recipesButton,
+#recipesButton:focus,
+#recipesButton:active,
+#recipesButton:focus-visible {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Vypnout hover/active efekty pro tlačítko Recepty */
+#recipesButton:hover,
+#recipesButton:active {
+    background-color: #28a745 !important; /* Zachovat stejnou barvu */
+    transform: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+}
+
+/* Vypnout všechny vizuální efekty */
+#recipesButton::before,
+#recipesButton::after {
+    display: none !important;
+}
