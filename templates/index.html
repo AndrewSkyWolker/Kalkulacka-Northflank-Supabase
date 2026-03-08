@@ -7457,13 +7457,18 @@
             console.log("🔴 Zavírám skenér");
             barcodeScanningActive = false;
 
-            // Důkladné zastavení Quaggy
-            if (typeof Quagga !== 'undefined' && Quagga) {
+            // Důkladné zastavení Quaggy - kontrola jestli běží
+            if (typeof Quagga !== 'undefined' && Quagga && window.quaggaInitialized) {
                 try {
+                    console.log("📷 Zastavuji Quagga skenování");
                     Quagga.stop();
                     Quagga.offDetected();
+                    window.quaggaInitialized = false;
+                    console.log("✓ Quagga zastavena");
                 } catch (error) {
-                    console.log('Chyba při zastavování Quaggy:', error);
+                    console.log('⚠️ Chyba při zastavování Quaggy:', error);
+                    // I přes chybu resetujeme flag
+                    window.quaggaInitialized = false;
                 }
             }
 
@@ -7494,6 +7499,15 @@
             if (modal) {
                 modal.style.display = 'none';
             }
+            
+            // EXTRA cleanup s malým zpožděním (aby se vypnul indikátor kamery)
+            setTimeout(() => {
+                if (barcodeStream) {
+                    barcodeStream.getTracks().forEach(track => track.stop());
+                    barcodeStream = null;
+                }
+                console.log("✅ Extra cleanup dokončen");
+            }, 100);
             
             console.log("✅ Skenér úplně zavřen");
         }
@@ -7681,7 +7695,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.5.3 - FIX PC SCANNING + PWA INFO");
+            console.log("🚀 Aplikace verze: 0.2.5.4 - FIX QUAGGA STOP + CAMERA CLEANUP");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
