@@ -154,7 +154,7 @@
 
             <form id="searchModalForm">
                 <input type="text" id="searchModalQuery" name="query"
-                    placeholder="Zadejte název potraviny (např. jablko, kuře)" autofocus>
+                    placeholder="Zadejte název potraviny (např. jablko, kuře)">
                 <button type="submit">Vyhledat</button>
             </form>
 
@@ -6772,13 +6772,23 @@
 
             modal.style.display = 'flex';
 
+            // Kontrola uloženého povolení
+            const hasPermission = localStorage.getItem('cameraPermissionGranted') === 'true';
+            if (hasPermission) {
+                console.log("✅ Povolení kamery již uloženo");
+            }
+
             // Detekce zařízení
             const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
 
             if (isIPhone) {
-                status.innerHTML = '📱 <strong>Připravuji skenování pro iPhone</strong>';
+                status.innerHTML = hasPermission 
+                    ? '📱 <strong>Spouštím kameru...</strong>'
+                    : '📱 <strong>Připravuji skenování pro iPhone</strong>';
             } else {
-                status.textContent = 'Inicializuji kameru...';
+                status.textContent = hasPermission 
+                    ? 'Spouštím kameru...'
+                    : 'Inicializuji kameru...';
             }
 
             try {
@@ -7246,6 +7256,13 @@
         // NOVÁ FUNKCE PRO OTEVRENÍ VYHLEDÁVÁNÍ S KÓDEM
         function openSearchWithBarcode(barcode) {
             console.log("🔍 Otevírám vyhledávání s kódem:", barcode);
+            
+            // ZASTAVÍME KAMERU (pokud běží)
+            if (barcodeStream) {
+                console.log("📷 Zastavuji kameru při přechodu do vyhledávání");
+                barcodeStream.getTracks().forEach(track => track.stop());
+                barcodeStream = null;
+            }
 
             // 1. Otevřeme vyhledávací modal
             const searchModal = document.getElementById('searchModal');
@@ -7257,7 +7274,7 @@
             const searchInput = document.getElementById('searchModalQuery');
             if (searchInput) {
                 searchInput.value = barcode;
-                searchInput.focus(); // Kurzor do pole
+                // ODSTRANĚNO: searchInput.focus() - nechceme zobrazit klávesnici
 
                 // 3. OKAMŽITĚ SPUSTÍME VYHLEDÁVÁNÍ
                 setTimeout(() => {
@@ -7341,6 +7358,15 @@
 
                 barcodeScanningActive = true;
                 console.log("✅ Kamera úspěšně spuštěna");
+                
+                // Uložíme povolení do localStorage (trvalé uložení)
+                try {
+                    localStorage.setItem('cameraPermissionGranted', 'true');
+                    localStorage.setItem('cameraPermissionDate', new Date().toISOString());
+                    console.log("💾 Povolení kamery uloženo");
+                } catch (e) {
+                    console.log("⚠️ Nelze uložit do localStorage:", e);
+                }
 
             } catch (error) {
                 console.error("❌ Chyba při spouštění kamery:", error);
@@ -7456,6 +7482,7 @@
 
             // Zastavíme kameru
             if (barcodeStream) {
+                console.log("📷 Zastavuji kameru při zavření skeneru");
                 barcodeStream.getTracks().forEach(track => track.stop());
                 barcodeStream = null;
             }
@@ -7649,7 +7676,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.5.1 - REMOVE CAMERA TOGGLE");
+            console.log("🚀 Aplikace verze: 0.2.6.0 - NO AUTOFOCUS + CAMERA PERMISSION");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
