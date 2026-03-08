@@ -1366,7 +1366,8 @@
             console.log("🔍 Otevírám vyhledávací modal");
             document.getElementById('searchModal').style.display = 'flex';
             document.getElementById('searchModalQuery').value = '';
-            document.getElementById('searchModalQuery').focus();
+            // ODSTRANĚNO: .focus() - nechceme zobrazit klávesnici
+            // document.getElementById('searchModalQuery').focus();
             document.getElementById('searchModalResults').innerHTML = '';
             document.getElementById('searchModalError').style.display = 'none';
         }
@@ -6772,23 +6773,13 @@
 
             modal.style.display = 'flex';
 
-            // Kontrola uloženého povolení
-            const hasPermission = localStorage.getItem('cameraPermissionGranted') === 'true';
-            if (hasPermission) {
-                console.log("✅ Povolení kamery již uloženo");
-            }
-
             // Detekce zařízení
             const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
 
             if (isIPhone) {
-                status.innerHTML = hasPermission 
-                    ? '📱 <strong>Spouštím kameru...</strong>'
-                    : '📱 <strong>Připravuji skenování pro iPhone</strong>';
+                status.innerHTML = '📱 <strong>Připravuji skenování pro iPhone</strong>';
             } else {
-                status.textContent = hasPermission 
-                    ? 'Spouštím kameru...'
-                    : 'Inicializuji kameru...';
+                status.textContent = 'Inicializuji kameru...';
             }
 
             try {
@@ -7257,12 +7248,8 @@
         function openSearchWithBarcode(barcode) {
             console.log("🔍 Otevírám vyhledávání s kódem:", barcode);
             
-            // ZASTAVÍME KAMERU (pokud běží)
-            if (barcodeStream) {
-                console.log("📷 Zastavuji kameru při přechodu do vyhledávání");
-                barcodeStream.getTracks().forEach(track => track.stop());
-                barcodeStream = null;
-            }
+            // ZAVŘEME CELÝ SKENÉR (důkladně zastaví kameru)
+            closeBarcodeScanner();
 
             // 1. Otevřeme vyhledávací modal
             const searchModal = document.getElementById('searchModal');
@@ -7359,14 +7346,8 @@
                 barcodeScanningActive = true;
                 console.log("✅ Kamera úspěšně spuštěna");
                 
-                // Uložíme povolení do localStorage (trvalé uložení)
-                try {
-                    localStorage.setItem('cameraPermissionGranted', 'true');
-                    localStorage.setItem('cameraPermissionDate', new Date().toISOString());
-                    console.log("💾 Povolení kamery uloženo");
-                } catch (e) {
-                    console.log("⚠️ Nelze uložit do localStorage:", e);
-                }
+                // POZNÁMKA: Povolení kamery si prohlížeč pamatuje sám
+                // localStorage zde nefunguje kvůli bezpečnostním omezením prohlížeče
 
             } catch (error) {
                 console.error("❌ Chyba při spouštění kamery:", error);
@@ -7480,17 +7461,35 @@
                 }
             }
 
-            // Zastavíme kameru
+            // DŮKLADNÉ zastavení kamery
+            const video = document.getElementById('barcodeVideo');
+            if (video) {
+                console.log("📷 Zastavuji video element");
+                video.pause();
+                video.srcObject = null;
+            }
+            
             if (barcodeStream) {
-                console.log("📷 Zastavuji kameru při zavření skeneru");
-                barcodeStream.getTracks().forEach(track => track.stop());
+                console.log("📷 Zastavuji všechny tracks kamery");
+                barcodeStream.getTracks().forEach(track => {
+                    track.stop();
+                    console.log("  ✓ Track zastaven:", track.label);
+                });
                 barcodeStream = null;
+            }
+            
+            // Vyčistíme kontejner (odstraní video element)
+            const container = document.getElementById('barcodeScannerContainer');
+            if (container) {
+                container.innerHTML = '<div class="barcode-placeholder"><p>Skenér zavřen</p></div>';
             }
 
             const modal = document.getElementById('barcodeModal');
             if (modal) {
                 modal.style.display = 'none';
             }
+            
+            console.log("✅ Skenér úplně zavřen");
         }
 
         document.getElementById('confirmCreateRecipeButton').addEventListener('click', async function () {
@@ -7676,7 +7675,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.6.0 - NO AUTOFOCUS + CAMERA PERMISSION");
+            console.log("🚀 Aplikace verze: 0.2.5.2 - NO AUTOFOCUS + STOP CAMERA");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
