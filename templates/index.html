@@ -1005,7 +1005,7 @@
 
             <!-- OVLÁDACÍ TLAČÍTKA -->
             <div class="barcode-controls">
-                <button id="toggleCameraButton" class="btn-small">🔄 Otočit kameru</button>
+                <!-- Tlačítko "Otočit kameru" odstraněno - vždy použijeme zadní kameru -->
                 <button id="toggleFlashButton" class="btn-small" style="display:none;">⚡ Blesk</button>
             </div>
 
@@ -6595,8 +6595,8 @@
             // Zavírací tlačítko
             document.getElementById('closeBarcodeModal').addEventListener('click', closeBarcodeScanner);
 
-            // Přepínání kamery
-            document.getElementById('toggleCameraButton').addEventListener('click', toggleCamera);
+            // Přepínání kamery ODSTRANĚNO - vždy používáme zadní kameru
+            // document.getElementById('toggleCameraButton').addEventListener('click', toggleCamera);
 
             // Ruční zadání
             document.getElementById('submitManualBarcode').addEventListener('click', submitManualBarcode);
@@ -7406,20 +7406,7 @@
         }
 
         // PŘEPÍNÁNÍ KAMERY
-        async function toggleCamera() {
-            if (!barcodeScanningActive) return;
-
-            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
-
-            const status = document.getElementById('barcodeStatus');
-            status.textContent = '🔄 Přepínám kameru...';
-
-            const video = document.getElementById('barcodeVideo');
-            if (video) {
-                await startCamera(video);
-                status.textContent = '✅ Kamera připravena - namiřte na čárový kód';
-            }
-        }
+        // Funkce toggleCamera ODSTRANĚNA - vždy používáme zadní kameru (environment)
 
         async function toggleFlash() {
             if (!barcodeStream) return;
@@ -7662,7 +7649,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.5.0 - AUTO START BARCODE SCAN");
+            console.log("🚀 Aplikace verze: 0.2.5.1 - REMOVE CAMERA TOGGLE");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
