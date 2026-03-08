@@ -6773,11 +6773,17 @@
 
             modal.style.display = 'flex';
 
-            // Detekce zařízení
+            // Detekce zařízení a PWA režimu
             const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
+            const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                         window.navigator.standalone === true;
 
             if (isIPhone) {
-                status.innerHTML = '📱 <strong>Připravuji skenování pro iPhone</strong>';
+                if (isPWA) {
+                    status.innerHTML = '📱 <strong>Připravuji kameru...</strong><br><small>PWA vyžaduje povolení při každém spuštění</small>';
+                } else {
+                    status.innerHTML = '📱 <strong>Připravuji skenování pro iPhone</strong>';
+                }
             } else {
                 status.textContent = 'Inicializuji kameru...';
             }
@@ -6822,8 +6828,8 @@
                         ✅ <strong>Kamera připravena</strong><br>
                         <small>Skenování spuštěno automaticky...</small>
                     `;
-                    // Spustíme běžné skenování
-                    startBarcodeDetection();
+                    // Spustíme UNIVERZÁLNÍ skenování (Quagga pro PC)
+                    startUniversalBarcodeDetection();
                 }
 
                 // NEPŘIDÁVÁME tlačítko - skenování běží automaticky!
@@ -7675,7 +7681,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.5.2 - NO AUTOFOCUS + STOP CAMERA");
+            console.log("🚀 Aplikace verze: 0.2.5.3 - FIX PC SCANNING + PWA INFO");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
