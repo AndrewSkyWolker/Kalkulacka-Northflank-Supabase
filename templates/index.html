@@ -1,4 +1,4 @@
-console.log("🚀 Aplikace verze: 0.2.5.10 - FIX KEYBOARD + FIX FLASH + FIX SEARCH OPENING");
+console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG ALERTS");
 <html lang="cs">
 <!-- VERSION 24 - DEBUG + REFACTORED SAVING - REFRESH REQUIRED -->
 <head>
@@ -6597,6 +6597,15 @@ console.log("🚀 Aplikace verze: 0.2.5.10 - FIX KEYBOARD + FIX FLASH + FIX SEAR
 
             // Přepínání kamery ODSTRANĚNO - vždy používáme zadní kameru
             // document.getElementById('toggleCameraButton').addEventListener('click', toggleCamera);
+            
+            // TLAČÍTKO BLESKU
+            const toggleFlashBtn = document.getElementById('toggleFlashButton');
+            if (toggleFlashBtn) {
+                toggleFlashBtn.addEventListener('click', toggleFlash);
+                console.log("✅ Event listener pro blesk přidán");
+            } else {
+                console.error("❌ toggleFlashButton nenalezeno!");
+            }
 
             // Ruční zadání
             document.getElementById('submitManualBarcode').addEventListener('click', submitManualBarcode);
@@ -7270,8 +7279,18 @@ console.log("🚀 Aplikace verze: 0.2.5.10 - FIX KEYBOARD + FIX FLASH + FIX SEAR
             if (searchModal) {
                 searchModal.style.display = 'flex';
                 console.log("🔍 [BARCODE] searchModal.style.display nastaveno na 'flex'");
+                
+                // DEBUG: Zkontrolujeme po 500ms jestli je modal viditelný
+                setTimeout(() => {
+                    const isVisible = searchModal.style.display === 'flex';
+                    console.log("🔍 [BARCODE] Modal viditelný po 500ms:", isVisible);
+                    if (!isVisible) {
+                        alert("DEBUG: Search modal není viditelný! display=" + searchModal.style.display);
+                    }
+                }, 500);
             } else {
                 console.error("🔍 [BARCODE] ❌ searchModal NENALEZEN!");
+                alert("CHYBA: searchModal element nenalezen!");
                 return;
             }
 
@@ -7292,6 +7311,7 @@ console.log("🚀 Aplikace verze: 0.2.5.10 - FIX KEYBOARD + FIX FLASH + FIX SEAR
                 }, 300);
             } else {
                 console.error("🔍 [BARCODE] ❌ searchInput NENALEZEN!");
+                alert("CHYBA: searchInput element nenalezen!");
             }
         }
 
