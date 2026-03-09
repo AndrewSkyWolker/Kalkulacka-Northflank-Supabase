@@ -7432,25 +7432,6 @@
             }
         }
 
-        async function toggleFlash() {
-            if (!barcodeStream) return;
-            const videoTrack = barcodeStream.getVideoTracks()[0];
-            if (!videoTrack) return;
-
-            try {
-                const capabilities = videoTrack.getCapabilities();
-                if (capabilities.torch) {
-                    await videoTrack.applyConstraints({
-                        advanced: [{ torch: !barcodeFlashEnabled }]
-                    });
-                    barcodeFlashEnabled = !barcodeFlashEnabled;
-                    document.getElementById('toggleFlashButton').textContent = barcodeFlashEnabled ? 'Vypnout blesk' : 'Blesk';
-                }
-            } catch (error) {
-                console.error('Chyba při ovládání blesku:', error);
-            }
-        }
-
         // RUČNÍ ZADÁNÍ KÓDU
         function submitManualBarcode() {
             const input = document.getElementById('manualBarcodeInput');
@@ -7723,7 +7704,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.6.3 - FLASHLIGHT + NO IPHONE LABEL");
+            console.log("🚀 Aplikace verze: 0.2.6.4 - FIX DUPLICATE TOGGLEFLASH");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
