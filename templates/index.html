@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+console.log("🚀 Aplikace verze: 0.2.5.9 - BACK TO WORKING VERSION + WORKING FLASH");
 <html lang="cs">
 <!-- VERSION 24 - DEBUG + REFACTORED SAVING - REFRESH REQUIRED -->
 <head>
@@ -154,7 +154,7 @@
 
             <form id="searchModalForm">
                 <input type="text" id="searchModalQuery" name="query"
-                    placeholder="Zadejte název potraviny (např. jablko, kuře)">
+                    placeholder="Zadejte název potraviny (např. jablko, kuře)" autofocus>
                 <button type="submit">Vyhledat</button>
             </form>
 
@@ -1226,8 +1226,7 @@
         let barcodeFacingMode = 'environment';
         let barcodeFlashEnabled = false;
         let barcodeScanInterval = null;
-        // Globální proměnné pro čárové kódy
-        window.quaggaInitialized = false;
+        let quaggaInitialized = false;
         let lastDetectedBarcode = null;
         let barcodeDetectionTimeout = null;
 */
@@ -1367,8 +1366,7 @@
             console.log("🔍 Otevírám vyhledávací modal");
             document.getElementById('searchModal').style.display = 'flex';
             document.getElementById('searchModalQuery').value = '';
-            // ODSTRANĚNO: .focus() - nechceme zobrazit klávesnici
-            // document.getElementById('searchModalQuery').focus();
+            document.getElementById('searchModalQuery').focus();
             document.getElementById('searchModalResults').innerHTML = '';
             document.getElementById('searchModalError').style.display = 'none';
         }
@@ -6664,7 +6662,7 @@
                                 return;
                             }
 
-                            window.quaggaInitialized = true;
+                            quaggaInitialized = true;
                             Quagga.onDetected(function (result) {
                                 if (result && result.codeResult && result.codeResult.code) {
                                     if (result.codeResult.confidence !== undefined && result.codeResult.confidence < 0.3) return;
@@ -6698,19 +6696,12 @@
                 }
             }
 
-            // 2. POKUD MODERNÍ API NEFUNGUJE, POUŽIJEME QUAGGA (pro PC)
-            console.log("📷 PC detekováno - spouštím Quagga");
-            if (typeof Quagga !== 'undefined') {
-                initializeQuaggaForPC(video, status);
-            } else {
-                // 3. POKUD ANI QUAGGA NENÍ K DISPOZICI, POUŽIJEME ZRCADLOVÝ NÁHLED
-                console.log("⚠️ Quagga není dostupná - používám mirror preview");
-                status.innerHTML = `
-                        📱 <strong>Automatické skenování</strong><br>
-                            <small>Namířejte kód do zeleného rámečku. Kód se zobrazí v náhledu.</small>
-                            `;
-                startMirrorPreviewDetection(video, status);
-            }
+            // 2. POKUD MODERNÍ API NEFUNGUJE, POUŽIJEME ZRCADLOVÝ NÁHLED
+            status.innerHTML = `
+                    📱 <strong>Automatické skenování</strong><br>
+                        <small>Namířejte kód do zeleného rámečku. Kód se zobrazí v náhledu.</small>
+                        `;
+            startMirrorPreviewDetection(video, status);
         }
 
         // MODERNÍ DETEKCE PRO ANDROID/NOVÁ ZAŘÍZENÍ
@@ -6781,17 +6772,11 @@
 
             modal.style.display = 'flex';
 
-            // Detekce zařízení a PWA režimu
+            // Detekce zařízení
             const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
-            const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                         window.navigator.standalone === true;
 
             if (isIPhone) {
-                if (isPWA) {
-                    status.innerHTML = '📱 <strong>Připravuji kameru...</strong><br><small>PWA vyžaduje povolení při každém spuštění</small>';
-                } else {
-                    status.innerHTML = '📱 <strong>Připravuji skenování pro iPhone</strong>';
-                }
+                status.innerHTML = '📱 <strong>Připravuji skenování pro iPhone</strong>';
             } else {
                 status.textContent = 'Inicializuji kameru...';
             }
@@ -6836,8 +6821,8 @@
                         ✅ <strong>Kamera připravena</strong><br>
                         <small>Skenování spuštěno automaticky...</small>
                     `;
-                    // Spustíme UNIVERZÁLNÍ skenování (Quagga pro PC)
-                    startUniversalBarcodeDetection();
+                    // Spustíme běžné skenování
+                    startBarcodeDetection();
                 }
 
                 // NEPŘIDÁVÁME tlačítko - skenování běží automaticky!
@@ -7124,100 +7109,6 @@
             }
         }
 
-        // INICIALIZACE QUAGGA PRO PC
-        function initializeQuaggaForPC(video, status) {
-            status.innerHTML = '🔍 <strong>Spouštím skenování...</strong>';
-            console.log("🚀 Inicializuji Quagga pro PC");
-
-            try {
-                Quagga.init({
-                    inputStream: {
-                        name: "Live",
-                        type: "LiveStream",
-                        target: video,
-                        constraints: {
-                            facingMode: "environment",
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 }
-                        }
-                    },
-                    decoder: {
-                        readers: [
-                            "ean_reader",
-                            "ean_8_reader",
-                            "upc_reader",
-                            "upc_e_reader",
-                            "code_128_reader"
-                        ],
-                        multiple: false
-                    },
-                    locator: {
-                        patchSize: "medium",
-                        halfSample: true
-                    },
-                    locate: true,
-                    frequency: 10,
-                    numOfWorkers: 2
-                }, function (err) {
-                    if (err) {
-                        console.error('❌ Quagga chyba:', err);
-                        status.innerHTML = '❌ <strong>Skenování selhalo</strong>';
-                        return;
-                    }
-
-                    console.log('✅ Quagga úspěšně inicializována pro PC');
-                    window.quaggaInitialized = true;
-                    Quagga.start();
-
-                    // FILTRACE S VYŠŠÍ PŘESNOSTÍ
-                    let lastCode = '';
-                    let codeCount = 0;
-                    const REQUIRED_DETECTIONS = 3; // Musí být detekován 3x po sobě
-
-                    Quagga.onDetected(function (result) {
-                        if (result && result.codeResult && result.codeResult.code) {
-                            const code = result.codeResult.code;
-                            const confidence = result.codeResult.confidence || 0;
-                            
-                            console.log('📷 Quagga detekovala:', code, 'confidence:', confidence.toFixed(2));
-                            
-                            // FILTR 1: Minimální confidence
-                            if (confidence < 0.65) {
-                                console.log('  ⚠️ Nízká confidence, ignoruji');
-                                return;
-                            }
-                            
-                            // FILTR 2: Validace EAN
-                            if (!isValidEAN(code)) {
-                                console.log('  ❌ Neplatný EAN checksum, ignoruji');
-                                return;
-                            }
-                            
-                            // FILTR 3: Stabilita - stejný kód musí být detekován vícekrát
-                            if (code === lastCode) {
-                                codeCount++;
-                                console.log(`  ✓ Shoda ${codeCount}/${REQUIRED_DETECTIONS}`);
-                                
-                                if (codeCount >= REQUIRED_DETECTIONS) {
-                                    console.log('  ✅ Stabilní detekce - používám kód');
-                                    handleBarcodeDetected(code, result);
-                                    lastCode = '';
-                                    codeCount = 0;
-                                }
-                            } else {
-                                lastCode = code;
-                                codeCount = 1;
-                                console.log('  🔄 Nový kód, čekám na potvrzení...');
-                            }
-                        }
-                    });
-                });
-            } catch (error) {
-                console.error('❌ Výjimka při inicializaci Quaggy:', error);
-                status.innerHTML = '❌ <strong>Chyba inicializace</strong>';
-            }
-        }
-
         // INICIALIZACE QUAGGA PRO iPHONE
         // VYLEPŠENÁ QUAGGA PRO VYŠŠÍ PŘESNOST
         function initializeQuaggaForIPhone(video, status) {
@@ -7354,43 +7245,24 @@
 
         // NOVÁ FUNKCE PRO OTEVRENÍ VYHLEDÁVÁNÍ S KÓDEM
         function openSearchWithBarcode(barcode) {
-            console.log("🔍 [v0.2.5.8] Otevírám vyhledávání s kódem:", barcode);
-            
-            // NEBUDEME VOLAT closeBarcodeScanner() - už bylo zavoláno před touto funkcí
+            console.log("🔍 Otevírám vyhledávání s kódem:", barcode);
 
             // 1. Otevřeme vyhledávací modal
             const searchModal = document.getElementById('searchModal');
-            console.log("🔍 [v0.2.5.8] searchModal element:", searchModal);
-            console.log("🔍 [v0.2.5.8] searchModal current display:", searchModal ? searchModal.style.display : 'NOT FOUND');
-            
             if (searchModal) {
                 searchModal.style.display = 'flex';
-                console.log("🔍 [v0.2.5.8] ✅ searchModal.style.display nastaveno na 'flex'");
-                
-                // Debug - zkontrolujeme po 100ms jestli je modal stále zobrazený
-                setTimeout(() => {
-                    console.log("🔍 [v0.2.5.8] DEBUG (100ms): searchModal.style.display =", searchModal.style.display);
-                }, 100);
-            } else {
-                console.error("🔍 [v0.2.5.8] ❌ searchModal element NENALEZEN!");
             }
 
             // 2. Vyplníme kód do vyhledávacího pole
             const searchInput = document.getElementById('searchModalQuery');
-            console.log("🔍 [v0.2.5.8] searchInput element:", searchInput);
-            
             if (searchInput) {
                 searchInput.value = barcode;
-                console.log("🔍 [v0.2.5.8] ✅ searchInput.value nastaveno na:", barcode);
-                // ODSTRANĚNO: searchInput.focus() - nechceme zobrazit klávesnici
+                // ODSTRANĚNO: searchInput.focus() - nezobrazovat klávesnici
 
                 // 3. OKAMŽITĚ SPUSTÍME VYHLEDÁVÁNÍ
                 setTimeout(() => {
-                    console.log("🔍 [v0.2.5.8] Spouštím performBarcodeSearch...");
                     performBarcodeSearch(barcode);
                 }, 300);
-            } else {
-                console.error("🔍 [v0.2.5.8] ❌ searchInput element NENALEZEN!");
             }
         }
 
@@ -7469,25 +7341,26 @@
 
                 barcodeScanningActive = true;
                 console.log("✅ Kamera úspěšně spuštěna");
-                
-                // KONTROLA PODPORY BLESKU (torch)
+
+                // DETEKCE TORCH (BLESK)
                 const videoTrack = barcodeStream.getVideoTracks()[0];
                 if (videoTrack) {
                     const capabilities = videoTrack.getCapabilities();
-                    if (capabilities && capabilities.torch) {
+                    console.log("📷 Video track capabilities:", capabilities);
+                    
+                    const flashButton = document.getElementById('toggleFlashButton');
+                    if (capabilities.torch) {
                         console.log("💡 Zařízení podporuje blesk - zobrazuji tlačítko");
-                        const flashButton = document.getElementById('toggleFlashButton');
                         if (flashButton) {
                             flashButton.style.display = 'inline-block';
-                            flashButton.onclick = toggleFlash;
                         }
                     } else {
                         console.log("⚠️ Zařízení nepodporuje blesk");
+                        if (flashButton) {
+                            flashButton.style.display = 'none';
+                        }
                     }
                 }
-                
-                // POZNÁMKA: Povolení kamery si prohlížeč pamatuje sám
-                // localStorage zde nefunguje kvůli bezpečnostním omezením prohlížeče
 
             } catch (error) {
                 console.error("❌ Chyba při spouštění kamery:", error);
@@ -7517,7 +7390,7 @@
 
             document.getElementById('barcodeOverlay').classList.add('barcode-found');
 
-            if (window.quaggaInitialized) {
+            if (quaggaInitialized) {
                 Quagga.stop();
             }
 
@@ -7556,21 +7429,46 @@
         // Funkce toggleCamera ODSTRANĚNA - vždy používáme zadní kameru (environment)
 
         async function toggleFlash() {
-            if (!barcodeStream) return;
+            console.log("💡 toggleFlash voláno, barcodeFlashEnabled:", barcodeFlashEnabled);
+            
+            if (!barcodeStream) {
+                console.log("⚠️ Žádný stream!");
+                return;
+            }
+            
             const videoTrack = barcodeStream.getVideoTracks()[0];
-            if (!videoTrack) return;
+            if (!videoTrack) {
+                console.log("⚠️ Žádný video track!");
+                return;
+            }
 
             try {
                 const capabilities = videoTrack.getCapabilities();
+                console.log("📷 Video track capabilities:", capabilities);
+                
                 if (capabilities.torch) {
+                    // Přepneme stav blesku
+                    const newTorchState = !barcodeFlashEnabled;
+                    console.log("💡 Nastavuji torch na:", newTorchState);
+                    
+                    // OPRAVA: Správný formát pro iPhone/Android
                     await videoTrack.applyConstraints({
-                        advanced: [{ torch: !barcodeFlashEnabled }]
+                        advanced: [{ torch: newTorchState }]
                     });
-                    barcodeFlashEnabled = !barcodeFlashEnabled;
-                    document.getElementById('toggleFlashButton').textContent = barcodeFlashEnabled ? 'Vypnout blesk' : 'Blesk';
+                    
+                    barcodeFlashEnabled = newTorchState;
+                    console.log("✅ Blesk úspěšně změněn na:", barcodeFlashEnabled);
+                    
+                    // Aktualizace textu tlačítka
+                    const button = document.getElementById('toggleFlashButton');
+                    if (button) {
+                        button.textContent = barcodeFlashEnabled ? '⚡ Vypnout blesk' : '⚡ Blesk';
+                    }
+                } else {
+                    console.log("⚠️ Zařízení nepodporuje torch");
                 }
             } catch (error) {
-                console.error('Chyba při ovládání blesku:', error);
+                console.error('❌ Chyba při ovládání blesku:', error);
             }
         }
 
@@ -7591,42 +7489,20 @@
             console.log("🔴 Zavírám skenér");
             barcodeScanningActive = false;
 
-            // Důkladné zastavení Quaggy - kontrola jestli běží
-            if (typeof Quagga !== 'undefined' && Quagga && window.quaggaInitialized) {
+            // Důkladné zastavení Quaggy
+            if (typeof Quagga !== 'undefined' && Quagga) {
                 try {
-                    console.log("📷 Zastavuji Quagga skenování");
                     Quagga.stop();
                     Quagga.offDetected();
-                    window.quaggaInitialized = false;
-                    console.log("✓ Quagga zastavena");
                 } catch (error) {
-                    console.log('⚠️ Chyba při zastavování Quaggy:', error);
-                    // I přes chybu resetujeme flag
-                    window.quaggaInitialized = false;
+                    console.log('Chyba při zastavování Quaggy:', error);
                 }
             }
 
-            // DŮKLADNÉ zastavení kamery
-            const video = document.getElementById('barcodeVideo');
-            if (video) {
-                console.log("📷 Zastavuji video element");
-                video.pause();
-                video.srcObject = null;
-            }
-            
+            // Zastavíme kameru
             if (barcodeStream) {
-                console.log("📷 Zastavuji všechny tracks kamery");
-                barcodeStream.getTracks().forEach(track => {
-                    track.stop();
-                    console.log("  ✓ Track zastaven:", track.label);
-                });
+                barcodeStream.getTracks().forEach(track => track.stop());
                 barcodeStream = null;
-            }
-            
-            // Vyčistíme kontejner (odstraní video element)
-            const container = document.getElementById('barcodeScannerContainer');
-            if (container) {
-                container.innerHTML = '<div class="barcode-placeholder"><p>Skenér zavřen</p></div>';
             }
 
             const modal = document.getElementById('barcodeModal');
@@ -7642,15 +7518,6 @@
             
             // Reset blesku
             barcodeFlashEnabled = false;
-            
-            // EXTRA cleanup s malým zpožděním (aby se vypnul indikátor kamery)
-            setTimeout(() => {
-                if (barcodeStream) {
-                    barcodeStream.getTracks().forEach(track => track.stop());
-                    barcodeStream = null;
-                }
-                console.log("✅ Extra cleanup dokončen");
-            }, 100);
             
             console.log("✅ Skenér úplně zavřen");
         }
@@ -7838,7 +7705,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.5.8 - DEBUG SEARCH MODAL OPENING");
+            console.log("🚀 Aplikace verze: 0.2.5.1 - REMOVE CAMERA TOGGLE");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
