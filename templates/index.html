@@ -154,7 +154,7 @@
 
             <form id="searchModalForm">
                 <input type="text" id="searchModalQuery" name="query"
-                    placeholder="Zadejte název potraviny (např. jablko, kuře)" autofocus>
+                    placeholder="Zadejte název potraviny (např. jablko, kuře)">
                 <button type="submit">Vyhledat</button>
             </form>
 
@@ -1366,7 +1366,7 @@
             console.log("🔍 Otevírám vyhledávací modal");
             document.getElementById('searchModal').style.display = 'flex';
             document.getElementById('searchModalQuery').value = '';
-            document.getElementById('searchModalQuery').focus();
+            // ODSTRANĚNO v0.2.6.0: .focus() - aby se nezobrazovala klávesnice
             document.getElementById('searchModalResults').innerHTML = '';
             document.getElementById('searchModalError').style.display = 'none';
         }
@@ -6808,19 +6808,22 @@
 
                 await startCamera(video);
 
+                // AUTOMATICKÉ SPUŠTĚNÍ SKENOVÁNÍ (v0.2.6.1)
                 if (isIPhone) {
                     status.innerHTML = `
-                        ✅ <strong>iPhone kamera připravena</strong><br>
-                        <small>Klikněte na "Skenovat (iPhone)"</small>
+                        🔍 <strong>Automatické skenování</strong><br>
+                        <small>Namiřte kameru na čárový kód</small>
                     `;
+                    // Spustit iPhone skenování
+                    startIPhoneBarcodeDetection();
                 } else {
                     status.innerHTML = `
-                        ✅ <strong>Kamera připravena</strong><br>
-                        <small>Klikněte na "Skenovat"</small>
+                        🔍 <strong>Automatické skenování</strong><br>
+                        <small>Namiřte kameru na čárový kód</small>
                     `;
+                    // Spustit univerzální skenování
+                    startUniversalBarcodeDetection();
                 }
-
-                addBarcodeActionButton();
 
             } catch (error) {
                 console.error("❌ Chyba:", error);
@@ -7656,7 +7659,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.4.5 - SET FLAG BEFORE SHOW MODAL");
+            console.log("🚀 Aplikace verze: 0.2.6.1 - AUTO START SCANNING");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
