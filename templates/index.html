@@ -1,4 +1,4 @@
-console.log("🚀 Aplikace verze: 0.2.5.9 - BACK TO WORKING VERSION + WORKING FLASH");
+console.log("🚀 Aplikace verze: 0.2.5.10 - FIX KEYBOARD + FIX FLASH + FIX SEARCH OPENING");
 <html lang="cs">
 <!-- VERSION 24 - DEBUG + REFACTORED SAVING - REFRESH REQUIRED -->
 <head>
@@ -154,7 +154,7 @@ console.log("🚀 Aplikace verze: 0.2.5.9 - BACK TO WORKING VERSION + WORKING FL
 
             <form id="searchModalForm">
                 <input type="text" id="searchModalQuery" name="query"
-                    placeholder="Zadejte název potraviny (např. jablko, kuře)" autofocus>
+                    placeholder="Zadejte název potraviny (např. jablko, kuře)">
                 <button type="submit">Vyhledat</button>
             </form>
 
@@ -1366,7 +1366,7 @@ console.log("🚀 Aplikace verze: 0.2.5.9 - BACK TO WORKING VERSION + WORKING FL
             console.log("🔍 Otevírám vyhledávací modal");
             document.getElementById('searchModal').style.display = 'flex';
             document.getElementById('searchModalQuery').value = '';
-            document.getElementById('searchModalQuery').focus();
+            // ODSTRANĚNO: document.getElementById('searchModalQuery').focus();
             document.getElementById('searchModalResults').innerHTML = '';
             document.getElementById('searchModalError').style.display = 'none';
         }
@@ -7230,6 +7230,22 @@ console.log("🚀 Aplikace verze: 0.2.5.9 - BACK TO WORKING VERSION + WORKING FL
             // Zvukový feedback
             playIPhoneDetectionSound();
 
+            // VYPNOUT BLESK POKUD BYL ZAPNUTÝ
+            if (barcodeFlashEnabled && barcodeStream) {
+                const videoTrack = barcodeStream.getVideoTracks()[0];
+                if (videoTrack) {
+                    try {
+                        videoTrack.applyConstraints({
+                            advanced: [{ torch: false }]
+                        });
+                        barcodeFlashEnabled = false;
+                        console.log("💡 Blesk vypnut po detekci");
+                    } catch (error) {
+                        console.log("⚠️ Nepodařilo se vypnout blesk:", error);
+                    }
+                }
+            }
+
             // Zastavíme skenování
             if (typeof Quagga !== 'undefined' && Quagga) {
                 Quagga.stop();
@@ -7245,24 +7261,37 @@ console.log("🚀 Aplikace verze: 0.2.5.9 - BACK TO WORKING VERSION + WORKING FL
 
         // NOVÁ FUNKCE PRO OTEVRENÍ VYHLEDÁVÁNÍ S KÓDEM
         function openSearchWithBarcode(barcode) {
-            console.log("🔍 Otevírám vyhledávání s kódem:", barcode);
+            console.log("🔍 [BARCODE] Otevírám vyhledávání s kódem:", barcode);
 
             // 1. Otevřeme vyhledávací modal
             const searchModal = document.getElementById('searchModal');
+            console.log("🔍 [BARCODE] searchModal nalezen:", !!searchModal);
+            
             if (searchModal) {
                 searchModal.style.display = 'flex';
+                console.log("🔍 [BARCODE] searchModal.style.display nastaveno na 'flex'");
+            } else {
+                console.error("🔍 [BARCODE] ❌ searchModal NENALEZEN!");
+                return;
             }
 
             // 2. Vyplníme kód do vyhledávacího pole
             const searchInput = document.getElementById('searchModalQuery');
+            console.log("🔍 [BARCODE] searchInput nalezen:", !!searchInput);
+            
             if (searchInput) {
                 searchInput.value = barcode;
+                console.log("🔍 [BARCODE] searchInput.value nastaveno na:", searchInput.value);
                 // ODSTRANĚNO: searchInput.focus() - nezobrazovat klávesnici
 
                 // 3. OKAMŽITĚ SPUSTÍME VYHLEDÁVÁNÍ
+                console.log("🔍 [BARCODE] Spouštím setTimeout pro performBarcodeSearch...");
                 setTimeout(() => {
+                    console.log("🔍 [BARCODE] Volám performBarcodeSearch");
                     performBarcodeSearch(barcode);
                 }, 300);
+            } else {
+                console.error("🔍 [BARCODE] ❌ searchInput NENALEZEN!");
             }
         }
 
