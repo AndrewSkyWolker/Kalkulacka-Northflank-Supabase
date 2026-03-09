@@ -7238,36 +7238,43 @@
 
         // NOVÁ FUNKCE PRO OTEVRENÍ VYHLEDÁVÁNÍ S KÓDEM
         function openSearchWithBarcode(barcode) {
-            console.log("🔍 [v0.2.6.5] Otevírám vyhledávání s kódem:", barcode);
+            console.log("🔍 [v0.2.6.6] Otevírám vyhledávání s kódem:", barcode);
+            
+            // DEBUG ALERT pro iPhone
+            alert("KROK 1: Funkce openSearchWithBarcode volaná s kódem: " + barcode);
 
             // 1. Otevřeme vyhledávací modal
             const searchModal = document.getElementById('searchModal');
-            console.log("🔍 [v0.2.6.5] searchModal nalezen:", !!searchModal);
             
-            if (searchModal) {
-                searchModal.style.display = 'flex';
-                console.log("🔍 [v0.2.6.5] searchModal.style.display =", searchModal.style.display);
-            } else {
-                console.error("🔍 [v0.2.6.5] ❌ searchModal NENALEZEN!");
+            if (!searchModal) {
+                alert("CHYBA: searchModal nenalezen!");
+                return;
             }
+            
+            alert("KROK 2: searchModal nalezen, nastavuji display=flex");
+            searchModal.style.display = 'flex';
+            
+            // Kontrola po 100ms
+            setTimeout(() => {
+                alert("KROK 3: searchModal.style.display = " + searchModal.style.display);
+            }, 100);
 
             // 2. Vyplníme kód do vyhledávacího pole
             const searchInput = document.getElementById('searchModalQuery');
-            console.log("🔍 [v0.2.6.5] searchInput nalezen:", !!searchInput);
             
-            if (searchInput) {
-                searchInput.value = barcode;
-                console.log("🔍 [v0.2.6.5] searchInput.value =", searchInput.value);
-                // ODSTRANĚNO v0.2.6.0: searchInput.focus() - aby se nezobrazovala klávesnice
-
-                // 3. OKAMŽITĚ SPUSTÍME VYHLEDÁVÁNÍ
-                setTimeout(() => {
-                    console.log("🔍 [v0.2.6.5] Volám performBarcodeSearch");
-                    performBarcodeSearch(barcode);
-                }, 300);
-            } else {
-                console.error("🔍 [v0.2.6.5] ❌ searchInput NENALEZEN!");
+            if (!searchInput) {
+                alert("CHYBA: searchInput nenalezen!");
+                return;
             }
+            
+            searchInput.value = barcode;
+            alert("KROK 4: Kód vyplněn do pole: " + searchInput.value);
+
+            // 3. OKAMŽITĚ SPUSTÍME VYHLEDÁVÁNÍ
+            setTimeout(() => {
+                alert("KROK 5: Spouštím performBarcodeSearch");
+                performBarcodeSearch(barcode);
+            }, 300);
         }
 
         // FUNKCE PRO SPUŠTĚNÍ VYHLEDÁVÁNÍ
@@ -7716,7 +7723,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.6.5 - FIX FLASH VARIABLE + DEBUG SEARCH");
+            console.log("🚀 Aplikace verze: 0.2.6.6 - DEBUG WITH ALERTS FOR IPHONE");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
