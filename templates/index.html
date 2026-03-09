@@ -7169,10 +7169,46 @@
                     window.quaggaInitialized = true;
                     Quagga.start();
 
+                    // FILTRACE S VYŠŠÍ PŘESNOSTÍ
+                    let lastCode = '';
+                    let codeCount = 0;
+                    const REQUIRED_DETECTIONS = 3; // Musí být detekován 3x po sobě
+
                     Quagga.onDetected(function (result) {
                         if (result && result.codeResult && result.codeResult.code) {
-                            console.log('📷 Quagga detekovala kód:', result.codeResult.code);
-                            handleBarcodeDetected(result.codeResult.code, result);
+                            const code = result.codeResult.code;
+                            const confidence = result.codeResult.confidence || 0;
+                            
+                            console.log('📷 Quagga detekovala:', code, 'confidence:', confidence.toFixed(2));
+                            
+                            // FILTR 1: Minimální confidence
+                            if (confidence < 0.65) {
+                                console.log('  ⚠️ Nízká confidence, ignoruji');
+                                return;
+                            }
+                            
+                            // FILTR 2: Validace EAN
+                            if (!isValidEAN(code)) {
+                                console.log('  ❌ Neplatný EAN checksum, ignoruji');
+                                return;
+                            }
+                            
+                            // FILTR 3: Stabilita - stejný kód musí být detekován vícekrát
+                            if (code === lastCode) {
+                                codeCount++;
+                                console.log(`  ✓ Shoda ${codeCount}/${REQUIRED_DETECTIONS}`);
+                                
+                                if (codeCount >= REQUIRED_DETECTIONS) {
+                                    console.log('  ✅ Stabilní detekce - používám kód');
+                                    handleBarcodeDetected(code, result);
+                                    lastCode = '';
+                                    codeCount = 0;
+                                }
+                            } else {
+                                lastCode = code;
+                                codeCount = 1;
+                                console.log('  🔄 Nový kód, čekám na potvrzení...');
+                            }
                         }
                     });
                 });
@@ -7418,6 +7454,22 @@
                 barcodeScanningActive = true;
                 console.log("✅ Kamera úspěšně spuštěna");
                 
+                // KONTROLA PODPORY BLESKU (torch)
+                const videoTrack = barcodeStream.getVideoTracks()[0];
+                if (videoTrack) {
+                    const capabilities = videoTrack.getCapabilities();
+                    if (capabilities && capabilities.torch) {
+                        console.log("💡 Zařízení podporuje blesk - zobrazuji tlačítko");
+                        const flashButton = document.getElementById('toggleFlashButton');
+                        if (flashButton) {
+                            flashButton.style.display = 'inline-block';
+                            flashButton.onclick = toggleFlash;
+                        }
+                    } else {
+                        console.log("⚠️ Zařízení nepodporuje blesk");
+                    }
+                }
+                
                 // POZNÁMKA: Povolení kamery si prohlížeč pamatuje sám
                 // localStorage zde nefunguje kvůli bezpečnostním omezením prohlížeče
 
@@ -7565,6 +7617,15 @@
             if (modal) {
                 modal.style.display = 'none';
             }
+            
+            // Skryjeme tlačítko blesku
+            const flashButton = document.getElementById('toggleFlashButton');
+            if (flashButton) {
+                flashButton.style.display = 'none';
+            }
+            
+            // Reset blesku
+            barcodeFlashEnabled = false;
             
             // EXTRA cleanup s malým zpožděním (aby se vypnul indikátor kamery)
             setTimeout(() => {
@@ -7761,7 +7822,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.5.6 - ADD QUAGGA FOR PC");
+            console.log("🚀 Aplikace verze: 0.2.5.7 - STABLE DETECTION + FLASH BUTTON");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
