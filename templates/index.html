@@ -6698,12 +6698,19 @@
                 }
             }
 
-            // 2. POKUD MODERNÍ API NEFUNGUJE, POUŽIJEME ZRCADLOVÝ NÁHLED
-            status.innerHTML = `
-                    📱 <strong>Automatické skenování</strong><br>
-                        <small>Namířejte kód do zeleného rámečku. Kód se zobrazí v náhledu.</small>
-                        `;
-            startMirrorPreviewDetection(video, status);
+            // 2. POKUD MODERNÍ API NEFUNGUJE, POUŽIJEME QUAGGA (pro PC)
+            console.log("📷 PC detekováno - spouštím Quagga");
+            if (typeof Quagga !== 'undefined') {
+                initializeQuaggaForPC(video, status);
+            } else {
+                // 3. POKUD ANI QUAGGA NENÍ K DISPOZICI, POUŽIJEME ZRCADLOVÝ NÁHLED
+                console.log("⚠️ Quagga není dostupná - používám mirror preview");
+                status.innerHTML = `
+                        📱 <strong>Automatické skenování</strong><br>
+                            <small>Namířejte kód do zeleného rámečku. Kód se zobrazí v náhledu.</small>
+                            `;
+                startMirrorPreviewDetection(video, status);
+            }
         }
 
         // MODERNÍ DETEKCE PRO ANDROID/NOVÁ ZAŘÍZENÍ
@@ -7114,6 +7121,64 @@
                 document.head.appendChild(script);
             } else {
                 initializeQuaggaForIPhone(video, status);
+            }
+        }
+
+        // INICIALIZACE QUAGGA PRO PC
+        function initializeQuaggaForPC(video, status) {
+            status.innerHTML = '🔍 <strong>Spouštím skenování...</strong>';
+            console.log("🚀 Inicializuji Quagga pro PC");
+
+            try {
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: video,
+                        constraints: {
+                            facingMode: "environment",
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        }
+                    },
+                    decoder: {
+                        readers: [
+                            "ean_reader",
+                            "ean_8_reader",
+                            "upc_reader",
+                            "upc_e_reader",
+                            "code_128_reader"
+                        ],
+                        multiple: false
+                    },
+                    locator: {
+                        patchSize: "medium",
+                        halfSample: true
+                    },
+                    locate: true,
+                    frequency: 10,
+                    numOfWorkers: 2
+                }, function (err) {
+                    if (err) {
+                        console.error('❌ Quagga chyba:', err);
+                        status.innerHTML = '❌ <strong>Skenování selhalo</strong>';
+                        return;
+                    }
+
+                    console.log('✅ Quagga úspěšně inicializována pro PC');
+                    window.quaggaInitialized = true;
+                    Quagga.start();
+
+                    Quagga.onDetected(function (result) {
+                        if (result && result.codeResult && result.codeResult.code) {
+                            console.log('📷 Quagga detekovala kód:', result.codeResult.code);
+                            handleBarcodeDetected(result.codeResult.code, result);
+                        }
+                    });
+                });
+            } catch (error) {
+                console.error('❌ Výjimka při inicializaci Quaggy:', error);
+                status.innerHTML = '❌ <strong>Chyba inicializace</strong>';
             }
         }
 
@@ -7696,7 +7761,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.5.5 - FIX QUAGGA FLAG SCOPE");
+            console.log("🚀 Aplikace verze: 0.2.5.6 - ADD QUAGGA FOR PC");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
