@@ -7354,27 +7354,43 @@
 
         // NOVÁ FUNKCE PRO OTEVRENÍ VYHLEDÁVÁNÍ S KÓDEM
         function openSearchWithBarcode(barcode) {
-            console.log("🔍 Otevírám vyhledávání s kódem:", barcode);
+            console.log("🔍 [v0.2.5.8] Otevírám vyhledávání s kódem:", barcode);
             
-            // ZAVŘEME CELÝ SKENÉR (důkladně zastaví kameru)
-            closeBarcodeScanner();
+            // NEBUDEME VOLAT closeBarcodeScanner() - už bylo zavoláno před touto funkcí
 
             // 1. Otevřeme vyhledávací modal
             const searchModal = document.getElementById('searchModal');
+            console.log("🔍 [v0.2.5.8] searchModal element:", searchModal);
+            console.log("🔍 [v0.2.5.8] searchModal current display:", searchModal ? searchModal.style.display : 'NOT FOUND');
+            
             if (searchModal) {
                 searchModal.style.display = 'flex';
+                console.log("🔍 [v0.2.5.8] ✅ searchModal.style.display nastaveno na 'flex'");
+                
+                // Debug - zkontrolujeme po 100ms jestli je modal stále zobrazený
+                setTimeout(() => {
+                    console.log("🔍 [v0.2.5.8] DEBUG (100ms): searchModal.style.display =", searchModal.style.display);
+                }, 100);
+            } else {
+                console.error("🔍 [v0.2.5.8] ❌ searchModal element NENALEZEN!");
             }
 
             // 2. Vyplníme kód do vyhledávacího pole
             const searchInput = document.getElementById('searchModalQuery');
+            console.log("🔍 [v0.2.5.8] searchInput element:", searchInput);
+            
             if (searchInput) {
                 searchInput.value = barcode;
+                console.log("🔍 [v0.2.5.8] ✅ searchInput.value nastaveno na:", barcode);
                 // ODSTRANĚNO: searchInput.focus() - nechceme zobrazit klávesnici
 
                 // 3. OKAMŽITĚ SPUSTÍME VYHLEDÁVÁNÍ
                 setTimeout(() => {
+                    console.log("🔍 [v0.2.5.8] Spouštím performBarcodeSearch...");
                     performBarcodeSearch(barcode);
                 }, 300);
+            } else {
+                console.error("🔍 [v0.2.5.8] ❌ searchInput element NENALEZEN!");
             }
         }
 
@@ -7822,7 +7838,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.5.7 - STABLE DETECTION + FLASH BUTTON");
+            console.log("🚀 Aplikace verze: 0.2.5.8 - DEBUG SEARCH MODAL OPENING");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
