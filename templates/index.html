@@ -1235,6 +1235,7 @@
         let currentFacingMode = 'environment';
         let barcodeScannerActive = false;
         let barcodeDetectionInterval = null;
+        let barcodeFlashEnabled = false; // Pro ovládání blesku (v0.2.6.5)
 
         // =============================================
         // DENNÍ PŘÍJEM - PROMĚNNÉ A KONFIGURACE
@@ -7237,24 +7238,35 @@
 
         // NOVÁ FUNKCE PRO OTEVRENÍ VYHLEDÁVÁNÍ S KÓDEM
         function openSearchWithBarcode(barcode) {
-            console.log("🔍 Otevírám vyhledávání s kódem:", barcode);
+            console.log("🔍 [v0.2.6.5] Otevírám vyhledávání s kódem:", barcode);
 
             // 1. Otevřeme vyhledávací modal
             const searchModal = document.getElementById('searchModal');
+            console.log("🔍 [v0.2.6.5] searchModal nalezen:", !!searchModal);
+            
             if (searchModal) {
                 searchModal.style.display = 'flex';
+                console.log("🔍 [v0.2.6.5] searchModal.style.display =", searchModal.style.display);
+            } else {
+                console.error("🔍 [v0.2.6.5] ❌ searchModal NENALEZEN!");
             }
 
             // 2. Vyplníme kód do vyhledávacího pole
             const searchInput = document.getElementById('searchModalQuery');
+            console.log("🔍 [v0.2.6.5] searchInput nalezen:", !!searchInput);
+            
             if (searchInput) {
                 searchInput.value = barcode;
-                searchInput.focus(); // Kurzor do pole
+                console.log("🔍 [v0.2.6.5] searchInput.value =", searchInput.value);
+                // ODSTRANĚNO v0.2.6.0: searchInput.focus() - aby se nezobrazovala klávesnice
 
                 // 3. OKAMŽITĚ SPUSTÍME VYHLEDÁVÁNÍ
                 setTimeout(() => {
+                    console.log("🔍 [v0.2.6.5] Volám performBarcodeSearch");
                     performBarcodeSearch(barcode);
                 }, 300);
+            } else {
+                console.error("🔍 [v0.2.6.5] ❌ searchInput NENALEZEN!");
             }
         }
 
@@ -7704,7 +7716,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.6.4 - FIX DUPLICATE TOGGLEFLASH");
+            console.log("🚀 Aplikace verze: 0.2.6.5 - FIX FLASH VARIABLE + DEBUG SEARCH");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
