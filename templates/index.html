@@ -1006,7 +1006,7 @@
             <!-- OVLÁDACÍ TLAČÍTKA -->
             <div class="barcode-controls">
                 <!-- Tlačítko Otočit kameru odstraněno v0.2.6.2 - vždy zadní kamera -->
-                <button id="toggleFlashButton" class="btn-small" style="display:none;">⚡ Blesk</button>
+                <button id="toggleFlashButton" class="btn-small" style="display:none;">⚡ Zapnout blesk</button>
             </div>
 
             <!-- STAV SKENOVÁNÍ -->
@@ -6597,6 +6597,13 @@
 
             // Přepínání kamery ODSTRANĚNO v0.2.6.2 - vždy zadní kamera
             // document.getElementById('toggleCameraButton').addEventListener('click', toggleCamera);
+            
+            // Tlačítko blesku (v0.2.6.3)
+            const flashButton = document.getElementById('toggleFlashButton');
+            if (flashButton) {
+                flashButton.addEventListener('click', toggleFlash);
+                console.log("✅ Event listener pro blesk přidán");
+            }
 
             // Ruční zadání
             document.getElementById('submitManualBarcode').addEventListener('click', submitManualBarcode);
@@ -6776,12 +6783,8 @@
             // Detekce zařízení
             const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
 
-            if (isIPhone) {
-                status.innerHTML = '📱 <strong>Připravuji skenování pro iPhone</strong>';
-            } else {
-                status.textContent = 'Inicializuji kameru...';
-            }
-
+            // Popisky odstraněny v0.2.6.3 - rovnou se spustí skenování
+            
             try {
                 const video = document.createElement('video');
                 video.id = 'barcodeVideo';
@@ -6791,17 +6794,8 @@
                 const overlay = document.createElement('div');
                 overlay.className = 'barcode-overlay';
 
-                if (isIPhone) {
-                    /*   overlay.innerHTML = `
-                           <div style="text-align: center; color: white;">
-                               <div style="font-size: 24px; margin-bottom: 10px;">📱</div>
-                               <div><strong>iPhone Skenování</strong></div>
-                               <div style="font-size: 12px; margin-top: 5px;">Optimalizováno pro iOS</div>
-                           </div>
-                       `;*/
-                } else {
-                    overlay.innerHTML = '📷 Připravuji skenování...';
-                }
+                // Overlay bude prázdný, text se přidá po startu kamery
+                overlay.innerHTML = '';
 
                 container.innerHTML = '';
                 container.appendChild(video);
@@ -7339,6 +7333,25 @@
 
                 barcodeScanningActive = true;
                 console.log("✅ Kamera úspěšně spuštěna");
+                
+                // DETEKCE PODPORY BLESKU (v0.2.6.3)
+                const videoTrack = barcodeStream.getVideoTracks()[0];
+                if (videoTrack) {
+                    const capabilities = videoTrack.getCapabilities();
+                    const flashButton = document.getElementById('toggleFlashButton');
+                    
+                    if (capabilities.torch) {
+                        console.log("💡 Zařízení podporuje blesk - zobrazuji tlačítko");
+                        if (flashButton) {
+                            flashButton.style.display = 'inline-block';
+                        }
+                    } else {
+                        console.log("⚠️ Zařízení nepodporuje blesk");
+                        if (flashButton) {
+                            flashButton.style.display = 'none';
+                        }
+                    }
+                }
 
             } catch (error) {
                 console.error("❌ Chyba při spouštění kamery:", error);
@@ -7451,6 +7464,48 @@
         }
 
         // ZAVŘENÍ SKENÉRU
+        // OVLÁDÁNÍ BLESKU (SVÍTILNY) - v0.2.6.3
+        async function toggleFlash() {
+            if (!barcodeStream) {
+                console.log("⚠️ Kamera není spuštěná");
+                return;
+            }
+            
+            const videoTrack = barcodeStream.getVideoTracks()[0];
+            if (!videoTrack) {
+                console.log("⚠️ Video track nenalezen");
+                return;
+            }
+
+            try {
+                const capabilities = videoTrack.getCapabilities();
+                
+                if (!capabilities.torch) {
+                    console.log("⚠️ Zařízení nepodporuje blesk");
+                    return;
+                }
+                
+                // Přepneme stav blesku
+                const newState = !barcodeFlashEnabled;
+                
+                await videoTrack.applyConstraints({
+                    advanced: [{ torch: newState }]
+                });
+                
+                barcodeFlashEnabled = newState;
+                console.log("💡 Blesk:", barcodeFlashEnabled ? "ZAPNUT" : "VYPNUT");
+                
+                // Aktualizace textu tlačítka
+                const button = document.getElementById('toggleFlashButton');
+                if (button) {
+                    button.textContent = barcodeFlashEnabled ? '💡 Vypnout blesk' : '⚡ Zapnout blesk';
+                }
+                
+            } catch (error) {
+                console.error("❌ Chyba při ovládání blesku:", error);
+            }
+        }
+
         function closeBarcodeScanner() {
             console.log("🔴 Zavírám skenér");
             barcodeScanningActive = false;
@@ -7474,6 +7529,14 @@
             const modal = document.getElementById('barcodeModal');
             if (modal) {
                 modal.style.display = 'none';
+            }
+            
+            // Reset blesku (v0.2.6.3)
+            barcodeFlashEnabled = false;
+            const flashButton = document.getElementById('toggleFlashButton');
+            if (flashButton) {
+                flashButton.style.display = 'none';
+                flashButton.textContent = '⚡ Zapnout blesk';
             }
         }
 
@@ -7660,7 +7723,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.6.2 - ALWAYS REAR CAMERA + TEXT IN OVERLAY");
+            console.log("🚀 Aplikace verze: 0.2.6.3 - FLASHLIGHT + NO IPHONE LABEL");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
