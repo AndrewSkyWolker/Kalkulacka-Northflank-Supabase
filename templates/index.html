@@ -1,4 +1,4 @@
-console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG ALERTS");
+<!DOCTYPE html>
 <html lang="cs">
 <!-- VERSION 24 - DEBUG + REFACTORED SAVING - REFRESH REQUIRED -->
 <head>
@@ -1005,12 +1005,12 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
 
             <!-- OVLÁDACÍ TLAČÍTKA -->
             <div class="barcode-controls">
-                <!-- Tlačítko "Otočit kameru" odstraněno - vždy použijeme zadní kameru -->
+                <!-- Tlačítko pro otočení kamery odstraněno - vždy používáme zadní kameru -->
                 <button id="toggleFlashButton" class="btn-small" style="display:none;">⚡ Blesk</button>
             </div>
 
-            <!-- STAV SKENOVÁNÍ -->
-            <div id="barcodeStatus" class="barcode-status">Klikněte pro spuštění kamery</div>
+            <!-- STAV SKENOVÁNÍ - TEXT SE ZOBRAZÍ V ZELENÉM OBDÉLNÍKU -->
+            <div id="barcodeStatus" class="barcode-status" style="display:none;">Klikněte pro spuštění kamery</div>
 
             <!-- NÁHRADNÍ ŘEŠENÍ -->
             <div class="barcode-fallback">
@@ -1366,7 +1366,7 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
             console.log("🔍 Otevírám vyhledávací modal");
             document.getElementById('searchModal').style.display = 'flex';
             document.getElementById('searchModalQuery').value = '';
-            // ODSTRANĚNO: document.getElementById('searchModalQuery').focus();
+            // ODSTRANĚNO: .focus() - nezobrazovat klávesnici
             document.getElementById('searchModalResults').innerHTML = '';
             document.getElementById('searchModalError').style.display = 'none';
         }
@@ -5116,14 +5116,12 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
         async function showRecipeDetailsModal(recipeId, recipeName) {
             console.log("🔍 showRecipeDetailsModal volána pro:", recipeName, "ID:", recipeId);
             
-            // KONTROLA: Byl tento modal otevřen z denního příjmu?
-            // Možná už je fromMeal nastavený z předchozího volání
+            // VYPNEME přepínač pro normální recepty
+            // (showRecipeDetailsModalFromMeal ho zapne PŘED voláním této funkce)
             const wasSetJustNow = window.shouldShowCreateRecipeButton === true;
-            const alreadyFromMeal = window.recipeDetailFromMeal !== undefined;
             
-            if (!wasSetJustNow && !alreadyFromMeal) {
+            if (!wasSetJustNow) {
                 console.log("🔄 Mažu příznak fromMeal - normální recept");
-                console.trace("📍 STACK TRACE - mazání v showRecipeDetailsModal");
                 window.recipeDetailFromMeal = undefined;
                 window.shouldShowCreateRecipeButton = false;
             } else {
@@ -5672,9 +5670,6 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
         
         // OPTIMALIZOVANÁ FUNKCE - řídí všechna tlačítka v detailu receptu
         function updateRecipeDetailButtons(recipeId, recipeName) {
-            console.log("🔘 updateRecipeDetailButtons START");
-            console.log("   - window.recipeDetailFromMeal:", window.recipeDetailFromMeal);
-            console.log("   - window.shouldShowCreateRecipeButton:", window.shouldShowCreateRecipeButton);
             console.log("🔘 updateRecipeDetailButtons:", {recipeId, hasChanges: window.recipeHasUnsavedChanges});
             
             const addMealBtn = document.getElementById('addRecipeAsMealBtn');
@@ -5700,19 +5695,7 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
                     saveBtn.className = 'btn-primary';
                     saveBtn.style.backgroundColor = '#28a745';
                     saveBtn.textContent = '✓ Uložit změny';
-                    saveBtn.onclick = async () => {
-                        console.log("🔘 KLIK NA ULOŽIT");
-                        console.log("   - PŘED voláním save:");
-                        console.log("     * window.recipeDetailFromMeal:", window.recipeDetailFromMeal);
-                        console.log("     * window.shouldShowCreateRecipeButton:", window.shouldShowCreateRecipeButton);
-                        console.trace("📍 STACK TRACE - klik na Uložit");
-                        
-                        console.log("   - VOLÁME saveRecipeChangesToDB s recipeId:", recipeId);
-                        await saveRecipeChangesToDB(recipeId);
-                        
-                        console.log("   - PO volání save:");
-                        console.log("     * window.recipeDetailFromMeal:", window.recipeDetailFromMeal);
-                    };
+                    saveBtn.onclick = async () => await saveRecipeChangesToDB(recipeId);
                     
                     const saveAsBtn = document.createElement('button');
                     saveAsBtn.id = 'saveRecipeAsInDetailBtn';
@@ -5758,21 +5741,35 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
                 return;
             }
             
-            // UCHOVÁME PŘÍZNAK HNED NA ZAČÁTKU (předtím než cokoliv jiného!)
-            const isFromMeal = window.recipeDetailFromMeal !== undefined;
-            const mealData = isFromMeal ? {...window.recipeDetailFromMeal} : null;
-            
-            console.log("💾 ZAČÁTEK saveRecipeChangesToDB - isFromMeal:", isFromMeal, "mealData:", mealData);
-            
             const cache = window.recipeEditCache[recipeId];
+            const isFromMeal = window.recipeDetailFromMeal !== undefined;
+            const mealData = window.recipeDetailFromMeal; // UCHOVÁME DATA!
             
             console.log("💾 Ukládám změny do DB:", cache, "isFromMeal:", isFromMeal);
+            
+            // OKAMŽITĚ zavřeme detail receptu
+            document.getElementById('recipeDetailModal').style.display = 'none';
+            
+            // ROZHODNUTÍ: Co zobrazit po zavření?
+            if (isFromMeal) {
+                // Editace z jídla → zobrazíme hlavní stránku (denní příjem)
+                console.log("🏠 Zavírám editaci jídla → zobrazuji hlavní stránku");
+                showDailyIntakeAsMainContent();
+                
+                // Skryjeme všechna ostatní okna
+                document.getElementById('selectRecipeModal').style.display = 'none';
+                document.getElementById('saveAsModal').style.display = 'none';
+                const foodModal = document.querySelector('[id*="foodModal"], [id*="foodDetailModal"]');
+                if (foodModal) foodModal.style.display = 'none';
+            } else {
+                // Běžný recept → zobrazíme seznam receptů
+                document.getElementById('selectRecipeModal').style.display = 'flex';
+            }
             
             try {
                 if (isFromMeal) {
                     // ULOŽIT DO DENNÍHO PŘÍJMU
                     await saveMealChangesToDailyIntake(mealData, cache);
-                    await loadDailyIntakeData(currentDailyIntakeDate);
                 } else {
                     // BĚŽNÝ RECEPT - uložit do recipes
                     const { data: recipeData, error: fetchError } = await window.supabaseClient
@@ -5822,24 +5819,22 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
                 // Zobrazíme potvrzení
                 window.showCustomNotification('Změny uloženy!', 'itemEditSuccess');
                 
-                // ZAVŘEME PODLE TYPU (přímo, bez .click())
-                console.log("✅ Uloženo → zavírám podle typu, isFromMeal:", isFromMeal);
+                // Pokud je z jídla, přenačteme denní příjem
+                if (isFromMeal) {
+                    await loadDailyIntakeData(currentDailyIntakeDate);
+                    // UJISTÍME SE že je skrytý seznam receptů
+                    document.getElementById('selectRecipeModal').style.display = 'none';
+                }
                 
-                // Vyčistíme příznaky
+                // NA KONCI vyčistíme příznaky
                 window.recipeDetailFromMeal = undefined;
                 window.shouldShowCreateRecipeButton = false;
                 
-                // Zavřeme modal
-                document.getElementById('recipeDetailModal').style.display = 'none';
-                
-                // Zobrazíme správnou stránku
-                if (isFromMeal) {
-                    console.log("🏠 Editace z jídla → hlavní stránka");
-                    showDailyIntakeAsMainContent();
-                    document.getElementById('selectRecipeModal').style.display = 'none';
-                } else {
-                    console.log("📋 Běžný recept → seznam receptů");
-                    document.getElementById('selectRecipeModal').style.display = 'flex';
+                // OBNOVÍME PŮVODNÍ TEXT TLAČÍTEK
+                const addMealBtn = document.getElementById('addRecipeAsMealBtn');
+                if (addMealBtn && addMealBtn.innerHTML.includes('Vytvořit recept')) {
+                    addMealBtn.innerHTML = '🍽️ Přidat jako jídlo';
+                    addMealBtn.onclick = null;
                 }
                 
             } catch (error) {
@@ -6079,9 +6074,9 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
                     e.stopPropagation();
                     console.log("❌ Kliknuto na zavírací křížek editace");
                     
-                    // NEBUDEME mazat příznak - nechť se maže až při zavření HLAVNÍHO modalu!
-                    // window.recipeDetailFromMeal = undefined;  ← ODSTRANĚNO!
-                    console.log("🧹 Zavírám editaci ingredience (NEMAZEME fromMeal příznak)");
+                    // Vyčistíme příznak fromMeal
+                    window.recipeDetailFromMeal = undefined;
+                    console.log("🧹 Vyčištěn příznak fromMeal při zavření editace položky");
                     
                     // Prostě zavřeme modal editace bez dialogu
                     // (dialog je jen pro zavření DETAILU receptu, ne editace)
@@ -6598,13 +6593,10 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
             // Přepínání kamery ODSTRANĚNO - vždy používáme zadní kameru
             // document.getElementById('toggleCameraButton').addEventListener('click', toggleCamera);
             
-            // TLAČÍTKO BLESKU
-            const toggleFlashBtn = document.getElementById('toggleFlashButton');
-            if (toggleFlashBtn) {
-                toggleFlashBtn.addEventListener('click', toggleFlash);
-                console.log("✅ Event listener pro blesk přidán");
-            } else {
-                console.error("❌ toggleFlashButton nenalezeno!");
+            // Tlačítko blesku
+            const flashBtn = document.getElementById('toggleFlashButton');
+            if (flashBtn) {
+                flashBtn.addEventListener('click', toggleFlash);
             }
 
             // Ruční zadání
@@ -6817,25 +6809,19 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
 
                 await startCamera(video);
 
-                // AUTOMATICKY SPUSTÍME SKENOVÁNÍ hned po startu kamery!
                 if (isIPhone) {
                     status.innerHTML = `
                         ✅ <strong>iPhone kamera připravena</strong><br>
-                        <small>Skenování spuštěno automaticky...</small>
+                        <small>Klikněte na "Skenovat (iPhone)"</small>
                     `;
-                    // Spustíme iPhone skenování
-                    startIPhoneBarcodeDetection();
                 } else {
                     status.innerHTML = `
                         ✅ <strong>Kamera připravena</strong><br>
-                        <small>Skenování spuštěno automaticky...</small>
+                        <small>Klikněte na "Skenovat"</small>
                     `;
-                    // Spustíme běžné skenování
-                    startBarcodeDetection();
                 }
 
-                // NEPŘIDÁVÁME tlačítko - skenování běží automaticky!
-                // addBarcodeActionButton(); ← ODSTRANĚNO!
+                addBarcodeActionButton();
 
             } catch (error) {
                 console.error("❌ Chyba:", error);
@@ -7239,22 +7225,6 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
             // Zvukový feedback
             playIPhoneDetectionSound();
 
-            // VYPNOUT BLESK POKUD BYL ZAPNUTÝ
-            if (barcodeFlashEnabled && barcodeStream) {
-                const videoTrack = barcodeStream.getVideoTracks()[0];
-                if (videoTrack) {
-                    try {
-                        videoTrack.applyConstraints({
-                            advanced: [{ torch: false }]
-                        });
-                        barcodeFlashEnabled = false;
-                        console.log("💡 Blesk vypnut po detekci");
-                    } catch (error) {
-                        console.log("⚠️ Nepodařilo se vypnout blesk:", error);
-                    }
-                }
-            }
-
             // Zastavíme skenování
             if (typeof Quagga !== 'undefined' && Quagga) {
                 Quagga.stop();
@@ -7270,48 +7240,24 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
 
         // NOVÁ FUNKCE PRO OTEVRENÍ VYHLEDÁVÁNÍ S KÓDEM
         function openSearchWithBarcode(barcode) {
-            console.log("🔍 [BARCODE] Otevírám vyhledávání s kódem:", barcode);
+            console.log("🔍 Otevírám vyhledávání s kódem:", barcode);
 
             // 1. Otevřeme vyhledávací modal
             const searchModal = document.getElementById('searchModal');
-            console.log("🔍 [BARCODE] searchModal nalezen:", !!searchModal);
-            
             if (searchModal) {
                 searchModal.style.display = 'flex';
-                console.log("🔍 [BARCODE] searchModal.style.display nastaveno na 'flex'");
-                
-                // DEBUG: Zkontrolujeme po 500ms jestli je modal viditelný
-                setTimeout(() => {
-                    const isVisible = searchModal.style.display === 'flex';
-                    console.log("🔍 [BARCODE] Modal viditelný po 500ms:", isVisible);
-                    if (!isVisible) {
-                        alert("DEBUG: Search modal není viditelný! display=" + searchModal.style.display);
-                    }
-                }, 500);
-            } else {
-                console.error("🔍 [BARCODE] ❌ searchModal NENALEZEN!");
-                alert("CHYBA: searchModal element nenalezen!");
-                return;
             }
 
             // 2. Vyplníme kód do vyhledávacího pole
             const searchInput = document.getElementById('searchModalQuery');
-            console.log("🔍 [BARCODE] searchInput nalezen:", !!searchInput);
-            
             if (searchInput) {
                 searchInput.value = barcode;
-                console.log("🔍 [BARCODE] searchInput.value nastaveno na:", searchInput.value);
-                // ODSTRANĚNO: searchInput.focus() - nezobrazovat klávesnici
+                searchInput.focus(); // Kurzor do pole
 
                 // 3. OKAMŽITĚ SPUSTÍME VYHLEDÁVÁNÍ
-                console.log("🔍 [BARCODE] Spouštím setTimeout pro performBarcodeSearch...");
                 setTimeout(() => {
-                    console.log("🔍 [BARCODE] Volám performBarcodeSearch");
                     performBarcodeSearch(barcode);
                 }, 300);
-            } else {
-                console.error("🔍 [BARCODE] ❌ searchInput NENALEZEN!");
-                alert("CHYBA: searchInput element nenalezen!");
             }
         }
 
@@ -7367,10 +7313,10 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
                     barcodeStream.getTracks().forEach(track => track.stop());
                 }
 
-                // Získání přístupu ke kameře
+                // Získání přístupu ke kameře - VŽ DY ZADNÍ KAMERA
                 const constraints = {
                     video: {
-                        facingMode: currentFacingMode,
+                        facingMode: 'environment', // Vždy zadní kamera
                         width: { ideal: 1280 },
                         height: { ideal: 720 }
                     },
@@ -7390,16 +7336,15 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
 
                 barcodeScanningActive = true;
                 console.log("✅ Kamera úspěšně spuštěna");
-
+                
                 // DETEKCE TORCH (BLESK)
                 const videoTrack = barcodeStream.getVideoTracks()[0];
                 if (videoTrack) {
                     const capabilities = videoTrack.getCapabilities();
-                    console.log("📷 Video track capabilities:", capabilities);
-                    
                     const flashButton = document.getElementById('toggleFlashButton');
+                    
                     if (capabilities.torch) {
-                        console.log("💡 Zařízení podporuje blesk - zobrazuji tlačítko");
+                        console.log("💡 Zařízení podporuje blesk");
                         if (flashButton) {
                             flashButton.style.display = 'inline-block';
                         }
@@ -7475,49 +7420,37 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
         }
 
         // PŘEPÍNÁNÍ KAMERY
-        // Funkce toggleCamera ODSTRANĚNA - vždy používáme zadní kameru (environment)
+        async function toggleCamera() {
+            if (!barcodeScanningActive) return;
+
+            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+
+            const status = document.getElementById('barcodeStatus');
+            status.textContent = '🔄 Přepínám kameru...';
+
+            const video = document.getElementById('barcodeVideo');
+            if (video) {
+                await startCamera(video);
+                status.textContent = '✅ Kamera připravena - namiřte na čárový kód';
+            }
+        }
 
         async function toggleFlash() {
-            console.log("💡 toggleFlash voláno, barcodeFlashEnabled:", barcodeFlashEnabled);
-            
-            if (!barcodeStream) {
-                console.log("⚠️ Žádný stream!");
-                return;
-            }
-            
+            if (!barcodeStream) return;
             const videoTrack = barcodeStream.getVideoTracks()[0];
-            if (!videoTrack) {
-                console.log("⚠️ Žádný video track!");
-                return;
-            }
+            if (!videoTrack) return;
 
             try {
                 const capabilities = videoTrack.getCapabilities();
-                console.log("📷 Video track capabilities:", capabilities);
-                
                 if (capabilities.torch) {
-                    // Přepneme stav blesku
-                    const newTorchState = !barcodeFlashEnabled;
-                    console.log("💡 Nastavuji torch na:", newTorchState);
-                    
-                    // OPRAVA: Správný formát pro iPhone/Android
                     await videoTrack.applyConstraints({
-                        advanced: [{ torch: newTorchState }]
+                        advanced: [{ torch: !barcodeFlashEnabled }]
                     });
-                    
-                    barcodeFlashEnabled = newTorchState;
-                    console.log("✅ Blesk úspěšně změněn na:", barcodeFlashEnabled);
-                    
-                    // Aktualizace textu tlačítka
-                    const button = document.getElementById('toggleFlashButton');
-                    if (button) {
-                        button.textContent = barcodeFlashEnabled ? '⚡ Vypnout blesk' : '⚡ Blesk';
-                    }
-                } else {
-                    console.log("⚠️ Zařízení nepodporuje torch");
+                    barcodeFlashEnabled = !barcodeFlashEnabled;
+                    document.getElementById('toggleFlashButton').textContent = barcodeFlashEnabled ? 'Vypnout blesk' : 'Blesk';
                 }
             } catch (error) {
-                console.error('❌ Chyba při ovládání blesku:', error);
+                console.error('Chyba při ovládání blesku:', error);
             }
         }
 
@@ -7534,6 +7467,48 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
         }
 
         // ZAVŘENÍ SKENÉRU
+        // OVLÁDÁNÍ BLESKU
+        async function toggleFlash() {
+            if (!barcodeStream) {
+                alert("Kamera není spuštěná");
+                return;
+            }
+            
+            const videoTrack = barcodeStream.getVideoTracks()[0];
+            if (!videoTrack) {
+                alert("Video track nenalezen");
+                return;
+            }
+
+            try {
+                const capabilities = videoTrack.getCapabilities();
+                
+                if (!capabilities.torch) {
+                    alert("Toto zařízení nepodporuje blesk");
+                    return;
+                }
+                
+                // Přepneme stav
+                const newState = !barcodeFlashEnabled;
+                
+                await videoTrack.applyConstraints({
+                    advanced: [{ torch: newState }]
+                });
+                
+                barcodeFlashEnabled = newState;
+                
+                const button = document.getElementById('toggleFlashButton');
+                if (button) {
+                    button.textContent = barcodeFlashEnabled ? '⚡ Vypnout blesk' : '⚡ Blesk';
+                }
+                
+                alert(barcodeFlashEnabled ? "Blesk ZAPNUT" : "Blesk VYPNUT");
+                
+            } catch (error) {
+                alert("Chyba při ovládání blesku: " + error.message);
+            }
+        }
+
         function closeBarcodeScanner() {
             console.log("🔴 Zavírám skenér");
             barcodeScanningActive = false;
@@ -7559,16 +7534,13 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
                 modal.style.display = 'none';
             }
             
-            // Skryjeme tlačítko blesku
+            // Reset blesku
+            barcodeFlashEnabled = false;
             const flashButton = document.getElementById('toggleFlashButton');
             if (flashButton) {
                 flashButton.style.display = 'none';
+                flashButton.textContent = '⚡ Blesk';
             }
-            
-            // Reset blesku
-            barcodeFlashEnabled = false;
-            
-            console.log("✅ Skenér úplně zavřen");
         }
 
         document.getElementById('confirmCreateRecipeButton').addEventListener('click', async function () {
@@ -7754,7 +7726,7 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.5.1 - REMOVE CAMERA TOGGLE");
+            console.log("🚀 Aplikace verze: 0.2.6.0 - BACK TO WORKING v229 + FLASH + NO KEYBOARD");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
@@ -8180,11 +8152,53 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
             // Kliknutí mimo detail receptu
             document.getElementById('recipeDetailModal').addEventListener('click', function (event) {
                 if (event.target === this) {
-                    // Simuluj klik na křížek (master close handler)
-                    console.log("🖱️ Klik mimo → simuluji klik na křížek");
-                    const closeBtn = document.getElementById('closeRecipeDetailModal');
-                    if (closeBtn) {
-                        closeBtn.click();
+                    // Zkontrolujeme cache
+                    const hasUnsavedChanges = window.recipeHasUnsavedChanges && 
+                                             window.recipeEditCache && 
+                                             Object.keys(window.recipeEditCache).length > 0;
+                    
+                    if (hasUnsavedChanges) {
+                        console.log("⚠️ Existují neuložené změny (klik mimo)");
+                        
+                        window.showCustomNotification(
+                            'Opravdu chcete <strong>zahodit neuložené změny</strong>?',
+                            'confirmDiscardRecipeChanges',
+                            () => {
+                                // Ano - zahodit
+                                const wasFromMeal = window.recipeDetailFromMeal !== undefined;
+                                
+                                window.recipeEditCache = {};
+                                window.recipeHasUnsavedChanges = false;
+                                window.recipeDetailFromMeal = undefined;
+                                window.shouldShowCreateRecipeButton = false;
+                                
+                                document.getElementById('recipeDetailModal').style.display = 'none';
+                                
+                                if (wasFromMeal) {
+                                    console.log("🏠 Zahazuji změny v jídle (klik mimo) → hlavní stránka");
+                                    showDailyIntakeAsMainContent();
+                                    document.getElementById('selectRecipeModal').style.display = 'none';
+                                } else {
+                                    document.getElementById('selectRecipeModal').style.display = 'flex';
+                                }
+                            },
+                            true  // Potřebujeme potvrzení
+                        );
+                    } else {
+                        // Normální zavření
+                        const isFromMeal = window.recipeDetailFromMeal !== undefined;
+                        
+                        window.recipeDetailFromMeal = undefined;
+                        window.shouldShowCreateRecipeButton = false;
+                        document.getElementById('recipeDetailModal').style.display = 'none';
+                        
+                        if (isFromMeal) {
+                            console.log("🏠 Zavírám editaci jídla (klik mimo) → hlavní stránka");
+                            showDailyIntakeAsMainContent();
+                            document.getElementById('selectRecipeModal').style.display = 'none';
+                        } else {
+                            document.getElementById('selectRecipeModal').style.display = 'flex';
+                        }
                     }
                 }
             });
@@ -10425,10 +10439,6 @@ console.log("🚀 Aplikace verze: 0.2.5.11 - FIX FLASH EVENT LISTENER + DEBUG AL
         // Zobrazení detailu receptu Z JÍDLA (s tlačítkem "Vytvořit recept")
         async function showRecipeDetailsModalFromMeal(recipeData) {
             console.log("🔍 showRecipeDetailsModalFromMeal:", recipeData);
-            
-            // NEJDŘÍV nastavíme příznak aby showRecipeDetailsModal věděl že je to z jídla!
-            window.recipeDetailFromMeal = recipeData;
-            console.log("✅ Nastaven window.recipeDetailFromMeal před voláním showRecipeDetailsModal");
             
             // Otevřeme normální detail (použijeme existující funkci)
             await showRecipeDetailsModal(recipeData.id, recipeData.name);
