@@ -1006,7 +1006,7 @@
             <!-- OVLÁDACÍ TLAČÍTKA -->
             <div class="barcode-controls">
                 <!-- Tlačítko Otočit kameru odstraněno v0.2.6.2 - vždy zadní kamera -->
-                <button id="toggleFlashButton" class="btn-small" style="display:none;">⚡ Zapnout blesk</button>
+                <button id="toggleFlashButton" class="btn-small" style="display:none;">💡 Zapnout lampičku</button>
             </div>
 
             <!-- STAV SKENOVÁNÍ -->
@@ -7012,10 +7012,6 @@
         function handleHighConfidenceBarcode(barcode, status) {
             console.log('🎯 Vysoká spolehlivost kódu:', barcode);
 
-            status.innerHTML = `
-                                        ✅ <strong style="color: #28a745; font-size: 1.1em;">KÓD POTVRZEN!</strong><br>
-                                            <small>${barcode} - otevírám vyhledávání...</small>
-                                            `;
 
             playIPhoneDetectionSound();
             barcodeScanningActive = false;
@@ -7196,9 +7192,7 @@
                 overlay.style.transition = 'all 0.5s ease';
                 overlay.innerHTML = `
                                             <div style="text-align: center; color: white;">
-                                                <div style="font-size: 32px; margin-bottom: 10px;">✅</div>
-                                                <div><strong>ÚSPĚCH!</strong></div>
-                                                <div style="font-size: 12px; margin-top: 5px;">Kód potvrzen</div>
+                                                <div style="font-size: 48px;">✅</div>
                                             </div>
                                             `;
 
@@ -7214,11 +7208,6 @@
         function handleIPhoneDetectedBarcode(barcode, status) {
             console.log('📱 iPhone nalezen kód:', barcode);
 
-            // Vizualní potvrzení
-            status.innerHTML = `
-                                            ✅ <strong style="color: #28a745;">Kód nalezen!</strong><br>
-                                                <small>${barcode} - otevírám vyhledávání...</small>
-                                                `;
 
             // Zvukový feedback
             playIPhoneDetectionSound();
@@ -7238,41 +7227,28 @@
 
         // NOVÁ FUNKCE PRO OTEVRENÍ VYHLEDÁVÁNÍ S KÓDEM
         function openSearchWithBarcode(barcode) {
-            console.log("🔍 [v0.2.6.6] Otevírám vyhledávání s kódem:", barcode);
-            
-            // DEBUG ALERT pro iPhone
-            alert("KROK 1: Funkce openSearchWithBarcode volaná s kódem: " + barcode);
+            console.log("🔍 Otevírám vyhledávání s kódem:", barcode);
 
             // 1. Otevřeme vyhledávací modal
             const searchModal = document.getElementById('searchModal');
-            
             if (!searchModal) {
-                alert("CHYBA: searchModal nenalezen!");
+                console.error("❌ searchModal nenalezen!");
                 return;
             }
             
-            alert("KROK 2: searchModal nalezen, nastavuji display=flex");
             searchModal.style.display = 'flex';
-            
-            // Kontrola po 100ms
-            setTimeout(() => {
-                alert("KROK 3: searchModal.style.display = " + searchModal.style.display);
-            }, 100);
 
             // 2. Vyplníme kód do vyhledávacího pole
             const searchInput = document.getElementById('searchModalQuery');
-            
             if (!searchInput) {
-                alert("CHYBA: searchInput nenalezen!");
+                console.error("❌ searchInput nenalezen!");
                 return;
             }
             
             searchInput.value = barcode;
-            alert("KROK 4: Kód vyplněn do pole: " + searchInput.value);
 
             // 3. OKAMŽITĚ SPUSTÍME VYHLEDÁVÁNÍ
             setTimeout(() => {
-                alert("KROK 5: Spouštím performBarcodeSearch");
                 performBarcodeSearch(barcode);
             }, 300);
         }
@@ -7498,7 +7474,7 @@
                 // Aktualizace textu tlačítka
                 const button = document.getElementById('toggleFlashButton');
                 if (button) {
-                    button.textContent = barcodeFlashEnabled ? '💡 Vypnout blesk' : '⚡ Zapnout blesk';
+                    button.textContent = barcodeFlashEnabled ? '💡 Vypnout lampičku' : '💡 Zapnout lampičku';
                 }
                 
             } catch (error) {
@@ -7536,7 +7512,7 @@
             const flashButton = document.getElementById('toggleFlashButton');
             if (flashButton) {
                 flashButton.style.display = 'none';
-                flashButton.textContent = '⚡ Zapnout blesk';
+                flashButton.textContent = '💡 Zapnout lampičku';
             }
         }
 
@@ -7723,7 +7699,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.6.6 - DEBUG WITH ALERTS FOR IPHONE");
+            console.log("🚀 Aplikace verze: 0.2.6.7 - REMOVE DEBUG + LAMPICKA + NO NOTIFICATIONS");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
