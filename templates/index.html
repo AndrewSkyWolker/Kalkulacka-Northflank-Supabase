@@ -1005,7 +1005,7 @@
 
             <!-- OVLÁDACÍ TLAČÍTKA -->
             <div class="barcode-controls">
-                <button id="toggleCameraButton" class="btn-small">🔄 Otočit kameru</button>
+                <!-- Tlačítko Otočit kameru odstraněno v0.2.6.2 - vždy zadní kamera -->
                 <button id="toggleFlashButton" class="btn-small" style="display:none;">⚡ Blesk</button>
             </div>
 
@@ -6595,8 +6595,8 @@
             // Zavírací tlačítko
             document.getElementById('closeBarcodeModal').addEventListener('click', closeBarcodeScanner);
 
-            // Přepínání kamery
-            document.getElementById('toggleCameraButton').addEventListener('click', toggleCamera);
+            // Přepínání kamery ODSTRANĚNO v0.2.6.2 - vždy zadní kamera
+            // document.getElementById('toggleCameraButton').addEventListener('click', toggleCamera);
 
             // Ruční zadání
             document.getElementById('submitManualBarcode').addEventListener('click', submitManualBarcode);
@@ -6753,9 +6753,10 @@
             }
 
             // Uživatel uvidí kód přímo v náhledu a může ho opsat
+            // Popisek odstraněn v0.2.6.2
             status.innerHTML = `
-                        👁️ <strong>Zrcadlový náhled aktivní</strong><br>
-                            <small>Přečtěte čárový kód z obrazovky a zadejte jej ručně</small>
+                        <strong>Namiřte kameru na čárový kód</strong><br>
+                            <small>Nebo zadejte kód ručně níže</small>
                             `;
 
             // Můžeme přidat zvýraznění oblasti
@@ -6809,18 +6810,17 @@
                 await startCamera(video);
 
                 // AUTOMATICKÉ SPUŠTĚNÍ SKENOVÁNÍ (v0.2.6.1)
+                // Text přesunut do overlay (v0.2.6.2)
+                overlay.innerHTML = `
+                    <div style="text-align: center; color: white; padding: 20px;">
+                        <strong style="font-size: 18px;">Namiřte kameru na čárový kód</strong>
+                    </div>
+                `;
+                
                 if (isIPhone) {
-                    status.innerHTML = `
-                        🔍 <strong>Automatické skenování</strong><br>
-                        <small>Namiřte kameru na čárový kód</small>
-                    `;
                     // Spustit iPhone skenování
                     startIPhoneBarcodeDetection();
                 } else {
-                    status.innerHTML = `
-                        🔍 <strong>Automatické skenování</strong><br>
-                        <small>Namiřte kameru na čárový kód</small>
-                    `;
                     // Spustit univerzální skenování
                     startUniversalBarcodeDetection();
                 }
@@ -6837,7 +6837,7 @@
             const status = document.getElementById('barcodeStatus');
             const video = document.getElementById('barcodeVideo');
 
-            status.innerHTML = '📱 <strong>iPhone skenování</strong><br><small>Vysoká přesnost - počkejte na potvrzení</small>';
+            // Popisek odstraněn v0.2.6.2 - text je nyní v overlay
 
             // Resetujeme stav detekce
             window.barcodeDetectionState = {
@@ -7109,7 +7109,8 @@
         // INICIALIZACE QUAGGA PRO iPHONE
         // VYLEPŠENÁ QUAGGA PRO VYŠŠÍ PŘESNOST
         function initializeQuaggaForIPhone(video, status) {
-            status.innerHTML = '🔍 <strong>Vysokopřesné skenování</strong><br><small>Namířte na čárový kód</small>';
+            // Popisek odstraněn v0.2.6.2 - text je nyní v overlay
+            // status.innerHTML už nenastavujeme
 
             try {
                 Quagga.init({
@@ -7315,10 +7316,10 @@
                     barcodeStream.getTracks().forEach(track => track.stop());
                 }
 
-                // Získání přístupu ke kameře
+                // Získání přístupu ke kameře - VŽDY ZADNÍ (v0.2.6.2)
                 const constraints = {
                     video: {
-                        facingMode: currentFacingMode,
+                        facingMode: 'environment', // Vždy zadní kamera
                         width: { ideal: 1280 },
                         height: { ideal: 720 }
                     },
@@ -7659,7 +7660,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.6.1 - AUTO START SCANNING");
+            console.log("🚀 Aplikace verze: 0.2.6.2 - ALWAYS REAR CAMERA + TEXT IN OVERLAY");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
