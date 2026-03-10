@@ -19,6 +19,21 @@
 
     <!-- Icons for iOS - vlastní ikona aplikace -->
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon/icon-192.png') }}">
+    
+    <!-- iOS Splash Screens - pro různá rozlišení iPhonů -->
+    <!-- iPhone 15 Pro Max, 14 Pro Max -->
+    <link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="{{ url_for('static', filename='icon/splash-screen.png') }}">
+    <!-- iPhone 15 Pro, 15, 14 Pro -->
+    <link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="{{ url_for('static', filename='icon/splash-screen.png') }}">
+    <!-- iPhone 14, 13, 12 -->
+    <link rel="apple-touch-startup-image" media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="{{ url_for('static', filename='icon/splash-screen.png') }}">
+    <!-- iPhone 13 mini, 12 mini -->
+    <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="{{ url_for('static', filename='icon/splash-screen.png') }}">
+    <!-- iPhone 11 Pro Max, XS Max -->
+    <link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="{{ url_for('static', filename='icon/splash-screen.png') }}">
+    <!-- iPhone SE (2022, 2020), 8, 7, 6s -->
+    <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="{{ url_for('static', filename='icon/splash-screen.png') }}">
+    <!-- Fallback pro ostatní -->
     <link rel="apple-touch-startup-image" href="{{ url_for('static', filename='icon/splash-screen.png') }}">
 
     <!-- Web App Manifest (pro Android) -->
@@ -727,7 +742,7 @@
                 <div class="setting-section-content">
                     <div class="setting-item" style="flex-direction: column; align-items: flex-start;">
                         <span class="setting-label" style="font-weight: 600; margin-bottom: 8px;">Verze aplikace</span>
-                        <span id="appVersionDisplay" style="color: #666; font-size: 14px;">0.2.7.4</span>
+                        <span id="appVersionDisplay" style="color: #666; font-size: 14px;">0.2.7.5</span>
                     </div>
                     <div class="setting-item" style="flex-direction: column; align-items: flex-start;">
                         <span class="setting-label" style="font-weight: 600; margin-bottom: 8px;">Poslední aktualizace</span>
@@ -7751,7 +7766,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.7.4 - FIX IPHONE ICON");
+            console.log("🚀 Aplikace verze: 0.2.7.5 - IPHONE SPLASH SCREENS");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
