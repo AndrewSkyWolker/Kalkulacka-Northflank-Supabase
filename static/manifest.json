@@ -1,30 +1,51 @@
 {
-  "name": "Kalorická kalkulačka",
-  "short_name": "KalorickáKalkulačka",
-  "description": "Aplikace pro sledování kalorického příjmu a výdeje",
+  "name": "Kalorická Kalkulačka",
+  "short_name": "Kalkulačka",
+  "description": "Aplikace pro sledování kalorií a výživy",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4a90e2",
   "orientation": "portrait",
-  "scope": "/",
   "icons": [
     {
       "src": "/static/icon/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/static/icon/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "/static/icon/icon-maskable.png",
+      "src": "/static/icon/potraviny.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ],
-  "categories": ["health", "lifestyle", "productivity"]
+  "categories": ["health", "lifestyle", "food"],
+  "shortcuts": [
+    {
+      "name": "Denní příjem",
+      "short_name": "Příjem",
+      "description": "Otevřít denní příjem kalorií",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/static/icon/potraviny.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Recepty",
+      "short_name": "Recepty",
+      "description": "Zobrazit moje recepty",
+      "url": "/?view=recepty",
+      "icons": [
+        {
+          "src": "/static/icon/recepty.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
 }

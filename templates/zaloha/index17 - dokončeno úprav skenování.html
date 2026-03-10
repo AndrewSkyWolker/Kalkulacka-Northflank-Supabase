@@ -17,8 +17,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#4a90e2">
 
-    <!-- Icons for iOS - používáme existující ikonu potraviny.png -->
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon/potraviny.png') }}">
+    <!-- Icons for iOS -->
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon/icon-192.png') }}">
     <link rel="apple-touch-startup-image" href="{{ url_for('static', filename='icon/splash-screen.png') }}">
 
     <!-- Web App Manifest -->
@@ -714,24 +714,6 @@
                             <input type="checkbox" id="confirmRecipeUpdateSuccessToggle">
                             <span class="slider"></span>
                         </label>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- SEKCE S VERZÍ -->
-            <div class="setting-section">
-                <div class="setting-section-header">
-                    <span class="setting-label">O aplikaci</span>
-                    <span class="setting-section-arrow">▼</span>
-                </div>
-                <div class="setting-section-content">
-                    <div class="setting-item" style="flex-direction: column; align-items: flex-start;">
-                        <span class="setting-label" style="font-weight: 600; margin-bottom: 8px;">Verze aplikace</span>
-                        <span id="appVersionDisplay" style="color: #666; font-size: 14px;">0.2.7.3</span>
-                    </div>
-                    <div class="setting-item" style="flex-direction: column; align-items: flex-start;">
-                        <span class="setting-label" style="font-weight: 600; margin-bottom: 8px;">Poslední aktualizace</span>
-                        <span style="color: #666; font-size: 14px;">Březen 2026</span>
                     </div>
                 </div>
             </div>
@@ -4384,19 +4366,12 @@
                                     window.recipeEditCache = {};
                                 }
                                 
-                                // NOVÁ STRUKTURA (v0.2.7.0): ukládáme pole všech změněných ingrediencí
+                                // MERGUJ místo přepsání - zachovej portionsChanged pokud existuje
                                 const existingCache = window.recipeEditCache[currentEditingRecipeId] || {};
-                                
-                                // Inicializujeme changedIngredients pokud neexistuje
-                                if (!existingCache.changedIngredients) {
-                                    existingCache.changedIngredients = {};
-                                }
-                                
-                                // Uložíme tuto změněnou ingredienci (index jako klíč)
-                                existingCache.changedIngredients[currentEditingIngredientIndex] = currentFoodItemData;
-                                
                                 window.recipeEditCache[currentEditingRecipeId] = {
-                                    ...existingCache,
+                                    ...existingCache,  // Zachovej existující (např. portionsChanged)
+                                    ingredientIndex: currentEditingIngredientIndex,
+                                    newData: currentFoodItemData,
                                     recipeName: editingRecipeContext.recipeName
                                 };
                                 
@@ -5205,7 +5180,7 @@
                 let recipeData, ingredients, portions, hasMultiplePortions;
                 
                 // Pokud je to jídlo z denního příjmu, použijeme data z fromMeal
-                if (window.recipeDetailFromMeal && window.recipeDetailFromMeal.fromDailyIntake && window.recipeDetailFromMeal.id === recipeId) {
+                if (window.recipeDetailFromMeal && window.recipeDetailFromMeal.isFromMeal && window.recipeDetailFromMeal.id === recipeId) {
                     console.log("📋 Používám data z denního příjmu (fromMeal)");
                     recipeData = window.recipeDetailFromMeal;
                     ingredients = recipeData.ingredients || [];
@@ -5303,11 +5278,9 @@
                     
                     ingredients.forEach((ing, index) => {
                         let dataToUse = ing;
-                        // NOVÁ STRUKTURA (v0.2.7.0): kontrolujeme changedIngredients[index]
                         if (window.recipeEditCache && window.recipeEditCache[recipeId] && 
-                            window.recipeEditCache[recipeId].changedIngredients &&
-                            window.recipeEditCache[recipeId].changedIngredients[index]) {
-                            dataToUse = window.recipeEditCache[recipeId].changedIngredients[index];
+                            window.recipeEditCache[recipeId].ingredientIndex === index) {
+                            dataToUse = window.recipeEditCache[recipeId].newData;
                         }
                         
                         const amount = parseFloat(dataToUse.amount || ing.amount) || 0;
@@ -5401,12 +5374,9 @@
                 ingredients.forEach((ing, index) => {
                     // Zkontrolujeme jestli existují data v cache pro tuto ingredienci
                     let displayData = ing;
-                    // NOVÁ STRUKTURA (v0.2.7.0)
-                    if (window.recipeEditCache && window.recipeEditCache[recipeId] && 
-                        window.recipeEditCache[recipeId].changedIngredients &&
-                        window.recipeEditCache[recipeId].changedIngredients[index]) {
+                    if (window.recipeEditCache && window.recipeEditCache[recipeId] && window.recipeEditCache[recipeId].ingredientIndex === index) {
                         console.log("📦 Načítám data z cache pro index", index);
-                        displayData = window.recipeEditCache[recipeId].changedIngredients[index];
+                        displayData = window.recipeEditCache[recipeId].newData;
                     }
                     
                     const name = displayData.foodName || ing.foodName || 'Neznámá položka';
@@ -5476,12 +5446,10 @@
                         
                         // Zkontrolujeme jestli existují data v cache pro tuto položku
                         let dataToEdit = ingredient;
-                        // NOVÁ STRUKTURA (v0.2.7.0)
                         if (window.recipeEditCache && window.recipeEditCache[recipeId] && 
-                            window.recipeEditCache[recipeId].changedIngredients &&
-                            window.recipeEditCache[recipeId].changedIngredients[index]) {
+                            window.recipeEditCache[recipeId].ingredientIndex === index) {
                             console.log("📦 Načítám data z cache pro editaci");
-                            dataToEdit = window.recipeEditCache[recipeId].changedIngredients[index];
+                            dataToEdit = window.recipeEditCache[recipeId].newData;
                         }
                         
                         // Nastavíme globální kontext editace (BEZ window prefix!)
@@ -5821,21 +5789,13 @@
                         updated_at: new Date().toISOString()
                     };
 
-                    // ZMĚNA INGREDIENCÍ (v0.2.7.0) - uložíme VŠECHNY změněné ingredience
-                    if (cache.changedIngredients && Object.keys(cache.changedIngredients).length > 0) {
+                    // ZMĚNA INGREDIENCE
+                    if (cache.ingredientIndex >= 0 && cache.newData) {
                         const currentIngredients = recipeData.ingredients || [];
-                        
-                        // Aplikujeme všechny změny
-                        for (const [index, newData] of Object.entries(cache.changedIngredients)) {
-                            const idx = parseInt(index);
-                            if (idx >= 0 && idx < currentIngredients.length) {
-                                currentIngredients[idx] = newData;
-                                console.log(`✏️ Aktualizuji ingredienci ${idx}:`, newData);
-                            }
+                        if (cache.ingredientIndex < currentIngredients.length) {
+                            currentIngredients[cache.ingredientIndex] = cache.newData;
+                            updateData.ingredients = currentIngredients;
                         }
-                        
-                        updateData.ingredients = currentIngredients;
-                        console.log(`💾 Ukládám ${Object.keys(cache.changedIngredients).length} změněných ingrediencí`);
                     }
 
                     // ZMĚNA PORCÍ
@@ -5905,75 +5865,63 @@
             
             console.log("📋 Položky jídla z meal_items:", recipeItems);
             
-            // Helper funkce pro parsování českého formátu čísel
-            const parseNumber = (value) => {
-                if (!value) return 0;
-                // Převedeme na string a nahradíme čárku tečkou
-                const str = String(value).replace(',', '.');
-                // Odebereme jednotky (g, kcal, mg, atd.)
-                const num = parseFloat(str);
-                return isNaN(num) ? 0 : num;
-            };
-            
-            // NOVÁ STRUKTURA (v0.2.7.0): Aplikujeme VŠECHNY změněné ingredience
-            if (cache.changedIngredients && Object.keys(cache.changedIngredients).length > 0) {
+            // Najdeme správnou položku podle ingredientIndex
+            if (cache.ingredientIndex >= 0 && cache.newData) {
+                // DŮLEŽITÉ: Ingredience v mealData.ingredients jsou ve STEJNÉM pořadí jako v UI
+                const ingredientToUpdate = mealData.ingredients[cache.ingredientIndex];
                 
-                for (const [index, newData] of Object.entries(cache.changedIngredients)) {
-                    const idx = parseInt(index);
-                    
-                    // DŮLEŽITÉ: Ingredience v mealData.ingredients jsou ve STEJNÉM pořadí jako v UI
-                    const ingredientToUpdate = mealData.ingredients[idx];
-                    
-                    if (!ingredientToUpdate) {
-                        console.error("❌ Ingredience na indexu", idx, "neexistuje");
-                        continue;
-                    }
-                    
-                    // Najdeme odpovídající meal_item podle food_name
-                    const mealToUpdate = recipeItems.find(item => 
-                        item.food_name === ingredientToUpdate.foodName
-                    );
-                    
-                    if (!mealToUpdate) {
-                        console.error("❌ Nenalezen meal item pro:", ingredientToUpdate.foodName);
-                        continue;
-                    }
-                    
-                    const newAmount = parseFloat(newData.amount) || 0;
-                    
-                    console.log(`📝 Aktualizuji meal item ${idx}:`, mealToUpdate.food_name, "na", newAmount, mealToUpdate.unit);
-                    
-                    // Přepočítáme nutrienty podle nového množství
-                    // Použijeme nutritional_data z meal_items
-                    const nutritionalData = mealToUpdate.nutritional_data || {};
-                    
-                    console.log("📋 Nutritional data pro přepočet:", nutritionalData);
-                    
-                    const factor = newAmount / 100;
-                    const updatedMeal = {
-                        amount: newAmount,
-                        unit: newData.unit || mealToUpdate.unit,
-                        calories: parseNumber(nutritionalData.total_kcal || nutritionalData.kcal) * factor,
-                        protein: parseNumber(nutritionalData.protein) * factor,
-                        carbs: parseNumber(nutritionalData.carbs) * factor,
-                        fat: parseNumber(nutritionalData.fat) * factor,
-                        fiber: parseNumber(nutritionalData.fiber) * factor
-                    };
-                    
-                    console.log("🧮 Přepočítané hodnoty:", updatedMeal);
-                    
-                    // Uložíme změny do meal_items
-                    const { error: updateError } = await window.supabaseClient
-                        .from('meal_items')
-                        .update(updatedMeal)
-                        .eq('id', mealToUpdate.id);
-                    
-                    if (updateError) throw updateError;
-                    
-                    console.log("✅ Položka jídla aktualizována v denním příjmu:", mealToUpdate.id);
+                // Najdeme odpovídající meal_item podle food_name
+                const mealToUpdate = recipeItems.find(item => 
+                    item.food_name === ingredientToUpdate.foodName
+                );
+                
+                if (!mealToUpdate) {
+                    console.error("❌ Nenalezen meal item pro:", ingredientToUpdate.foodName);
+                    return;
                 }
                 
-                console.log(`✅ Uloženo ${Object.keys(cache.changedIngredients).length} změněných ingrediencí do denního příjmu`);
+                const newAmount = parseFloat(cache.newData.amount) || 0;
+                
+                console.log("📝 Aktualizuji meal item:", mealToUpdate.food_name, "na", newAmount, mealToUpdate.unit);
+                
+                // Přepočítáme nutrienty podle nového množství
+                // Použijeme nutritional_data z meal_items
+                const nutritionalData = mealToUpdate.nutritional_data || {};
+                
+                console.log("📋 Nutritional data pro přepočet:", nutritionalData);
+                
+                // Helper funkce pro parsování českého formátu čísel
+                const parseNumber = (value) => {
+                    if (!value) return 0;
+                    // Převedeme na string a nahradíme čárku tečkou
+                    const str = String(value).replace(',', '.');
+                    // Odebereme jednotky (g, kcal, mg, atd.)
+                    const num = parseFloat(str);
+                    return isNaN(num) ? 0 : num;
+                };
+                
+                const factor = newAmount / 100;
+                const updatedMeal = {
+                    amount: newAmount,
+                    unit: cache.newData.unit || mealToUpdate.unit,
+                    calories: parseNumber(nutritionalData.total_kcal || nutritionalData.kcal) * factor,
+                    protein: parseNumber(nutritionalData.protein) * factor,
+                    carbs: parseNumber(nutritionalData.carbs) * factor,
+                    fat: parseNumber(nutritionalData.fat) * factor,
+                    fiber: parseNumber(nutritionalData.fiber) * factor
+                };
+                
+                console.log("🧮 Přepočítané hodnoty:", updatedMeal);
+                
+                // Uložíme změny do meal_items
+                const { error: updateError } = await window.supabaseClient
+                    .from('meal_items')
+                    .update(updatedMeal)
+                    .eq('id', mealToUpdate.id);
+                
+                if (updateError) throw updateError;
+                
+                console.log("✅ Položka jídla aktualizována v denním příjmu:", mealToUpdate.id);
             }
         }
         
@@ -7751,7 +7699,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.7.3 - PWA MANIFEST CREATED");
+            console.log("🚀 Aplikace verze: 0.2.6.8 - HIDE STATUS TEXT");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
@@ -8961,15 +8909,9 @@
                             const cache = window.recipeEditCache[recipeId];
                             console.log("📦 Aplikuji změny z cache:", cache);
                             
-                            // NOVÁ STRUKTURA (v0.2.7.0): Aplikuj VŠECHNY změněné ingredience
-                            if (cache.changedIngredients && Object.keys(cache.changedIngredients).length > 0) {
-                                for (const [index, newData] of Object.entries(cache.changedIngredients)) {
-                                    const idx = parseInt(index);
-                                    if (idx >= 0 && idx < newIngredients.length) {
-                                        newIngredients[idx] = newData;
-                                        console.log(`✏️ Aplikuji změnu ingredience ${idx}`);
-                                    }
-                                }
+                            // Aplikuj změny ingrediencí
+                            if (cache.ingredientIndex >= 0 && cache.ingredientIndex < newIngredients.length && cache.newData) {
+                                newIngredients[cache.ingredientIndex] = cache.newData;
                             }
                             
                             // Aplikuj změny porcí
