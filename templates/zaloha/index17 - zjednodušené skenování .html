@@ -1009,8 +1009,8 @@
                 <button id="toggleFlashButton" class="btn-small" style="display:none;">💡 Zapnout lampičku</button>
             </div>
 
-            <!-- STAV SKENOVÁNÍ - skrytý v0.2.6.8, ale ponechán kvůli kompatibilitě -->
-            <div id="barcodeStatus" class="barcode-status" style="display:none;"></div>
+            <!-- STAV SKENOVÁNÍ -->
+            <div id="barcodeStatus" class="barcode-status">Klikněte pro spuštění kamery</div>
 
             <!-- NÁHRADNÍ ŘEŠENÍ -->
             <div class="barcode-fallback">
@@ -7699,7 +7699,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.6.8 - HIDE STATUS TEXT");
+            console.log("🚀 Aplikace verze: 0.2.6.7 - REMOVE DEBUG + LAMPICKA + NO NOTIFICATIONS");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
