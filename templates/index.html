@@ -17,11 +17,11 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#4a90e2">
 
-    <!-- Icons for iOS - používáme existující ikonu potraviny.png -->
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon/potraviny.png') }}">
+    <!-- Icons for iOS - vlastní ikona aplikace -->
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon/icon-192.png') }}">
     <link rel="apple-touch-startup-image" href="{{ url_for('static', filename='icon/splash-screen.png') }}">
 
-    <!-- Web App Manifest -->
+    <!-- Web App Manifest (pro Android) -->
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
 
     <!-- Service Worker Registration -->
@@ -727,7 +727,7 @@
                 <div class="setting-section-content">
                     <div class="setting-item" style="flex-direction: column; align-items: flex-start;">
                         <span class="setting-label" style="font-weight: 600; margin-bottom: 8px;">Verze aplikace</span>
-                        <span id="appVersionDisplay" style="color: #666; font-size: 14px;">0.2.7.3</span>
+                        <span id="appVersionDisplay" style="color: #666; font-size: 14px;">0.2.7.4</span>
                     </div>
                     <div class="setting-item" style="flex-direction: column; align-items: flex-start;">
                         <span class="setting-label" style="font-weight: 600; margin-bottom: 8px;">Poslední aktualizace</span>
@@ -7751,7 +7751,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.2.7.3 - PWA MANIFEST CREATED");
+            console.log("🚀 Aplikace verze: 0.2.7.4 - FIX IPHONE ICON");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS

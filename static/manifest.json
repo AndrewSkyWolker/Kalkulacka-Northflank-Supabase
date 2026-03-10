@@ -30,7 +30,7 @@
       "url": "/",
       "icons": [
         {
-          "src": "/static/icon/potraviny.png",
+          "src": "/static/icon/icon-192.png",
           "sizes": "192x192"
         }
       ]
