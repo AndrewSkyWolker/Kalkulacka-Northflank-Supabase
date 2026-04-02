@@ -826,7 +826,7 @@
                 <div class="setting-section-content">
                     <div class="setting-item" style="flex-direction: column; align-items: flex-start;">
                         <span class="setting-label" style="font-weight: 600; margin-bottom: 8px;">Verze aplikace</span>
-                        <span id="appVersionDisplay" style="color: #666; font-size: 14px;">0.3.3.7 (02.04.2026)</span>
+                        <span id="appVersionDisplay" style="color: #666; font-size: 14px;">0.3.4.1 (02.04.2026)</span>
                     </div>
                 </div>
             </div>
@@ -1140,9 +1140,30 @@
     <div id="dailyIntakeSection" style="display: none;">
 
         <!-- CELKOVÝ PŘEHLED S KRUHOVÝMI GRAFY -->
-        <div class="intake-overview">
+        <div class="intake-overview" style="position: relative;">
+            <!-- OVERLAY DETAIL GRAFU -->
+            <div id="chartDetailOverlay" class="chart-detail-overlay" style="display:none;">
+                <div class="chart-detail-inner">
+                    <div class="chart-detail-top">
+                        <div class="chart-detail-big">
+                            <div class="chart-detail-title" id="chartDetailTitle">Bílkoviny</div>
+                            <div class="circular-chart" id="chartDetailCircle">
+                                <svg viewBox="0 0 36 36" class="circular-chart-svg">
+                                    <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                    <path class="circle" id="chartDetailCirclePath" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                    <text x="18" y="18" class="percentage" id="chartDetailPct">0%</text>
+                                </svg>
+                            </div>
+                            <div class="chart-detail-main-value" id="chartDetailMainValue">0 / 0 g</div>
+                            <div class="chart-detail-main-label" id="chartDetailMainLabel">Zbývá 0 g</div>
+                        </div>
+                        <div class="chart-detail-subcategories" id="chartDetailSubcategories"></div>
+                    </div>
+                </div>
+            </div>
+
             <div class="charts-grid-main">
-                <div class="chart-container large-chart">
+                <div class="chart-container large-chart chart-clickable" data-chart="calories" style="cursor:pointer;">
                     <div class="chart-title">Kalorie</div>
                     <div class="circular-chart" id="caloriesChart">
                         <svg viewBox="0 0 36 36" class="circular-chart-svg">
@@ -1161,7 +1182,7 @@
             </div>
 
             <div class="charts-grid-macros">
-                <div class="chart-container">
+                <div class="chart-container chart-clickable" data-chart="protein" style="cursor:pointer;">
                     <div class="chart-title">Bílkoviny</div>
                     <div class="circular-chart" id="proteinChart">
                         <svg viewBox="0 0 36 36" class="circular-chart-svg">
@@ -1178,7 +1199,7 @@
                     </div>
                 </div>
 
-                <div class="chart-container">
+                <div class="chart-container chart-clickable" data-chart="carbs" style="cursor:pointer;">
                     <div class="chart-title">Sacharidy</div>
                     <div class="circular-chart" id="carbsChart">
                         <svg viewBox="0 0 36 36" class="circular-chart-svg">
@@ -1195,7 +1216,7 @@
                     </div>
                 </div>
 
-                <div class="chart-container">
+                <div class="chart-container chart-clickable" data-chart="fats" style="cursor:pointer;">
                     <div class="chart-title">Tuky</div>
                     <div class="circular-chart" id="fatsChart">
                         <svg viewBox="0 0 36 36" class="circular-chart-svg">
@@ -1212,7 +1233,7 @@
                     </div>
                 </div>
 
-                <div class="chart-container">
+                <div class="chart-container chart-clickable" data-chart="fiber" style="cursor:pointer;">
                     <div class="chart-title">Vláknina</div>
                     <div class="circular-chart" id="fiberChart">
                         <svg viewBox="0 0 36 36" class="circular-chart-svg">
@@ -4705,6 +4726,12 @@
 
                 if (error) throw error;
                 displayRecipesInModal(data || []);
+
+                // Znovu aplikuj filtr pokud je něco zadáno
+                const searchInput = document.getElementById('recipeSearchInput');
+                if (searchInput && searchInput.value.trim().length > 0) {
+                    filterRecipesList(searchInput.value.trim());
+                }
             } catch (error) {
                 console.error("❌ Neočekávaná chyba při načítání receptů:", error);
             }
@@ -7880,7 +7907,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.3.3.7 - RECIPE SEARCH");
+            console.log("🚀 Aplikace verze: 0.3.4.1 - CHART OVERLAY LAYOUT FIX");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
@@ -9823,6 +9850,221 @@
             renderMealItems();
         }
 
+        // =============================================
+        // DETAIL GRAFU - OVERLAY PO KLIKNUTÍ
+        // =============================================
+
+        let activeChartType = null; // aktuálně otevřený graf
+
+        // Konfigurace podkategorií pro každý nutrient
+        const chartSubcategories = {
+            protein: {
+                label: 'Bílkoviny',
+                color: '#f44336',
+                unit: 'g',
+                subs: [] // žádné podkategorie
+            },
+            carbs: {
+                label: 'Sacharidy',
+                color: '#2196f3',
+                unit: 'g',
+                subs: [
+                    { key: 'sugar', label: 'Cukry', color: '#64b5f6' }
+                ]
+            },
+            fats: {
+                label: 'Tuky',
+                color: '#ff9800',
+                unit: 'g',
+                subs: [
+                    { key: 'saturated_fat',      label: 'Nasycené MK',    color: '#ff7043' },
+                    { key: 'trans_fat',           label: 'Trans MK',       color: '#ef5350' },
+                    { key: 'monounsaturated_fat', label: 'Mononenasycené', color: '#ffa726' },
+                    { key: 'polyunsaturated_fat', label: 'Polynenasycené', color: '#ffcc02' },
+                    { key: 'cholesterol',         label: 'Cholesterol',    color: '#ff8f00', unit: 'mg' }
+                ]
+            },
+            fiber: {
+                label: 'Vláknina',
+                color: '#28a745',
+                unit: 'g',
+                subs: []
+            },
+            // Kalorie – zobrazí minerály + ostatní
+            calories: {
+                label: 'Kalorie',
+                color: '#007bff',
+                unit: 'kcal',
+                subs: [
+                    { key: 'salt',    label: 'Sůl',    color: '#90a4ae', unit: 'g'  },
+                    { key: 'calcium', label: 'Vápník', color: '#78909c', unit: 'mg' },
+                    { key: 'sodium',  label: 'Sodík',  color: '#607d8b', unit: 'mg' },
+                    { key: 'water',   label: 'Voda',   color: '#29b6f6', unit: 'g'  },
+                    { key: 'phe',     label: 'PHE',    color: '#ab47bc', unit: 'mg' }
+                ]
+            }
+        };
+
+        // Spočítá součty podkategorií z denních dat
+        function calcSubtotals() {
+            const sums = {
+                sugar: 0, saturated_fat: 0, trans_fat: 0,
+                monounsaturated_fat: 0, polyunsaturated_fat: 0,
+                cholesterol: 0, salt: 0, calcium: 0, sodium: 0,
+                water: 0, phe: 0
+            };
+
+            if (!currentDailyIntakeData?.daily_meals) return sums;
+
+            currentDailyIntakeData.daily_meals.forEach(meal => {
+                (meal.meal_items || []).forEach(item => {
+                    const nd = item.nutritional_data || {};
+                    const amt = parseFloat(item.amount) || 0;
+                    const factor = amt / 100;
+
+                    const parseNd = (v) => {
+                        if (!v) return 0;
+                        return parseFloat(String(v).replace(',', '.').replace(/[^\d.-]/g, '')) || 0;
+                    };
+
+                    sums.sugar               += parseNd(nd.sugar)               * factor;
+                    sums.saturated_fat       += parseNd(nd.saturated_fat)       * factor;
+                    sums.trans_fat           += parseNd(nd.trans_fat)           * factor;
+                    sums.monounsaturated_fat += parseNd(nd.monounsaturated_fat) * factor;
+                    sums.polyunsaturated_fat += parseNd(nd.polyunsaturated_fat) * factor;
+                    sums.cholesterol         += parseNd(nd.cholesterol)         * factor;
+                    sums.salt                += parseNd(nd.salt)                * factor;
+                    sums.calcium             += parseNd(nd.calcium)             * factor;
+                    sums.sodium              += parseNd(nd.sodium)              * factor;
+                    sums.water               += parseNd(nd.water)               * factor;
+                    sums.phe                 += parseNd(nd.phe)                 * factor;
+                });
+            });
+
+            return sums;
+        }
+
+        function openChartDetail(chartType) {
+            const overlay = document.getElementById('chartDetailOverlay');
+            if (!overlay) return;
+
+            // Toggle – klik na stejný graf = zavřít
+            if (activeChartType === chartType) {
+                closeChartDetail();
+                return;
+            }
+
+            activeChartType = chartType;
+            const cfg = chartSubcategories[chartType];
+            if (!cfg) return;
+
+            const subs = calcSubtotals();
+            const goals = dailyIntakeGoals || { calories: 2000, protein: 150, carbs: 250, fat: 67, fiber: 30 };
+            const totals = calculateDailyTotals();
+
+            // Hodnoty pro hlavní graf
+            const currentVal = {
+                protein:  totals.protein,
+                carbs:    totals.carbs,
+                fats:     totals.fat,
+                fiber:    totals.fiber,
+                calories: totals.calories
+            }[chartType] || 0;
+
+            const goalVal = {
+                protein:  goals.protein,
+                carbs:    goals.carbs,
+                fats:     goals.fat,
+                fiber:    goals.fiber,
+                calories: goals.calories
+            }[chartType] || 0;
+
+            const pct = goalVal > 0 ? Math.min(Math.round((currentVal / goalVal) * 100), 100) : 0;
+            const fullPct = goalVal > 0 ? Math.round((currentVal / goalVal) * 100) : 0;
+            const remaining = goalVal - currentVal;
+
+            // Naplníme hlavní graf
+            document.getElementById('chartDetailTitle').textContent = cfg.label;
+            document.getElementById('chartDetailMainValue').textContent =
+                `${smartRound(currentVal)} / ${smartRound(goalVal)} ${cfg.unit}`;
+            document.getElementById('chartDetailMainLabel').textContent =
+                remaining >= 0
+                    ? `Zbývá ${smartRound(Math.abs(remaining))} ${cfg.unit}`
+                    : `Překročeno o ${smartRound(Math.abs(remaining))} ${cfg.unit}`;
+
+            // Kruhový graf
+            const path = document.getElementById('chartDetailCirclePath');
+            const pctText = document.getElementById('chartDetailPct');
+            path.style.stroke = cfg.color;
+            path.setAttribute('stroke-dasharray', `${pct}, 100`);
+            pctText.textContent = `${fullPct}%`;
+            pctText.style.fill = cfg.color;
+
+            // Podkategorie pod grafem
+            const subsContainer = document.getElementById('chartDetailSubcategories');
+            subsContainer.innerHTML = '';
+
+            if (cfg.subs.length > 0) {
+                cfg.subs.forEach(sub => {
+                    const val = subs[sub.key] || 0;
+                    const unit = sub.unit || cfg.unit;
+                    subsContainer.appendChild(createSubItem(sub.label, smartRound(val) + ' ' + unit, sub.color));
+                });
+            } else if (chartType !== 'calories') {
+                // Bílkoviny, Vláknina – žádné podkategorie
+                subsContainer.innerHTML = '<div style="color:#aaa;font-size:0.8rem;text-align:center;padding:4px 0;">Bez podkategorií</div>';
+            }
+
+            subsContainer.insertAdjacentHTML('beforeend',
+                '<div class="chart-detail-hint">Kliknutím zavřeš detail</div>');
+
+            overlay.style.display = 'block';
+        }
+
+        function closeChartDetail() {
+            const overlay = document.getElementById('chartDetailOverlay');
+            if (overlay) overlay.style.display = 'none';
+            activeChartType = null;
+        }
+
+        function createSubItem(label, value, color) {
+            const div = document.createElement('div');
+            div.className = 'chart-sub-item';
+            div.style.borderLeftColor = color;
+            div.innerHTML = `
+                <span class="chart-sub-dot" style="background:${color};"></span>
+                <span class="chart-sub-name">${label}</span>
+                <span class="chart-sub-value">${value}</span>
+            `;
+            return div;
+        }
+
+        function initChartClickListeners() {
+            document.addEventListener('click', (e) => {
+                const overlay = document.getElementById('chartDetailOverlay');
+                const isOverlayVisible = overlay && overlay.style.display !== 'none';
+
+                // Klik přímo na overlay nebo jeho obsah = zavřít
+                if (isOverlayVisible && e.target.closest('#chartDetailOverlay')) {
+                    closeChartDetail();
+                    return;
+                }
+
+                // Klik na klikatelný graf (včetně kalorií)
+                const chartEl = e.target.closest('.chart-clickable');
+                if (chartEl) {
+                    const chartType = chartEl.dataset.chart;
+                    openChartDetail(chartType);
+                    return;
+                }
+
+                // Klik kamkoliv jinam mimo overlay = zavřít
+                if (isOverlayVisible) {
+                    closeChartDetail();
+                }
+            });
+        }
+
         // Funkce pro zobrazení varování když nejsou cíle
         function showGoalsWarning() {
             const mainContent = document.getElementById('mainContent');
@@ -11563,6 +11805,7 @@
             initBottomNavigation();
             initSharedRecipes();
             initRecipeSearch();
+            initChartClickListeners();
         });
 
         // ========================================

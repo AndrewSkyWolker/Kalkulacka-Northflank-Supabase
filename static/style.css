@@ -6322,7 +6322,140 @@ button:focus-visible,
 }
 
 /* ============================================= */
-/* VYHLEDÁVÁNÍ V RECEPTECH */
+/* DETAIL GRAFU - OVERLAY */
+/* ============================================= */
+
+.chart-clickable {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.chart-clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    border-radius: 12px;
+}
+
+.chart-clickable:active {
+    transform: translateY(0);
+}
+
+.chart-detail-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    /* výška se přizpůsobí obsahu – žádné bottom:0 */
+    background: white;
+    border-radius: 12px;
+    z-index: 10;
+    padding: 16px 16px 12px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    animation: overlayFadeIn 0.18s ease;
+    /* klik mimo zavře – overlay samotný neklikáme */
+}
+
+@keyframes overlayFadeIn {
+    from { opacity: 0; transform: scaleY(0.95); transform-origin: top; }
+    to   { opacity: 1; transform: scaleY(1); }
+}
+
+.chart-detail-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Horní část – velký graf na středu */
+.chart-detail-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
+
+.chart-detail-big {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.chart-detail-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 6px;
+    text-align: center;
+}
+
+.chart-detail-big .circular-chart {
+    width: 140px;
+    height: 140px;
+    margin-bottom: 6px;
+}
+
+.chart-detail-main-value {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #333;
+    text-align: center;
+}
+
+.chart-detail-main-label {
+    font-size: 0.78rem;
+    color: #6c757d;
+    text-align: center;
+    margin-top: 2px;
+}
+
+/* Spodní část – podkategorie pod grafem */
+.chart-detail-subcategories {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.chart-sub-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 3px solid #ddd;
+}
+
+.chart-sub-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.chart-sub-name {
+    flex: 1;
+    font-size: 0.82rem;
+    color: #555;
+    font-weight: 500;
+}
+
+.chart-sub-value {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #333;
+    white-space: nowrap;
+}
+
+.chart-detail-hint {
+    text-align: center;
+    font-size: 0.7rem;
+    color: #bbb;
+    margin-top: 2px;
+}
+
+/* ============================================= */
 /* ============================================= */
 
 .recipe-search-wrapper {
