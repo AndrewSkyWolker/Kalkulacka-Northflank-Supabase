@@ -39,24 +39,6 @@
             });
         }
     </script>
-    
-    <!-- FORCE OVERRIDE CSS PRO MENŠÍ TEXT V DENNÍM PŘÍJMU -->
-    <style>
-        /* MENŠÍ TEXT V POLOŽKÁCH JÍDEL - FORCE! */
-        .meal-item-details,
-        .meal-item-details *,
-        .meal-items .meal-item-details,
-        div.meal-item .meal-item-details {
-            font-size: 11px !important;  /* Absolutní hodnota místo em */
-        }
-        
-        /* MENŠÍ TEXT U PŘIDANÝCH POTRAVIN - FORCE! */
-        .calories-display,
-        .food-item-potravina .calories-display {
-            font-size: 11px !important;  /* Absolutní hodnota */
-        }
-    </style>
-    
 </head>
 
 <body data-app-id="{{ app_id }}" data-supabase-url="{{ supabase_url }}" data-supabase-key="{{ supabase_key }}">
@@ -517,62 +499,14 @@
         <div class="modal-content">
             <span class="close-button" id="closeSelectRecipeModal">&times;</span>
             <h3>Moje recepty</h3>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button id="addCustomRecipeBtn" class="btn-primary" style="padding: 8px 12px; flex: 1;">
-                    ➕ Přidat vlastní recept
-                </button>
-                <button id="sharedRecipesBtn" class="btn-secondary" style="padding: 8px 12px; flex: 1;">
-                    👥 Sdílené recepty
-                </button>
-            </div>
-            <div class="recipe-search-wrapper">
-                <input type="text" id="recipeSearchInput" class="recipe-search-input" placeholder="🔍 Hledat recept...">
-                <button id="recipeClearSearch" class="recipe-search-clear" style="display:none;">✕</button>
-            </div>
+            <button id="addCustomRecipeBtn" class="btn-primary" style="padding: 8px 12px;">
+                ➕ Přidat vlastní recept
+            </button>
             <div id="recipeCountDisplay" class="recipe-count-display"></div>
             <div class="recipes-list-container">
                 <ul id="existingRecipesList"></ul>
             </div>
             <div class="recipe-list-actions"></div>
-        </div>
-    </div>
-
-    <!-- MODAL SDÍLENÉ RECEPTY - SEZNAM UŽIVATELŮ -->
-    <div id="sharedRecipesModal" class="modal-overlay">
-        <div class="modal-content">
-            <span class="close-button" id="closeSharedRecipesModal">&times;</span>
-            <h3>👥 Sdílené recepty</h3>
-            <p style="color: #666; font-size: 0.9em; margin-bottom: 10px;">Vyberte uživatele pro zobrazení sdílených receptů</p>
-            
-            <!-- Toggle pro zobrazení vlastních receptů -->
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #f8f9fa; border-radius: 8px; margin-bottom: 15px;">
-                <span style="font-size: 0.9rem; color: #333;">Zobrazit i moje recepty</span>
-                <label class="toggle-switch-label">
-                    <span id="showMyRecipesLabel" style="color: #999; font-weight: 600; font-size: 0.85rem; margin-right: 8px;">ne</span>
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="showMyRecipesToggle">
-                        <span class="toggle-slider"></span>
-                    </div>
-                </label>
-            </div>
-            
-            <div class="shared-users-container">
-                <ul id="sharedUsersList" style="list-style: none; padding: 0;"></ul>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL SDÍLENÉ RECEPTY OD UŽIVATELE -->
-    <div id="userSharedRecipesModal" class="modal-overlay">
-        <div class="modal-content">
-            <span class="close-button" id="closeUserSharedRecipesModal">&times;</span>
-            <button id="backToUsersBtn" class="btn-secondary" style="padding: 6px 12px; margin-bottom: 10px;">
-                ← Zpět na uživatele
-            </button>
-            <h3 id="userSharedRecipesTitle">Recepty od uživatele</h3>
-            <div class="shared-recipes-container">
-                <ul id="userSharedRecipesList" style="list-style: none; padding: 0;"></ul>
-            </div>
         </div>
     </div>
 
@@ -617,23 +551,6 @@
                     <!-- Popisek -->
                     <p style="font-size: 0.8rem; color: #666; margin: 0;">
                         Recept se uloží s celkovými hodnotami všech porcí. V seznamu se zobrazí kalorie na 1 porci.
-                    </p>
-                </div>
-                
-                <!-- TOGGLE PRO SDÍLENÍ RECEPTU -->
-                <div id="shareRecipeSection" style="display: none; margin: 10px 0; padding: 12px; background: #e3f2fd; border-radius: 8px;">
-                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <span style="font-weight: 600; font-size: 0.95rem;">👥 Sdílet recept s ostatními</span>
-                        <label class="toggle-switch-label">
-                            <span id="recipeShareLabel" style="color: #999; font-weight: 600; font-size: 0.85rem; margin-right: 8px;">vypnuto</span>
-                            <div class="toggle-switch">
-                                <input type="checkbox" id="recipeShareToggle">
-                                <span class="toggle-slider"></span>
-                            </div>
-                        </label>
-                    </div>
-                    <p style="font-size: 0.8rem; color: #666; margin: 8px 0 0 0;">
-                        Ostatní uživatelé uvidí tento recept v sekci "Sdílené recepty" a budou ho moci přidat do svých receptů.
                     </p>
                 </div>
                 
@@ -800,23 +717,6 @@
                 </div>
             </div>
             
-            <!-- SEKCE ZOBRAZENÍ -->
-            <div class="setting-section">
-                <div class="setting-section-header">
-                    <span class="setting-label">Zobrazení</span>
-                    <span class="setting-section-arrow">▼</span>
-                </div>
-                <div class="setting-section-content">
-                    <div class="setting-item">
-                        <span class="setting-label">Popisky ve spodní navigaci</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="showNavLabelsToggle" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-            
             <!-- SEKCE S VERZÍ -->
             <div class="setting-section">
                 <div class="setting-section-header">
@@ -826,7 +726,7 @@
                 <div class="setting-section-content">
                     <div class="setting-item" style="flex-direction: column; align-items: flex-start;">
                         <span class="setting-label" style="font-weight: 600; margin-bottom: 8px;">Verze aplikace</span>
-                        <span id="appVersionDisplay" style="color: #666; font-size: 14px;">0.3.3.7 (02.04.2026)</span>
+                        <span id="appVersionDisplay" style="color: #666; font-size: 14px;">0.2.7.6 (10.03.2026)</span>
                     </div>
                 </div>
             </div>
@@ -4211,9 +4111,9 @@
             let imageHtml = '';
 
             if (item.image_url) {
-                imageHtml = `<img src="${item.image_url}" alt="${item.name}" onerror="this.onerror=null;this.src='${placeholderImage}'" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;" />`;
+                imageHtml = `<img src="${item.image_url}" alt="${item.name}" onerror="this.onerror=null;this.src='${placeholderImage}'" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;" />`;
             } else {
-                imageHtml = `<img src="${placeholderImage}" alt="Bez obrázku" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;" />`;
+                imageHtml = `<img src="${placeholderImage}" alt="Bez obrázku" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;" />`;
             }
 
             const { number: caloriesNum, unit: caloriesUnit } = parseValueAndUnit(item.calories);
@@ -5234,11 +5134,8 @@
             }, true);
         }
 
-        async function showRecipeDetailsModal(recipeId, recipeName, isSharedRecipe = false) {
-            console.log("🔍 showRecipeDetailsModal volána pro:", recipeName, "ID:", recipeId, "Sdílený:", isSharedRecipe);
-            
-            // Uložit příznak sdíleného receptu
-            window.isViewingSharedRecipe = isSharedRecipe;
+        async function showRecipeDetailsModal(recipeId, recipeName) {
+            console.log("🔍 showRecipeDetailsModal volána pro:", recipeName, "ID:", recipeId);
             
             // KONTROLA: Byl tento modal otevřen z denního příjmu?
             // Možná už je fromMeal nastavený z předchozího volání
@@ -5545,16 +5442,14 @@
                                 </div>
                             </div>
                             <div class="recipe-item-actions-new">
-                                ${!isCustomRecipe && !window.isViewingSharedRecipe ? `
+                                ${!isCustomRecipe ? `
                                 <button class="recipe-item-edit-btn" data-index="${index}" title="Upravit">
                                     <img src="{{ url_for('static', filename='icon/editace.png') }}" alt="Upravit">
                                 </button>
                                 ` : ''}
-                                ${!window.isViewingSharedRecipe ? `
                                 <button class="recipe-item-delete-btn" data-index="${index}" title="Smazat">
                                     <img src="{{ url_for('static', filename='icon/kos.png') }}" alt="Smazat">
                                 </button>
-                                ` : ''}
                             </div>
                             <div class="recipe-item-nutrients-new">
                                 <span style="color: #f44336; font-weight: 600;">B: ${smartFormat(protein, 'g')}</span>
@@ -5682,15 +5577,8 @@
                 // Tlačítko KOPÍROVAT - chová se jako "Uložit jako"
                 // copyBtn už je deklarován nahore
                 if (copyBtn) {
-                    // Změnit text podle toho jestli je to sdílený recept
-                    if (window.isViewingSharedRecipe) {
-                        copyBtn.innerHTML = '💾 Uložit do vlastních receptů';
-                    } else {
-                        copyBtn.innerHTML = '📋 Kopírovat recept';
-                    }
-                    
                     copyBtn.onclick = () => {
-                        console.log(window.isViewingSharedRecipe ? "💾 Ukládám do vlastních:" : "📋 Kopíruji recept:", recipeName);
+                        console.log("📋 Kopíruji recept:", recipeName);
                         saveRecipeAsNew(recipeId, recipeName, isCustomRecipe);
                     };
                 }
@@ -5778,28 +5666,6 @@
                     
                 } else if (multiPortionSection) {
                     multiPortionSection.style.display = 'none';
-                }
-                
-                // ZOBRAZIT TOGGLE PRO SDÍLENÍ - jen pro vlastníka
-                const shareRecipeSection = document.getElementById('shareRecipeSection');
-                if (isOwner && !isCustomRecipe && shareRecipeSection) {
-                    shareRecipeSection.style.display = 'block';
-                    
-                    // Načíst stav sdílení z DB
-                    const isShared = recipeData.is_shared === 1;
-                    const shareToggle = document.getElementById('recipeShareToggle');
-                    const shareLabel = document.getElementById('recipeShareLabel');
-                    
-                    if (shareToggle && shareLabel) {
-                        shareToggle.checked = isShared;
-                        shareLabel.textContent = isShared ? 'zapnuto' : 'vypnuto';
-                        shareLabel.style.color = isShared ? '#4a90e2' : '#999';  // Modrá
-                    }
-                    
-                    // Uložit aktuální recipe_id pro saveRecipeShareStatus
-                    window.currentRecipeId = recipeId;
-                } else if (shareRecipeSection) {
-                    shareRecipeSection.style.display = 'none';
                 }
                 
                 // SCHOVAT "Přidat jako jídlo" pokud:
@@ -7880,7 +7746,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.3.3.7 - RECIPE SEARCH");
+            console.log("🚀 Aplikace verze: 0.2.7.6 - SIMPLIFIED VERSION + REMOVED SPLASH");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
@@ -8241,7 +8107,6 @@
 
             document.getElementById('closeSelectRecipeModal').addEventListener('click', function () {
                 document.getElementById('selectRecipeModal').style.display = 'none';
-                resetRecipeSearch();
             });
 
             // NOVÝ MODAL - Detail receptu
@@ -8332,7 +8197,6 @@
                 if (event.target === this) {
                     console.log("❌ Kliknuto mimo modal receptů");
                     this.style.display = 'none';
-                    resetRecipeSearch();
                 }
             });
 
@@ -11415,585 +11279,8 @@
 
         // Spustit po načtení denního příjmu
         setTimeout(fixRecipeDisplay, 2000);
-        
-        // =============================================
-        // SPODNÍ NAVIGACE - EVENT LISTENERS
-        // =============================================
-        
-        function initBottomNavigation() {
-            const navHome = document.getElementById('bottomNavHome');
-            const navSearch = document.getElementById('bottomNavSearch');
-            const navRecipes = document.getElementById('bottomNavRecipes');
-            const navProfile = document.getElementById('bottomNavProfile');
-            const navSettings = document.getElementById('bottomNavSettings');
-            
-            // Načíst nastavení popisků z localStorage
-            const showLabels = localStorage.getItem('showNavLabels');
-            if (showLabels === 'false') {
-                document.body.classList.add('hide-nav-labels');
-                document.getElementById('showNavLabelsToggle').checked = false;
-            }
-            
-            // Toggle pro zobrazení/skrytí popisků
-            const labelsToggle = document.getElementById('showNavLabelsToggle');
-            if (labelsToggle) {
-                labelsToggle.addEventListener('change', (e) => {
-                    if (e.target.checked) {
-                        document.body.classList.remove('hide-nav-labels');
-                        localStorage.setItem('showNavLabels', 'true');
-                    } else {
-                        document.body.classList.add('hide-nav-labels');
-                        localStorage.setItem('showNavLabels', 'false');
-                    }
-                });
-            }
-            
-            // Funkce pro nastavení aktivního tlačítka
-            function setActiveNav(activeButton) {
-                document.querySelectorAll('.bottom-nav-item').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                if (activeButton) {
-                    activeButton.classList.add('active');
-                }
-            }
-            
-            // Funkce pro zavření VŠECH modalů
-            function closeAllModals() {
-                // Seznam VŠECH modalů v aplikaci (kompletní seznam!)
-                const modals = [
-                    'searchModal',
-                    'selectRecipeModal',
-                    'settingsModal',
-                    'profileNameModal',
-                    'personalCardModal',
-                    'recipeDetailModal',
-                    'detailsModal',
-                    'createRecipeModal',
-                    'editMacroModal',
-                    'selectMealModal',
-                    'loginModal',
-                    'createProfileModal',
-                    'barcodeModal',
-                    'customNotificationModal',
-                    'customRecipeModal',
-                    'editIngredientModal',
-                    'saveAsModal'
-                ];
-                
-                modals.forEach(modalId => {
-                    const modal = document.getElementById(modalId);
-                    if (modal) {
-                        modal.style.display = 'none';
-                    }
-                });
-                
-                // Zobrazit denní příjem (hlavní stránka)
-                const dailyIntake = document.getElementById('dailyIntakeSection');
-                if (dailyIntake) {
-                    dailyIntake.style.display = 'block';
-                }
-                
-                console.log('🔒 Všechny modaly zavřeny');
-                resetRecipeSearch();
-            }
-            
-            // DOMŮ - zobrazí denní příjem + ZAVŘE VŠECHNY MODALY + FUNGUJE JAKO "DNES"
-            navHome.addEventListener('click', () => {
-                setActiveNav(navHome);
-                
-                // FUNKCE JAKO "DNES" - RELOAD STRÁNKY
-                // Tím se vrátí na dnešní datum a zavřou se všechny modaly
-                window.location.reload();
-                
-                console.log('📱 Bottom nav: Domů (reload)');
-            });
-            
-            // VYHLEDAT - otevře vyhledávání
-            navSearch.addEventListener('click', () => {
-                closeAllModals(); // ZAVŘÍT VŠECHNY MODALY NEJDŘÍV
-                setActiveNav(null);
-                openSearchModal();
-                console.log('📱 Bottom nav: Vyhledat');
-            });
-            
-            // RECEPTY - zobrazí recepty
-            navRecipes.addEventListener('click', () => {
-                closeAllModals(); // ZAVŘÍT VŠECHNY MODALY NEJDŘÍV
-                setActiveNav(null);
-                // Zobraz recepty modal
-                document.getElementById('selectRecipeModal').style.display = 'flex';
-                // Načti recepty
-                loadUserRecipes();
-                console.log('📱 Bottom nav: Recepty');
-            });
-            
-            // PROFIL - otevře modal profilu
-            navProfile.addEventListener('click', () => {
-                closeAllModals(); // ZAVŘÍT VŠECHNY MODALY NEJDŘÍV
-                setActiveNav(null);
-                // Stejná akce jako kliknutí na horní ikonu profilu
-                const event = new MouseEvent('click', {
-                    bubbles: true,
-                    cancelable: true,
-                    view: window
-                });
-                document.getElementById('profileIconHeader')?.dispatchEvent(event);
-                console.log('📱 Bottom nav: Profil');
-            });
-            
-            // NASTAVENÍ - otevře nastavení
-            navSettings.addEventListener('click', () => {
-                closeAllModals(); // ZAVŘÍT VŠECHNY MODALY NEJDŘÍV
-                setActiveNav(null);
-                const settingsModal = document.getElementById('settingsModal');
-                if (settingsModal) {
-                    settingsModal.style.display = 'flex';
-                    // DŮLEŽITÉ: Inicializovat rozbalovací sekce
-                    setTimeout(() => {
-                        initializeSettingsSections();
-                    }, 100);
-                }
-                console.log('📱 Bottom nav: Nastavení');
-            });
-        }
-        
-        // Inicializuj bottom navigation po načtení
-        document.addEventListener('DOMContentLoaded', () => {
-            initBottomNavigation();
-            initSharedRecipes();
-            initRecipeSearch();
-        });
-
-        // ========================================
-        // SDÍLENÉ RECEPTY - SYSTÉM
-        // ========================================
-        
-        async function openSharedRecipesModal() {
-            const modal = document.getElementById('sharedRecipesModal');
-            modal.style.display = 'flex';
-            
-            // Načíst stav toggleu z localStorage
-            const showMyRecipes = localStorage.getItem('showMySharedRecipes') === 'true';
-            const toggle = document.getElementById('showMyRecipesToggle');
-            const label = document.getElementById('showMyRecipesLabel');
-            
-            if (toggle && label) {
-                toggle.checked = showMyRecipes;
-                label.textContent = showMyRecipes ? 'ano' : 'ne';
-                label.style.color = showMyRecipes ? '#4a90e2' : '#999';
-            }
-            
-            // Načíst uživatele s respektem k toggleu
-            await loadUsersWithSharedRecipes(showMyRecipes);
-        }
-        
-        async function loadUsersWithSharedRecipes(showMyRecipes = false) {
-            const usersList = document.getElementById('sharedUsersList');
-            usersList.innerHTML = '<li style="text-align: center; padding: 20px; color: #999;">Načítání uživatelů...</li>';
-            
-            try {
-                // Získat všechny recepty které mají is_shared = 1
-                const { data: sharedRecipes, error: recipesError } = await window.supabaseClient
-                    .from('recipes')
-                    .select('*')
-                    .eq('is_shared', 1);
-                
-                if (recipesError) throw recipesError;
-                
-                // Vyfiltrovat vlastní recepty pokud není showMyRecipes
-                let filteredRecipes = sharedRecipes || [];
-                if (!showMyRecipes && window.currentProfileId) {
-                    filteredRecipes = filteredRecipes.filter(r => r.profile_id !== window.currentProfileId);
-                }
-                
-                if (filteredRecipes.length === 0) {
-                    usersList.innerHTML = '<li style="text-align: center; padding: 20px; color: #999;">😔 Zatím nejsou žádné sdílené recepty</li>';
-                    return;
-                }
-                
-                // Seskupit podle profile_id (ne user_id!)
-                const userRecipesMap = {};
-                for (const recipe of filteredRecipes) {
-                    const profileId = recipe.profile_id;  // Používat profile_id
-                    if (!profileId) continue;
-                    
-                    if (!userRecipesMap[profileId]) {
-                        userRecipesMap[profileId] = {
-                            profileId: profileId,
-                            recipes: []
-                        };
-                    }
-                    userRecipesMap[profileId].recipes.push(recipe);
-                }
-                
-                // Získat jména uživatelů z profiles
-                const profileIds = Object.keys(userRecipesMap);
-                
-                console.log('🔍 Hledám profily pro IDs:', profileIds);
-                
-                // Zkusit bez .in() - možná RLS blokuje
-                const { data: allProfiles, error: allProfilesError } = await window.supabaseClient
-                    .from('profiles')
-                    .select('id, name');
-                
-                console.log('📋 Všechny profily:', allProfiles, 'Error:', allProfilesError);
-                
-                // Použít jen ty které potřebujeme
-                const profiles = allProfiles ? allProfiles.filter(p => profileIds.includes(p.id)) : [];
-                
-                console.log('✅ Filtrované profily:', profiles);
-                
-                const profileMap = {};
-                if (profiles) {
-                    profiles.forEach(p => {
-                        profileMap[p.id] = p.name || 'Neznámý uživatel';
-                    });
-                }
-                
-                // Vygenerovat seznam
-                usersList.innerHTML = '';
-                Object.values(userRecipesMap).forEach(userData => {
-                    const userName = profileMap[userData.profileId] || 'Neznámý uživatel';
-                    const recipeCount = userData.recipes.length;
-                    
-                    const li = document.createElement('li');
-                    li.style.cssText = 'padding: 15px; margin-bottom: 10px; background: #f8f9fa; border-radius: 8px; cursor: pointer; transition: background 0.2s;';
-                    li.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 1rem; color: #333;">👤 ${userName}</div>
-                                <div style="font-size: 0.85rem; color: #666; margin-top: 4px;">${recipeCount} ${recipeCount === 1 ? 'recept' : recipeCount < 5 ? 'recepty' : 'receptů'}</div>
-                            </div>
-                            <div style="color: #4a90e2; font-size: 1.2rem;">→</div>
-                        </div>
-                    `;
-                    
-                    li.addEventListener('mouseover', () => {
-                        li.style.background = '#e3f2fd';
-                    });
-                    li.addEventListener('mouseout', () => {
-                        li.style.background = '#f8f9fa';
-                    });
-                    
-                    li.addEventListener('click', () => {
-                        openUserSharedRecipes(userData.profileId, userName, userData.recipes);
-                    });
-                    
-                    usersList.appendChild(li);
-                });
-                
-            } catch (error) {
-                console.error('Chyba při načítání sdílených receptů:', error);
-                usersList.innerHTML = '<li style="text-align: center; padding: 20px; color: #f44336;">❌ Chyba při načítání</li>';
-            }
-        }
-        
-        function openUserSharedRecipes(profileId, userName, recipes) {
-            // Zavřít modal se seznamem uživatelů
-            document.getElementById('sharedRecipesModal').style.display = 'none';
-            
-            // Otevřít modal s recepty od tohoto uživatele
-            const modal = document.getElementById('userSharedRecipesModal');
-            const title = document.getElementById('userSharedRecipesTitle');
-            const recipesList = document.getElementById('userSharedRecipesList');
-            
-            title.textContent = `Recepty od ${userName}`;
-            
-            // Zobrazit recepty - STEJNÝ STYLING JAKO HLAVNÍ SEZNAM
-            recipesList.innerHTML = '';
-            
-            console.log('📋 Zobrazuji recepty:', recipes);
-            
-            recipes.forEach((recipe, index) => {
-                // VYPOČÍTAT kalorie z ingrediencí (total_calories může být NULL)
-                const totalCalories = calculateRecipeTotalCalories(recipe);
-                
-                console.log(`Recept #${index + 1}:`, recipe.name, 'Kalorie (vypočítané):', totalCalories, 'Porce:', recipe.portions);
-                
-                const li = document.createElement('li');
-                li.className = 'recipe-list-item';  // Použít CSS třídu
-                
-                const portions = recipe.portions || 1;
-                const hasMultiplePortions = recipe.has_multiple_portions === true;
-                
-                let displayCalories = totalCalories;
-                let portionText = '';
-                
-                if (hasMultiplePortions && portions > 1) {
-                    displayCalories = Math.round(totalCalories / portions);
-                    portionText = ` (${portions} ${portions === 2 || portions === 3 || portions === 4 ? 'porce' : 'porcí'})`;
-                }
-                
-                const formattedCalories = displayCalories > 0 ? `${Math.round(displayCalories)} kcal` : '-';
-                
-                console.log(`  → Display: ${formattedCalories}`);
-                
-                li.innerHTML = `
-                    <div class="recipe-number">${index + 1}.</div>
-                    <div class="recipe-name">${recipe.name}${portionText}</div>
-                    <div class="recipe-calories">${formattedCalories}</div>
-                `;
-                
-                li.addEventListener('click', () => {
-                    openSharedRecipeDetail(recipe);
-                });
-                
-                recipesList.appendChild(li);
-            });
-            
-            modal.style.display = 'flex';
-        }
-        
-        async function openSharedRecipeDetail(recipe) {
-            // ZAVŘÍT VŠECHNY MODALY NEJDŘÍV
-            closeAllModalsForSharedRecipe();
-            
-            // Malá pauza aby se zavřely
-            await new Promise(resolve => setTimeout(resolve, 100));
-            
-            // Zkontrolovat jestli je recept vlastní
-            const isMyRecipe = recipe.profile_id === window.currentProfileId;
-            
-            // Otevřít detail receptu - s příznakem že je to sdílený recept
-            await showRecipeDetailsModal(recipe.id, recipe.name, isMyRecipe ? false : true);  // true = isSharedRecipe
-        }
-        
-        function closeAllModalsForSharedRecipe() {
-            // Zavřít všechny modaly sdílených receptů + hlavní seznam receptů
-            const modals = [
-                'sharedRecipesModal',
-                'userSharedRecipesModal',
-                'recipeDetailModal',
-                'selectRecipeModal'  // PŘIDÁNO - hlavní seznam receptů
-            ];
-            
-            modals.forEach(modalId => {
-                const modal = document.getElementById(modalId);
-                if (modal) {
-                    modal.style.display = 'none';
-                }
-            });
-        }
-        
-        // =============================================
-        // VYHLEDÁVÁNÍ V RECEPTECH - LIVE FILTER
-        // =============================================
-
-        // Interní cache načtených receptů pro filtrování
-        window.allLoadedRecipes = [];
-
-        function initRecipeSearch() {
-            const searchInput = document.getElementById('recipeSearchInput');
-            const clearBtn = document.getElementById('recipeClearSearch');
-            if (!searchInput) return;
-
-            searchInput.addEventListener('input', () => {
-                const query = searchInput.value.trim();
-                clearBtn.style.display = query.length > 0 ? 'block' : 'none';
-                filterRecipesList(query);
-            });
-
-            clearBtn.addEventListener('click', () => {
-                searchInput.value = '';
-                clearBtn.style.display = 'none';
-                filterRecipesList('');
-                searchInput.focus();
-            });
-        }
-
-        function filterRecipesList(query) {
-            const list = document.getElementById('existingRecipesList');
-            const countDisplay = document.getElementById('recipeCountDisplay');
-            if (!list) return;
-
-            const items = list.querySelectorAll('li.recipe-list-item');
-            const normalized = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
-            let visibleCount = 0;
-            items.forEach(item => {
-                const nameEl = item.querySelector('.recipe-name');
-                if (!nameEl) return;
-                const name = nameEl.textContent.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                const matches = normalized.length === 0 || name.includes(normalized);
-                if (matches) {
-                    item.style.removeProperty('display');
-                    visibleCount++;
-                } else {
-                    item.style.setProperty('display', 'none', 'important');
-                }
-            });
-
-            // Odstraníme starý "nic nenalezeno" element
-            const existing = list.querySelector('.recipe-search-no-results');
-            if (existing) existing.remove();
-
-            if (visibleCount === 0 && query.length > 0) {
-                const msg = document.createElement('li');
-                msg.className = 'recipe-search-no-results';
-                msg.textContent = `Žádný recept neodpovídá "${query}"`;
-                list.appendChild(msg);
-            }
-
-            // Aktualizuj počítadlo
-            if (countDisplay) {
-                const total = items.length;
-                countDisplay.textContent = query.length > 0
-                    ? `Nalezeno: ${visibleCount} / ${total}`
-                    : `Počet receptů: ${total}`;
-            }
-        }
-
-        function resetRecipeSearch() {
-            const searchInput = document.getElementById('recipeSearchInput');
-            const clearBtn = document.getElementById('recipeClearSearch');
-            if (searchInput) searchInput.value = '';
-            if (clearBtn) clearBtn.style.display = 'none';
-            const items = document.querySelectorAll('#existingRecipesList li.recipe-list-item');
-            items.forEach(item => item.style.removeProperty('display'));
-            const noResults = document.querySelector('#existingRecipesList .recipe-search-no-results');
-            if (noResults) noResults.remove();
-        }
-
-        async function saveRecipeShareStatus(isShared) {
-            // Uložit stav sdílení do aktuálního receptu
-            const recipeId = window.currentRecipeId;
-            if (!recipeId) {
-                console.error('❌ Chybí recipeId');
-                return;
-            }
-            
-            try {
-                const { error } = await window.supabaseClient
-                    .from('recipes')
-                    .update({ is_shared: isShared ? 1 : 0 })
-                    .eq('id', recipeId);
-                
-                if (error) throw error;
-                
-                console.log(`✅ Recept ${recipeId} - sdílení: ${isShared ? 'zapnuto' : 'vypnuto'}`);
-                window.showCustomNotification(
-                    isShared ? '✅ Recept je sdílen s ostatními' : '✅ Sdílení vypnuto', 
-                    'success'
-                );
-            } catch (error) {
-                console.error('Chyba při ukládání stavu sdílení:', error);
-                window.showCustomNotification('❌ Chyba při ukládání', 'error');
-            }
-        }
-        
-        function initSharedRecipes() {
-            // Tlačítko "Sdílené recepty" v hlavním modalu
-            const sharedRecipesBtn = document.getElementById('sharedRecipesBtn');
-            if (sharedRecipesBtn) {
-                sharedRecipesBtn.addEventListener('click', () => {
-                    openSharedRecipesModal();
-                });
-            }
-            
-            // Zavření modalu se seznamem uživatelů
-            const closeSharedRecipesModal = document.getElementById('closeSharedRecipesModal');
-            if (closeSharedRecipesModal) {
-                closeSharedRecipesModal.addEventListener('click', () => {
-                    document.getElementById('sharedRecipesModal').style.display = 'none';
-                });
-            }
-            
-            // Toggle "Zobrazit i moje recepty"
-            const showMyRecipesToggle = document.getElementById('showMyRecipesToggle');
-            const showMyRecipesLabel = document.getElementById('showMyRecipesLabel');
-            if (showMyRecipesToggle && showMyRecipesLabel) {
-                showMyRecipesToggle.addEventListener('change', (e) => {
-                    const showMy = e.target.checked;
-                    showMyRecipesLabel.textContent = showMy ? 'ano' : 'ne';
-                    showMyRecipesLabel.style.color = showMy ? '#4a90e2' : '#999';
-                    
-                    // Uložit do localStorage
-                    localStorage.setItem('showMySharedRecipes', showMy ? 'true' : 'false');
-                    
-                    // Znovu načíst seznam s/bez vlastních receptů
-                    loadUsersWithSharedRecipes(showMy);
-                });
-            }
-            
-            // Zavření modalu s recepty od uživatele
-            const closeUserSharedRecipesModal = document.getElementById('closeUserSharedRecipesModal');
-            if (closeUserSharedRecipesModal) {
-                closeUserSharedRecipesModal.addEventListener('click', () => {
-                    document.getElementById('userSharedRecipesModal').style.display = 'none';
-                });
-            }
-            
-            // Tlačítko "Zpět na uživatele"
-            const backToUsersBtn = document.getElementById('backToUsersBtn');
-            if (backToUsersBtn) {
-                backToUsersBtn.addEventListener('click', () => {
-                    document.getElementById('userSharedRecipesModal').style.display = 'none';
-                    document.getElementById('sharedRecipesModal').style.display = 'flex';
-                });
-            }
-            
-            // Toggle pro sdílení v detailu receptu
-            const recipeShareToggle = document.getElementById('recipeShareToggle');
-            const recipeShareLabel = document.getElementById('recipeShareLabel');
-            if (recipeShareToggle && recipeShareLabel) {
-                recipeShareToggle.addEventListener('change', (e) => {
-                    const isShared = e.target.checked;
-                    recipeShareLabel.textContent = isShared ? 'zapnuto' : 'vypnuto';
-                    recipeShareLabel.style.color = isShared ? '#4a90e2' : '#999';  // Modrá místo zelené
-                    
-                    // Uložit stav sdílení do DB
-                    saveRecipeShareStatus(isShared);
-                });
-            }
-        }
 
     </script>
-    
-    <!-- SPODNÍ NAVIGAČNÍ PANEL -->
-    <nav class="bottom-nav">
-        <!-- LEVÁ STRANA -->
-        <button class="bottom-nav-item" data-view="search" id="bottomNavSearch">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.35-4.35"></path>
-            </svg>
-            <span class="bottom-nav-label">Vyhledat</span>
-        </button>
-        
-        <button class="bottom-nav-item" data-view="recipes" id="bottomNavRecipes">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
-                <path d="M7 2v20"></path>
-                <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
-            </svg>
-            <span class="bottom-nav-label">Recepty</span>
-        </button>
-        
-        <!-- DOMŮ - UPROSTŘED, VĚTŠÍ -->
-        <button class="bottom-nav-item bottom-nav-home active" data-view="home" id="bottomNavHome">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-            <span class="bottom-nav-label">Domů</span>
-        </button>
-        
-        <!-- PRAVÁ STRANA -->
-        <button class="bottom-nav-item" data-view="profile" id="bottomNavProfile">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            <span class="bottom-nav-label">Profil</span>
-        </button>
-        
-        <button class="bottom-nav-item" data-view="settings" id="bottomNavSettings">
-            <img src="{{ url_for('static', filename='icon/nastaveni.png') }}" alt="Nastavení" style="width: 24px; height: 24px; filter: grayscale(1) brightness(0.4);">
-            <span class="bottom-nav-label">Nastavení</span>
-        </button>
-    </nav>
 </body>
-
 
 </html>

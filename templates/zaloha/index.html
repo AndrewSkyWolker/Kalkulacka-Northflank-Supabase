@@ -525,10 +525,6 @@
                     👥 Sdílené recepty
                 </button>
             </div>
-            <div class="recipe-search-wrapper">
-                <input type="text" id="recipeSearchInput" class="recipe-search-input" placeholder="🔍 Hledat recept...">
-                <button id="recipeClearSearch" class="recipe-search-clear" style="display:none;">✕</button>
-            </div>
             <div id="recipeCountDisplay" class="recipe-count-display"></div>
             <div class="recipes-list-container">
                 <ul id="existingRecipesList"></ul>
@@ -826,7 +822,7 @@
                 <div class="setting-section-content">
                     <div class="setting-item" style="flex-direction: column; align-items: flex-start;">
                         <span class="setting-label" style="font-weight: 600; margin-bottom: 8px;">Verze aplikace</span>
-                        <span id="appVersionDisplay" style="color: #666; font-size: 14px;">0.3.3.7 (02.04.2026)</span>
+                        <span id="appVersionDisplay" style="color: #666; font-size: 14px;">0.3.3.6 (01.04.2026)</span>
                     </div>
                 </div>
             </div>
@@ -7880,7 +7876,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.3.3.7 - RECIPE SEARCH");
+            console.log("🚀 Aplikace verze: 0.3.3.6 - CALCULATE CALORIES");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
@@ -8241,7 +8237,6 @@
 
             document.getElementById('closeSelectRecipeModal').addEventListener('click', function () {
                 document.getElementById('selectRecipeModal').style.display = 'none';
-                resetRecipeSearch();
             });
 
             // NOVÝ MODAL - Detail receptu
@@ -8332,7 +8327,6 @@
                 if (event.target === this) {
                     console.log("❌ Kliknuto mimo modal receptů");
                     this.style.display = 'none';
-                    resetRecipeSearch();
                 }
             });
 
@@ -11495,7 +11489,6 @@
                 }
                 
                 console.log('🔒 Všechny modaly zavřeny');
-                resetRecipeSearch();
             }
             
             // DOMŮ - zobrazí denní příjem + ZAVŘE VŠECHNY MODALY + FUNGUJE JAKO "DNES"
@@ -11562,7 +11555,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             initBottomNavigation();
             initSharedRecipes();
-            initRecipeSearch();
         });
 
         // ========================================
@@ -11776,85 +11768,6 @@
             });
         }
         
-        // =============================================
-        // VYHLEDÁVÁNÍ V RECEPTECH - LIVE FILTER
-        // =============================================
-
-        // Interní cache načtených receptů pro filtrování
-        window.allLoadedRecipes = [];
-
-        function initRecipeSearch() {
-            const searchInput = document.getElementById('recipeSearchInput');
-            const clearBtn = document.getElementById('recipeClearSearch');
-            if (!searchInput) return;
-
-            searchInput.addEventListener('input', () => {
-                const query = searchInput.value.trim();
-                clearBtn.style.display = query.length > 0 ? 'block' : 'none';
-                filterRecipesList(query);
-            });
-
-            clearBtn.addEventListener('click', () => {
-                searchInput.value = '';
-                clearBtn.style.display = 'none';
-                filterRecipesList('');
-                searchInput.focus();
-            });
-        }
-
-        function filterRecipesList(query) {
-            const list = document.getElementById('existingRecipesList');
-            const countDisplay = document.getElementById('recipeCountDisplay');
-            if (!list) return;
-
-            const items = list.querySelectorAll('li.recipe-list-item');
-            const normalized = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
-            let visibleCount = 0;
-            items.forEach(item => {
-                const nameEl = item.querySelector('.recipe-name');
-                if (!nameEl) return;
-                const name = nameEl.textContent.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                const matches = normalized.length === 0 || name.includes(normalized);
-                if (matches) {
-                    item.style.removeProperty('display');
-                    visibleCount++;
-                } else {
-                    item.style.setProperty('display', 'none', 'important');
-                }
-            });
-
-            // Odstraníme starý "nic nenalezeno" element
-            const existing = list.querySelector('.recipe-search-no-results');
-            if (existing) existing.remove();
-
-            if (visibleCount === 0 && query.length > 0) {
-                const msg = document.createElement('li');
-                msg.className = 'recipe-search-no-results';
-                msg.textContent = `Žádný recept neodpovídá "${query}"`;
-                list.appendChild(msg);
-            }
-
-            // Aktualizuj počítadlo
-            if (countDisplay) {
-                const total = items.length;
-                countDisplay.textContent = query.length > 0
-                    ? `Nalezeno: ${visibleCount} / ${total}`
-                    : `Počet receptů: ${total}`;
-            }
-        }
-
-        function resetRecipeSearch() {
-            const searchInput = document.getElementById('recipeSearchInput');
-            const clearBtn = document.getElementById('recipeClearSearch');
-            if (searchInput) searchInput.value = '';
-            if (clearBtn) clearBtn.style.display = 'none';
-            const items = document.querySelectorAll('#existingRecipesList li.recipe-list-item');
-            items.forEach(item => item.style.removeProperty('display'));
-            const noResults = document.querySelector('#existingRecipesList .recipe-search-no-results');
-            if (noResults) noResults.remove();
-        }
-
         async function saveRecipeShareStatus(isShared) {
             // Uložit stav sdílení do aktuálního receptu
             const recipeId = window.currentRecipeId;
