@@ -51,17 +51,16 @@ select,
 }
 
 .container {
-    max-width: 700px;
-    margin: 20px auto;
-    background-color: #fff;
+    max-width: 100%;
+    margin: 0;
+    background-color: transparent;
     padding: 0;
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - 40px);
-    overflow: hidden; /* Změněno z overflow-y: auto */
+    border-radius: 0;
+    box-shadow: none;
+    position: static;
+    display: block;
+    height: auto;
+    overflow: visible;
 }
 
 /* Nový layout - statická hlavička */
@@ -70,12 +69,12 @@ select,
     /* Header tlačítka jsou v <header> nahoře, takže toto je prázdné */
 }
 
-/* Scrollovací oblast pro hlavní obsah */
+/* Scrollovací oblast pro hlavní obsah - základní, přepíše se globálním layoutem */
 .main-page-scroll-container {
     flex: 1;
     overflow-y: auto;
-    padding: 3px; /* JEŠTĚ MENŠÍ - 3px pro maximální šířku */
-    padding-top: 140px; /* ZVĚTŠENO aby byl vidět celý graf pod headerem */
+    padding: 3px;
+    padding-top: 140px;
 }
 
 .settings-icon {
@@ -126,12 +125,10 @@ button {
 /* Každé tlačítko má vlastní hover styl */
 
 .main-fixed-header {
-    position: fixed;
+    position: absolute;
     top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: 700px;
-    width: 100%;
+    left: 0;
+    right: 0;
     background-color: #fff;
     padding: 10px 15px 5px 15px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
@@ -4909,20 +4906,266 @@ select.form-input {
 }
 
 /* MOBILNÍ OPTIMALIZACE */
-@media (max-width: 768px) {
-    .ingredient-actions-vertical button,
-    .recipe-ingredients .ingredient-actions button {
-        min-width: 40px !important; /* VĚTŠÍ PRO DOTEK */
-        min-height: 40px !important;
-        padding: 8px !important;
-    }
-    
-    .ingredient-actions-vertical button img,
-    .recipe-ingredients .ingredient-actions button img {
-        width: 20px !important; /* VĚTŠÍ IKONY */
-        height: 20px !important;
-    }
+/* ============================================= */
+/* GLOBÁLNÍ LAYOUT - STEJNÝ NA MOBILU I DESKTOPU */
+/* ============================================= */
+
+:root {
+    --app-max-width: 800px;
 }
+
+html, body {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: #f0f0f0; /* Šedé pozadí mimo aplikaci */
+}
+
+/* WRAPPER - omezuje celou aplikaci na max šířku */
+.app-wrapper {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: var(--app-max-width);
+    height: 100vh;
+    height: 100dvh;
+    background: white;
+    overflow: hidden;
+    border-left: 1px solid #e0e0e0;
+    border-right: 1px solid #e0e0e0;
+    box-shadow: 0 0 30px rgba(0,0,0,0.15);
+}
+
+/* Modal overlay - uvnitř wrapperu */
+.modal-overlay {
+    position: absolute !important;
+    width: 100% !important;
+    height: 100% !important;
+    left: 0 !important;
+    top: 0 !important;
+}
+
+/* Hlavička - uvnitř wrapperu */
+.main-fixed-header {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    transform: none !important;
+    margin: 0 !important;
+    padding: 5px 10px !important;
+    z-index: 999;
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+    box-sizing: border-box !important;
+}
+
+/* Skrýt horní řádek s tlačítky */
+.header-row.top-row {
+    display: none !important;
+}
+
+/* Datum a šipky */
+.daily-intake-header {
+    padding: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+}
+
+.date-selector {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Skrýt tlačítko "dnes" */
+.today-text-btn {
+    display: none !important;
+}
+
+/* Scrollovatelná oblast */
+.main-page-scroll-container {
+    position: absolute !important;
+    top: 50px !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 90px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    background: white;
+    z-index: 1;
+    padding: 0 10px 15px 10px !important;
+    box-sizing: border-box !important;
+}
+
+/* dailyIntakeSection */
+#dailyIntakeSection {
+    position: static !important;
+    overflow: visible !important;
+    padding: 0 !important;
+}
+
+/* Container */
+.container {
+    height: auto !important;
+    overflow: visible !important;
+}
+
+/* Padding intake-overview */
+.intake-overview {
+    padding-top: 22px !important;
+}
+
+/* Meal sections */
+.meal-section {
+    margin-bottom: 20px !important;
+    padding-bottom: 0 !important;
+}
+
+.meal-section:last-child {
+    margin-bottom: 40px !important;
+}
+
+#dailyIntakeSection > * {
+    position: relative !important;
+}
+
+/* Spodní navigace */
+.bottom-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px calc(8px + env(safe-area-inset-bottom)) 20px;
+    z-index: 1000;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    height: 85px;
+    box-sizing: border-box;
+}
+
+.bottom-nav-item {
+    flex: 0 1 auto;
+    min-width: 60px;
+    max-width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 0;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    margin-bottom: 3px;
+}
+
+.bottom-nav-item.bottom-nav-home {
+    margin-bottom: 0;
+}
+
+.bottom-nav-home svg {
+    width: 32px !important;
+    height: 32px !important;
+    background: #4a90e2;
+    stroke: white !important;
+    border-radius: 50%;
+    padding: 6px;
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+}
+
+.bottom-nav-home.active svg {
+    background: #357abd;
+}
+
+.bottom-nav-item svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 2;
+}
+
+.bottom-nav-label {
+    font-size: 11px;
+    font-weight: 500;
+}
+
+body.hide-nav-labels .bottom-nav-label {
+    display: none;
+}
+
+.bottom-nav-item.active {
+    color: #4a90e2;
+}
+
+.bottom-nav-item.active img {
+    filter: grayscale(0) brightness(1) !important;
+}
+
+.bottom-nav-item:active {
+    transform: scale(0.95);
+}
+
+/* Menší text nutrientů v denním příjmu */
+.meal-item-details,
+.meal-item-details span {
+    font-size: 0.7em !important;
+}
+
+/* Menší obrázky potravin */
+.food-item-potravina .image-wrapper img {
+    width: 60px !important;
+    height: 60px !important;
+}
+
+.food-item-potravina .calories-display {
+    font-size: 0.7em !important;
+}
+
+/* Modaly */
+#recipeDetailModal .modal-content {
+    max-height: calc(100vh - 90px - 5px) !important;
+    max-height: calc(100dvh - 90px - 5px) !important;
+}
+
+#customRecipeModal .modal-content {
+    margin-top: 10px !important;
+    max-height: calc(100vh - 90px - 20px - 10px) !important;
+    max-height: calc(100dvh - 90px - 20px - 10px) !important;
+}
+
+/* Větší touch targety pro ingredience */
+.ingredient-actions-vertical button,
+.recipe-ingredients .ingredient-actions button {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    padding: 8px !important;
+}
+
+.ingredient-actions-vertical button img,
+.recipe-ingredients .ingredient-actions button img {
+    width: 20px !important;
+    height: 20px !important;
+}
+
+
 
 
 /* ============================================= */
@@ -6092,231 +6335,209 @@ button:focus-visible,
 /* MOBILNÍ LAYOUT - FIXED HEADER + BOTTOM NAV */
 /* ============================================= */
 
-@media (max-width: 767px) {
-    /* Pevný layout pro mobil */
-    html, body {
-        height: 100vh;
-        height: 100dvh;
-        overflow: hidden;
-        position: fixed;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-    }
-    
-    /* Hlavička na celou šířku */
-    .main-fixed-header {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        width: 100vw !important;
-        max-width: 100vw !important;
-        transform: none !important;
-        margin: 0 !important;
-        padding: 5px 10px !important;
-        z-index: 999;
-        background: white;
-        border-bottom: 1px solid #e0e0e0;
-        box-sizing: border-box !important;
-    }
-    
-    /* Skrýt horní řádek s tlačítky */
-    .header-row.top-row {
-        display: none !important;
-    }
-    
-    /* Datum a šipky */
-    .daily-intake-header {
-        padding: 0 !important;
-        width: 100% !important;
-        margin: 0 !important;
-    }
-    
-    .date-selector {
-        width: 100% !important;
-        display: flex !important;
-        justify-content: center !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    
-    /* Skrýt tlačítko "dnes" */
-    .today-text-btn {
-        display: none !important;
-    }
-    
-    /* Scrollovatelná oblast - aplikovat na scroll-container */
-    .main-page-scroll-container {
-        position: fixed !important;
-        top: 50px !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 70px !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-        -webkit-overflow-scrolling: touch;
-        background: white;
-        z-index: 1;
-        padding: 0 10px 15px 10px !important;  /* Zmenšeno z 50px na 15px */
-        box-sizing: border-box !important;
-    }
-    
-    /* dailyIntakeSection - resetovat */
-    #dailyIntakeSection {
-        position: static !important;
-        overflow: visible !important;
-        padding: 0 !important;
-    }
-    
-    /* Desktop container */
-    .container {
-        height: auto !important;
-        overflow: visible !important;
-    }
-    
-    /* ODSTRANIT padding z .intake-overview nahoře */
-    .intake-overview {
-        padding-top: 22px !important;  /* Zvýšeno z 17px na 22px (+5px) */
-    }
-    
-    /* Extra padding pro meal sections aby byly vidět */
-    .meal-section {
-        margin-bottom: 20px !important;
-        padding-bottom: 0 !important;
-    }
-    
-    /* Poslední meal section má větší margin */
-    .meal-section:last-child {
-        margin-bottom: 40px !important;
-    }
-    
-    /* Reset všech potomků aby se scrollovaly správně */
-    #dailyIntakeSection > * {
-        position: relative !important;
-    }
-    
-    /* Spodní navigace */
-    .bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: white;
-        border-top: 1px solid #e0e0e0;
-        display: flex;
-        justify-content: center;  /* Změněno z space-around na center */
-        align-items: center;
-        gap: 10px;  /* Přidán gap mezi ikonami */
-        padding: 8px 20px calc(8px + env(safe-area-inset-bottom)) 20px;  /* Přidán horizontal padding */
-        z-index: 1000;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-        height: 60px;
-    }
-    
-    .bottom-nav-item {
-        flex: 0 1 auto;  /* Změněno z flex: 1 - ikony nezabírají celou šířku */
-        min-width: 60px;  /* Minimální šířka pro každou ikonu */
-        max-width: 80px;  /* Maximální šířka */
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        padding: 6px 0;
-        background: none;
-        border: none;
-        color: #666;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        -webkit-tap-highlight-color: transparent;
-    }
-    
-    .bottom-nav-home svg {
-        width: 32px !important;
-        height: 32px !important;
-        background: #4a90e2;
-        stroke: white !important;
-        border-radius: 50%;
-        padding: 6px;
-        box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
-    }
-    
-    .bottom-nav-home.active svg {
-        background: #357abd;
-    }
-    
-    .bottom-nav-item svg {
-        width: 24px;
-        height: 24px;
-        stroke-width: 2;
-    }
-    
-    .bottom-nav-label {
-        font-size: 11px;
-        font-weight: 500;
-    }
-    
-    body.hide-nav-labels .bottom-nav-label {
-        display: none;
-    }
-    
-    .bottom-nav-item.active {
-        color: #4a90e2;
-    }
-    
-    .bottom-nav-item.active img {
-        filter: grayscale(0) brightness(1) !important;
-    }
-    
-    .bottom-nav-item:active {
-        transform: scale(0.95);
-    }
-    
-    /* MENŠÍ TEXT NUTRIENTŮ V DENNÍM PŘÍJMU */
-    .meal-item-details,
-    .meal-item-details span {
-        font-size: 0.7em !important;  /* Menší text */
-    }
-    
-    /* MENŠÍ OBRÁZKY POTRAVIN V DENNÍM PŘÍJMU */
-    .food-item-potravina .image-wrapper img {
-        width: 60px !important;  /* Bylo 80px inline */
-        height: 60px !important;
-    }
-    
-    /* MENŠÍ TEXT KALORIÍ U PŘIDANÝCH POTRAVIN */
-    .food-item-potravina .calories-display {
-        font-size: 0.7em !important;
-    }
-    
-    /* DETAIL RECEPTU - končí 5px nad bottom nav */
-    #recipeDetailModal .modal-content {
-        max-height: calc(100vh - 70px - 5px) !important;
-        max-height: calc(100dvh - 70px - 5px) !important;
-    }
-    
-    /* VYTVOŘENÍ VLASTNÍHO RECEPTU - horní +10px dolů, spodní +20px nahoru */
-    #customRecipeModal .modal-content {
-        margin-top: 10px !important;  /* Horní hrana 10px dolů */
-        max-height: calc(100vh - 70px - 20px - 10px) !important;  /* Spodní +20px nahoru, horní +10px */
-        max-height: calc(100dvh - 70px - 20px - 10px) !important;
-    }
+/* ============================================= */
+/* ============================================= */
+/* DETAIL GRAFU - OVERLAY */
+/* ============================================= */
+
+.chart-clickable {
+    cursor: pointer;
 }
 
-/* Desktop - normální zobrazení */
-@media (min-width: 768px) {
-    .bottom-nav {
-        display: none !important;
-    }
-    
-    html, body {
-        position: static;
-        overflow: visible;
-        height: auto;
-    }
-    
-    #dailyIntakeSection {
-        position: static !important;
-        overflow: visible !important;
-    }
+.chart-clickable:hover,
+.chart-clickable:active,
+.chart-clickable:focus {
+    transform: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.chart-detail-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% - 80px);
+    max-width: 400px;
+    background: white;
+    border-radius: 12px;
+    z-index: 100;
+    padding: 16px 16px 12px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+}
+
+@keyframes overlayFadeIn {
+    from { opacity: 0; transform: scaleY(0.95); transform-origin: top; }
+    to   { opacity: 1; transform: scaleY(1); }
+}
+
+.chart-detail-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Horní část – velký graf na středu */
+.chart-detail-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
+
+.chart-detail-big {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.chart-detail-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 6px;
+    text-align: center;
+}
+
+.chart-detail-big .circular-chart {
+    width: 140px;
+    height: 140px;
+    margin-bottom: 6px;
+}
+
+.chart-detail-main-value {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #333;
+    text-align: center;
+}
+
+.chart-detail-main-label {
+    font-size: 0.78rem;
+    color: #6c757d;
+    text-align: center;
+    margin-top: 2px;
+}
+
+/* Spodní část – podkategorie pod grafem */
+.chart-detail-subcategories {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.chart-sub-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 3px solid #ddd;
+}
+
+.chart-sub-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.chart-sub-name {
+    flex: 1;
+    font-size: 0.82rem;
+    color: #555;
+    font-weight: 500;
+}
+
+.chart-sub-value {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #333;
+    white-space: nowrap;
+}
+
+.chart-detail-hint {
+    text-align: center;
+    font-size: 0.7rem;
+    color: #bbb;
+    margin-top: 2px;
+}
+
+/* ============================================= */
+/* ============================================= */
+
+.recipe-search-wrapper {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.recipe-search-input {
+    width: 100%;
+    padding: 10px 40px 10px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+    background: #f8f9fa;
+    color: #333;
+}
+
+.recipe-search-input:focus {
+    outline: none;
+    border-color: #4a90e2;
+    background: #fff;
+}
+
+.recipe-search-input::placeholder {
+    color: #aaa;
+}
+
+.recipe-search-clear {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px 6px;
+    line-height: 1;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.recipe-search-clear:hover {
+    background: #e9ecef;
+    color: #333;
+}
+
+.recipe-search-no-results {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    padding: 20px;
+    font-size: 0.95rem;
+}
+
+/* Skrytí položky při filtrování - musí přebít vše včetně .recipe-list-item display:grid/flex !important */
+li.recipe-hidden,
+#selectRecipeModal li.recipe-hidden,
+#existingRecipesList li.recipe-hidden,
+#existingRecipesList li.recipe-list-item.recipe-hidden,
+#existingRecipesList li.recipe-list-item.with-actions.recipe-hidden {
+    display: none !important;
+    padding: 0 !important;
+    border: none !important;
+    margin: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
 }
