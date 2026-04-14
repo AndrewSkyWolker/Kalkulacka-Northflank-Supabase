@@ -1091,6 +1091,8 @@ button {
 #settingsModal .modal-content {
     max-width: 450px !important;
     width: 90% !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
     text-align: left;
     display: flex;
     flex-direction: column;
@@ -6521,8 +6523,6 @@ button:focus-visible,
 }
 
 .recipe-search-no-results {
-    text-align: center;
-    color: #888;
     font-style: italic;
     padding: 20px;
     font-size: 0.95rem;
@@ -6540,4 +6540,18 @@ li.recipe-hidden,
     margin: 0 !important;
     height: 0 !important;
     overflow: hidden !important;
+}
+
+/* Popisný text v nastavení */
+.setting-description {
+    font-size: 0.78rem;
+    color: #666;
+    margin: 2px 0 0 0;
+    padding: 6px 8px;
+    background: #f8f9fa;
+    border-left: 3px solid #4a90e2;
+    border-radius: 4px;
+    line-height: 1.4;
+    width: 100%;
+    box-sizing: border-box;
 }

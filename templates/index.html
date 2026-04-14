@@ -615,11 +615,6 @@
                             <option value="10">10 porcí</option>
                         </select>
                     </div>
-                    
-                    <!-- Popisek -->
-                    <p style="font-size: 0.8rem; color: #666; margin: 0;">
-                        Recept se uloží s celkovými hodnotami všech porcí. V seznamu se zobrazí kalorie na 1 porci.
-                    </p>
                 </div>
                 
                 <!-- TOGGLE PRO SDÍLENÍ RECEPTU -->
@@ -634,9 +629,6 @@
                             </div>
                         </label>
                     </div>
-                    <p style="font-size: 0.8rem; color: #666; margin: 8px 0 0 0;">
-                        Ostatní uživatelé uvidí tento recept v sekci "Sdílené recepty" a budou ho moci přidat do svých receptů.
-                    </p>
                 </div>
                 
                 <div class="recipe-detail-calories" id="recipeDetailCalories">0 kcal</div>
@@ -810,11 +802,35 @@
                 </div>
                 <div class="setting-section-content">
                     <div class="setting-item">
-                        <span class="setting-label">Popisky ve spodní navigaci</span>
+                        <span class="setting-label">Popisky ikon navigační lišty</span>
                         <label class="toggle-switch">
                             <input type="checkbox" id="showNavLabelsToggle" checked>
                             <span class="slider"></span>
                         </label>
+                    </div>
+                    <div class="setting-item" style="flex-direction: column; align-items: flex-start; gap: 6px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <span class="setting-label">Recept s více porcemi</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="showMultiPortionToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <p id="multiPortionSettingText" class="setting-description" style="display: none;">
+                            Recept se uloží s celkovými hodnotami všech porcí. V seznamu se zobrazí kalorie na 1 porci.
+                        </p>
+                    </div>
+                    <div class="setting-item" style="flex-direction: column; align-items: flex-start; gap: 6px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <span class="setting-label">Sdílení receptů</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="showRecipeSharingToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <p id="recipeSharingSettingText" class="setting-description" style="display: none;">
+                            Ostatní uživatelé uvidí tento recept v sekci "Sdílené recepty" a budou ho moci přidat do svých receptů.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -826,9 +842,9 @@
                     <span class="setting-section-arrow">▼</span>
                 </div>
                 <div class="setting-section-content">
-                    <div class="setting-item" style="flex-direction: column; align-items: flex-start;">
+                    <div class="setting-item" style="flex-direction: column; align-items: center;">
                         <span class="setting-label" style="font-weight: 600; margin-bottom: 8px;">Verze aplikace</span>
-                        <span id="appVersionDisplay" style="color: #666; font-size: 14px;">0.3.4.11 (13.04.2026)</span>
+                        <span id="appVersionDisplay" style="color: #666; font-size: 14px;">0.3.4.13 (14.04.2026)</span>
                     </div>
                 </div>
             </div>
@@ -3837,15 +3853,16 @@
                 confirmRecipeSaveSuccess: true,
                 confirmRecipeDeletionSuccess: true,
                 confirmRecipeDeletionError: true,
-                // NOVÉ:
                 confirmRecipeAddedToMeal: true,
                 confirmFoodAddedToMeal: true,
                 confirmItemEditSuccess: true,
                 confirmItemDeletionSuccess: true,
                 confirmMealDeletionSuccess: true,
                 confirmRecipeSaveAsSuccess: true,
-                confirmRecipeUpdateSuccess: true
-                // ODSTRANĚNO: confirmSaveChanges, confirmProfileCreation, confirmPortionsSaveSuccess
+                confirmRecipeUpdateSuccess: true,
+                // ZOBRAZENÍ:
+                showMultiPortion: false,
+                showRecipeSharing: false
             };
         }
 
@@ -3877,26 +3894,32 @@
                 'confirmFoodAdditionToggle',
                 'confirmDeleteRecipeToggle',
                 'confirmDeleteRecipeItemToggle',
-                
                 'confirmRecipeDeletionSuccessToggle',
                 'confirmRecipeDeletionErrorToggle',
-                // NOVÉ:
                 'confirmRecipeAddedToMealToggle',
                 'confirmFoodAddedToMealToggle',
                 'confirmItemEditSuccessToggle',
                 'confirmItemDeletionSuccessToggle',
                 'confirmMealDeletionSuccessToggle',
                 'confirmRecipeSaveAsSuccessToggle',
-                'confirmRecipeUpdateSuccessToggle'
+                'confirmRecipeUpdateSuccessToggle',
+                'showMultiPortionToggle',
+                'showRecipeSharingToggle'
             ];
 
             toggleIds.forEach(toggleId => {
                 const toggle = document.getElementById(toggleId);
                 if (toggle) {
                     const settingKey = toggleId.replace('Toggle', '');
-                    toggle.checked = userSettings[settingKey];
+                    toggle.checked = userSettings[settingKey] ?? false;
                 }
             });
+
+            // Zobrazit/skrýt popisné texty podle stavu
+            const multiPortionText = document.getElementById('multiPortionSettingText');
+            const sharingText = document.getElementById('recipeSharingSettingText');
+            if (multiPortionText) multiPortionText.style.display = userSettings.showMultiPortion ? 'block' : 'none';
+            if (sharingText) sharingText.style.display = userSettings.showRecipeSharing ? 'block' : 'none';
         }
 
         async function initializeSettingsForNewProfile(profileId) {
@@ -5745,9 +5768,9 @@
                 const portionsSelect = document.getElementById('recipePortionsSelect');
                 const savePortionsBtn = document.getElementById('saveRecipePortionsBtn');
                 
-                // Zobrazit jen pokud je uživatel vlastníkem a NENÍ to vlastní recept
+                // Zobrazit jen pokud je uživatel vlastníkem, NENÍ to vlastní recept A má zapnuté v nastavení
                 const isOwner = recipeData.user_id === window.currentUser?.id;
-                if (isOwner && !isCustomRecipe && multiPortionSection) {
+                if (isOwner && !isCustomRecipe && multiPortionSection && userSettings.showMultiPortion) {
                     multiPortionSection.style.display = 'block';
                     
                     // Načíst hodnoty - NEJDŘÍV z cache (neuložené změny), pak z DB
@@ -5809,9 +5832,9 @@
                     multiPortionSection.style.display = 'none';
                 }
                 
-                // ZOBRAZIT TOGGLE PRO SDÍLENÍ - jen pro vlastníka
+                // ZOBRAZIT TOGGLE PRO SDÍLENÍ - jen pro vlastníka a pokud má zapnuté v nastavení
                 const shareRecipeSection = document.getElementById('shareRecipeSection');
-                if (isOwner && !isCustomRecipe && shareRecipeSection) {
+                if (isOwner && !isCustomRecipe && shareRecipeSection && userSettings.showRecipeSharing) {
                     shareRecipeSection.style.display = 'block';
                     
                     // Načíst stav sdílení z DB
@@ -6389,7 +6412,7 @@
                             content.style.opacity = "0";
                             if (arrow) arrow.style.transform = 'rotate(0deg)';
                         } else {
-                            content.style.maxHeight = content.scrollHeight + "px";
+                            content.style.maxHeight = "2000px";
                             content.style.opacity = "1";
                             if (arrow) arrow.style.transform = 'rotate(180deg)';
                         }
@@ -7909,7 +7932,7 @@
         // INICIALIZACE APLIKACE
         // =============================================
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log("🚀 Aplikace verze: 0.3.4.11 - NAV ICONS SHIFT");
+            console.log("🚀 Aplikace verze: 0.3.4.13 - SETTINGS SCROLL + SECTION FIX");
             console.log("🏠 DOM načten, hledám elementy...");
 
             // Přidání CSS
@@ -8500,10 +8523,8 @@
                 'confirmFoodAdditionToggle',
                 'confirmDeleteRecipeToggle',
                 'confirmDeleteRecipeItemToggle',
-                
                 'confirmRecipeDeletionSuccessToggle',
                 'confirmRecipeDeletionErrorToggle',
-                // NOVÉ:
                 'confirmRecipeAddedToMealToggle',
                 'confirmFoodAddedToMealToggle',
                 'confirmItemEditSuccessToggle',
@@ -8523,6 +8544,28 @@
                     });
                 }
             });
+
+            // Toggle - Recept s více porcemi
+            const showMultiPortionToggle = document.getElementById('showMultiPortionToggle');
+            if (showMultiPortionToggle) {
+                showMultiPortionToggle.addEventListener('change', function () {
+                    userSettings.showMultiPortion = this.checked;
+                    const text = document.getElementById('multiPortionSettingText');
+                    if (text) text.style.display = this.checked ? 'block' : 'none';
+                    saveUserSettings();
+                });
+            }
+
+            // Toggle - Sdílení receptů
+            const showRecipeSharingToggle = document.getElementById('showRecipeSharingToggle');
+            if (showRecipeSharingToggle) {
+                showRecipeSharingToggle.addEventListener('change', function () {
+                    userSettings.showRecipeSharing = this.checked;
+                    const text = document.getElementById('recipeSharingSettingText');
+                    if (text) text.style.display = this.checked ? 'block' : 'none';
+                    saveUserSettings();
+                });
+            }
 
             // Event listener pro kliknutí na profil
             const profileDisplay = document.getElementById('currentProfileDisplay');
